@@ -1,0 +1,81 @@
+/* Badge.css */
+
+/* Réinitialisation IonBadge */
+.cfi-badge {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.3em;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1.5px solid transparent;
+  transition: opacity 0.15s, transform 0.15s;
+  line-height: 1;
+  border-radius: 6px !important;
+  text-transform: none !important;
+  letter-spacing: 0;
+}
+
+/* Tailles */
+.cfi-badge--sm { font-size: 0.65rem !important; padding: 0.2em 0.55em !important; }
+.cfi-badge--md { font-size: 0.74rem !important; padding: 0.3em 0.72em !important; }
+.cfi-badge--lg { font-size: 0.84rem !important; padding: 0.4em 0.9em  !important; }
+
+/* Pill */
+.cfi-badge--pill { border-radius: 999px !important; }
+
+/* Variantes — surcharge la couleur IonBadge */
+.cfi-badge--default {
+  --ion-color-base: rgba(var(--ion-color-primary-rgb), 0.12) !important;
+  color: var(--ion-color-primary-shade) !important;
+  border-color: rgba(var(--ion-color-primary-rgb), 0.22) !important;
+  background: rgba(var(--ion-color-primary-rgb), 0.12) !important;
+}
+.cfi-badge--success {
+  background: rgba(var(--ion-color-success-rgb), 0.12) !important;
+  color: var(--ion-color-success-shade) !important;
+  border-color: rgba(var(--ion-color-success-rgb), 0.22) !important;
+}
+.cfi-badge--warning {
+  background: rgba(var(--ion-color-warning-rgb), 0.14) !important;
+  color: var(--ion-color-warning-shade) !important;
+  border-color: rgba(var(--ion-color-warning-rgb), 0.25) !important;
+}
+.cfi-badge--danger {
+  background: rgba(var(--ion-color-danger-rgb), 0.12) !important;
+  color: var(--ion-color-danger-shade) !important;
+  border-color: rgba(var(--ion-color-danger-rgb), 0.22) !important;
+}
+.cfi-badge--info {
+  background: rgba(var(--ion-color-tertiary-rgb, 82,96,255), 0.12) !important;
+  color: var(--ion-color-tertiary, #5260ff) !important;
+  border-color: rgba(var(--ion-color-tertiary-rgb, 82,96,255), 0.2) !important;
+}
+.cfi-badge--secondary {
+  background: var(--ion-color-light) !important;
+  color: var(--ion-color-medium) !important;
+  border-color: var(--ion-color-light-shade) !important;
+}
+.cfi-badge--outline {
+  background: transparent !important;
+  color: var(--ion-color-dark) !important;
+  border-color: var(--ion-color-medium) !important;
+}
+
+/* Point */
+.cfi-badge__dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
+}
+/* Icône */
+.cfi-badge__icon { font-size: 0.85em; flex-shrink: 0; }
+/* Texte */
+.cfi-badge__text { line-height: 1; }
+
+/* Cliquable */
+.cfi-badge--clickable { cursor: pointer; }
+.cfi-badge--clickable:hover  { opacity: 0.82; }
+.cfi-badge--clickable:active { transform: scale(0.95); }

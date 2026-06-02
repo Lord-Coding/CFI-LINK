@@ -1,0 +1,179 @@
+/* Register.css */
+
+.register-content {
+  --background: var(--ion-background-color, #ffffff);
+}
+
+.register-grid,
+.register-row { height: 100%; min-height: 100vh; }
+
+/* ── Héro desktop ── */
+.register-hero-col { display: none; }
+
+@media (min-width: 992px) {
+  .register-hero-col { display: block; }
+}
+
+.register-hero {
+  position: relative;
+  height: 100%; min-height: 100vh;
+  background: linear-gradient(135deg, #1a6b4a, #2ecc71);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.register-hero-overlay {
+  position: absolute; inset: 0;
+  background-image: url('/assets/login-illustration.jpg');
+  background-size: cover; background-position: center;
+  opacity: 0.18;
+}
+
+.register-hero-body {
+  position: relative; z-index: 1;
+  text-align: center; padding: 3rem; max-width: 400px;
+}
+
+.register-hero-logo {
+  width: 72px; height: 72px; border-radius: 20px;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 2rem;
+}
+.register-hero-logo ion-icon { font-size: 2.25rem; color: #fff; }
+
+.register-hero-title {
+  font-size: 2rem; font-weight: 700; color: #fff; margin: 0 0 1rem; line-height: 1.2;
+}
+.register-hero-sub {
+  font-size: 1rem; color: rgba(255,255,255,0.78); line-height: 1.6; margin: 0;
+}
+
+/* ── Colonne formulaire ── */
+.register-form-col {
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 2rem 1.25rem;
+}
+
+.register-form-wrapper {
+  width: 100%; max-width: 440px; padding-bottom: 2rem;
+}
+
+/* Logo mobile */
+.register-mobile-logo {
+  display: flex; align-items: center; gap: 0.6rem;
+  text-decoration: none; margin-bottom: 2rem;
+}
+
+.register-mobile-logo-icon {
+  width: 38px; height: 38px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  display: flex; align-items: center; justify-content: center;
+}
+.register-mobile-logo-icon ion-icon { font-size: 1.3rem; color: #fff; }
+.register-mobile-logo-text { font-size: 1.25rem; font-weight: 700; color: var(--ion-color-dark); }
+
+@media (min-width: 992px) {
+  .register-mobile-logo { display: none; }
+  .register-form-col    { align-items: center; }
+}
+
+/* ── Étapes ── */
+.register-step { width: 100%; }
+
+.register-title {
+  font-size: 1.65rem; font-weight: 700;
+  color: var(--ion-color-dark); margin: 0 0 0.3rem;
+}
+.register-subtitle {
+  font-size: 0.9rem; color: var(--ion-color-medium);
+  margin: 0 0 1.5rem; line-height: 1.5;
+}
+
+/* Bouton retour — Button UI CFI */
+.register-back-btn {
+  --padding-start: 0;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Cartes de choix — Card UI CFI ── */
+.register-type-cards { display: flex; flex-direction: column; gap: 0.875rem; }
+
+/* Surcharge léger de la Card UI pour matcher l'ancien look */
+.register-type-card-cfi {
+  margin: 0 !important;
+  cursor: pointer;
+}
+
+.register-type-card-title {
+  font-size: 1rem; font-weight: 600;
+  color: var(--ion-color-dark); margin: 0 0 0.3rem;
+}
+.register-type-card-desc {
+  font-size: 0.83rem; color: var(--ion-color-medium);
+  line-height: 1.5; margin: 0;
+}
+
+/* ── Champs ── */
+.register-form { display: flex; flex-direction: column; gap: 0.875rem; }
+
+.register-input-item {
+  --border-radius: 12px;
+  --padding-start: 0.875rem;
+  --inner-padding-end: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--ion-color-light-shade);
+  transition: border-color 0.2s;
+}
+.register-input-item:focus-within { border-color: var(--ion-color-primary); }
+
+.register-row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+.register-eye-btn {
+  --color: var(--ion-color-medium);
+  align-self: flex-end; margin-bottom: 4px;
+}
+
+/* Bannière concours — Card UI CFI */
+.register-concours-card {
+  margin: 0 !important;
+  background: var(--ion-color-light) !important;
+}
+.register-concours-text {
+  font-size: 0.88rem; color: var(--ion-color-dark); line-height: 1.5; margin: 0;
+}
+
+/* Bouton submit — Button UI CFI */
+.register-submit-btn { margin-top: 0.25rem; }
+
+/* ── Succès ── */
+.register-success {
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center;
+  padding: 1.5rem 0; gap: 0.75rem;
+}
+
+.register-success-icon {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(var(--ion-color-success-rgb), 0.1);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 0.25rem;
+}
+.register-success-icon ion-icon { font-size: 2.75rem; color: var(--ion-color-success); }
+
+.register-success-title {
+  font-size: 1.5rem; font-weight: 700; color: var(--ion-color-dark); margin: 0;
+}
+.register-success-msg {
+  font-size: 0.9rem; color: var(--ion-color-medium);
+  line-height: 1.6; margin: 0 0 0.25rem; max-width: 360px;
+}
+
+/* ── Lien bas de page ── */
+.register-login-link {
+  text-align: center; font-size: 0.88rem;
+  color: var(--ion-color-medium); margin-top: 1.5rem;
+}
+.register-link {
+  color: var(--ion-color-primary); font-weight: 600; text-decoration: none;
+}
+.register-link:hover { text-decoration: underline; }

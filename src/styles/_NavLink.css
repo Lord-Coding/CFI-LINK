@@ -1,0 +1,50 @@
+/* NavLink.css
+ *
+ * Styles de base pour les liens NavLink custom.
+ * Importer dans le composant parent qui utilise <NavLink>.
+ */
+
+/* Lien de base */
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ion-color-medium);
+  transition: color 0.18s ease, background-color 0.18s ease;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  color: var(--ion-color-primary);
+  background-color: rgba(var(--ion-color-primary-rgb), 0.08);
+}
+
+/* État actif */
+.nav-link--active {
+  color: var(--ion-color-primary);
+  background-color: rgba(var(--ion-color-primary-rgb), 0.1);
+  font-weight: 600;
+}
+
+/* État en attente (transition de route) */
+.nav-link--pending {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Variante "pill" pour usage dans les onglets horizontaux */
+.nav-link--pill {
+  border-radius: 20px;
+  padding: 0.35rem 1rem;
+}
+
+.nav-link--pill.nav-link--active {
+  background-color: var(--ion-color-primary);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(var(--ion-color-primary-rgb), 0.3);
+}

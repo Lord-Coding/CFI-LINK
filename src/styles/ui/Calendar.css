@@ -1,0 +1,175 @@
+/* Calendar.css */
+
+.cfi-calendar {
+  --cal-accent:      var(--ion-color-primary);
+  --cal-accent-rgb:  var(--ion-color-primary-rgb);
+  --cal-bg:          var(--ion-background-color, #fff);
+  --cal-border:      var(--ion-color-light-shade);
+  --cal-text:        var(--ion-color-dark);
+  --cal-muted:       var(--ion-color-medium);
+  --cal-cell-size:   38px;
+
+  display: inline-flex;
+  flex-direction: column;
+  background: var(--cal-bg);
+  border-radius: 16px;
+  border: 1px solid var(--cal-border);
+  padding: 1rem;
+  user-select: none;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+  width: 100%;
+  max-width: 340px;
+}
+
+/* ── Navigation ── */
+.cfi-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.cfi-cal-nav-btn {
+  --color: var(--cal-muted);
+  --padding-start: 4px;
+  --padding-end: 4px;
+}
+
+.cfi-cal-month-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--cal-text);
+  text-transform: capitalize;
+}
+
+/* ── Grille ── */
+.cfi-cal-grid {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* En-têtes jours */
+.cfi-cal-head-cell {
+  width: var(--cal-cell-size);
+  height: 28px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--cal-muted);
+  padding: 0;
+}
+
+/* Numéro de semaine */
+.cfi-cal-wnum-head,
+.cfi-cal-wnum {
+  width: 28px;
+  font-size: 0.65rem;
+  color: var(--cal-muted);
+  text-align: center;
+  opacity: 0.6;
+}
+
+/* Cellules jours */
+.cfi-cal-cell {
+  width: var(--cal-cell-size);
+  height: var(--cal-cell-size);
+  text-align: center;
+  vertical-align: middle;
+  padding: 0;
+  position: relative;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+
+.cfi-cal-cell--empty { cursor: default; }
+
+.cfi-cal-cell:not(.cfi-cal-cell--disabled):not(.cfi-cal-cell--empty):hover {
+  background: rgba(var(--cal-accent-rgb, 56,128,255), 0.1);
+}
+
+.cfi-cal-day-num {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--cal-text);
+  position: relative;
+  z-index: 1;
+}
+
+/* Aujourd'hui */
+.cfi-cal-cell--today .cfi-cal-day-num {
+  color: var(--cal-accent);
+  font-weight: 700;
+}
+.cfi-cal-cell--today::after {
+  content: "";
+  position: absolute;
+  bottom: 4px; left: 50%;
+  transform: translateX(-50%);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--cal-accent);
+}
+
+/* Sélectionné */
+.cfi-cal-cell--selected {
+  background: var(--cal-accent) !important;
+  border-radius: 50% !important;
+}
+.cfi-cal-cell--selected .cfi-cal-day-num { color: #fff !important; font-weight: 700; }
+.cfi-cal-cell--selected::after { display: none; }
+
+/* Plage */
+.cfi-cal-cell--in-range {
+  background: rgba(var(--cal-accent-rgb, 56,128,255), 0.12);
+  border-radius: 0;
+}
+.cfi-cal-cell--in-range .cfi-cal-day-num { color: var(--cal-accent); }
+
+.cfi-cal-cell--range-start {
+  background: var(--cal-accent) !important;
+  border-radius: 50% 0 0 50% !important;
+}
+.cfi-cal-cell--range-end {
+  background: var(--cal-accent) !important;
+  border-radius: 0 50% 50% 0 !important;
+}
+.cfi-cal-cell--range-start .cfi-cal-day-num,
+.cfi-cal-cell--range-end   .cfi-cal-day-num { color: #fff !important; font-weight: 700; }
+
+/* Désactivé */
+.cfi-cal-cell--disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+/* ── Pied ── */
+.cfi-cal-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--cal-border);
+}
+
+.cfi-cal-today-btn {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cal-accent);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.cfi-cal-today-btn:hover {
+  background: rgba(var(--cal-accent-rgb, 56,128,255), 0.08);
+}
+
+/* Mobile */
+@media (max-width: 360px) {
+  .cfi-calendar { --cal-cell-size: 32px; padding: 0.75rem; }
+  .cfi-cal-head-cell { font-size: 0.65rem; }
+  .cfi-cal-day-num   { font-size: 0.78rem; }
+}

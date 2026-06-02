@@ -1,0 +1,218 @@
+/* Dashboard.css */
+
+.dashboard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Bienvenue ── */
+.dashboard-welcome { margin-bottom: 0.25rem; }
+
+.dashboard-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  margin: 0 0 0.4rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-subtitle {
+  font-size: 0.9rem;
+  color: var(--ion-color-medium);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* ════════ Stat Card (base Card UI) ════════ */
+.stat-card {
+  margin: 0.375rem !important;
+}
+
+.stat-card-content { padding: 1rem !important; }
+
+.stat-card-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 0.75rem;
+}
+.stat-card-icon ion-icon { font-size: 1.2rem; color: #fff; }
+
+.stat-card-icon--primary  { background: var(--ion-color-primary); }
+.stat-card-icon--success  { background: var(--ion-color-success); }
+.stat-card-icon--warning  { background: var(--ion-color-warning); }
+.stat-card-icon--info     { background: var(--ion-color-tertiary, #5260ff); }
+.stat-card-icon--danger   { background: var(--ion-color-danger); }
+
+.stat-card-value {
+  font-size: 1.6rem; font-weight: 700;
+  color: var(--ion-color-dark);
+  margin: 0 0 0.2rem; line-height: 1;
+}
+.stat-card-label {
+  font-size: 0.82rem; color: var(--ion-color-medium); margin: 0;
+}
+.stat-card-desc {
+  font-size: 0.72rem; color: var(--ion-color-medium-shade);
+  margin: 0.2rem 0 0;
+}
+
+/* ════════ Action Card (base Card UI) ════════ */
+.action-card { margin: 0.375rem !important; }
+
+.action-card-content { padding: 1.25rem !important; }
+
+.action-card-icon {
+  font-size: 1.75rem;
+  margin-bottom: 0.7rem;
+  display: block;
+}
+.action-card-icon--primary  { color: var(--ion-color-primary); }
+.action-card-icon--success  { color: var(--ion-color-success); }
+.action-card-icon--warning  { color: var(--ion-color-warning); }
+.action-card-icon--info     { color: var(--ion-color-tertiary, #5260ff); }
+.action-card-icon--danger   { color: var(--ion-color-danger); }
+
+.action-card-title {
+  font-size: 0.92rem; font-weight: 600;
+  color: var(--ion-color-dark); margin: 0 0 0.25rem;
+}
+.action-card-desc {
+  font-size: 0.78rem; color: var(--ion-color-medium);
+  margin: 0; line-height: 1.4;
+}
+
+/* ════════ Dashboard Card générique ════════ */
+.dashboard-card { margin: 0.375rem !important; }
+
+.dashboard-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Le CardTitle déjà stylé par Card.css, on surcharge juste la taille */
+.dashboard-card-header .cfi-card-title {
+  font-size: 0.98rem !important;
+  flex: 1;
+}
+
+.dashboard-card-header-icon--primary { color: var(--ion-color-primary); font-size: 1.15rem; }
+.dashboard-card-header-icon--warning { color: var(--ion-color-warning); font-size: 1.15rem; }
+
+.dashboard-see-all {
+  --color: var(--ion-color-primary);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* ════════ Liste de cours ════════ */
+.courses-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.course-item {
+  display: flex; align-items: center; gap: 0.875rem;
+  padding: 0.65rem; border-radius: 10px;
+  transition: background 0.15s;
+}
+.course-item:hover { background: var(--ion-color-light); }
+
+.course-item-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: var(--ion-color-light);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.course-item-icon ion-icon { font-size: 1.05rem; color: var(--ion-color-medium); }
+
+.course-item-body { flex: 1; min-width: 0; }
+
+.course-item-name {
+  font-size: 0.86rem; font-weight: 500;
+  color: var(--ion-color-dark); margin: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.course-item-meta { font-size: 0.73rem; color: var(--ion-color-medium); margin: 0; }
+
+.course-item-progress { flex-shrink: 0; width: 80px; }
+.course-progress-pct {
+  font-size: 0.7rem; color: var(--ion-color-medium);
+  display: block; margin-bottom: 3px;
+}
+.course-progress-bar {
+  --progress-background: var(--ion-color-primary);
+  border-radius: 4px; height: 5px;
+}
+
+/* ════════ Timeline emploi du temps ════════ */
+.schedule-timeline { display: flex; flex-direction: column; }
+
+.schedule-item { display: flex; gap: 0.875rem; }
+
+.schedule-dots {
+  display: flex; flex-direction: column;
+  align-items: center; flex-shrink: 0; padding-top: 4px;
+}
+.schedule-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--ion-color-primary); flex-shrink: 0;
+}
+.schedule-line {
+  width: 1px; flex: 1;
+  background: var(--ion-color-light-shade);
+  margin: 3px 0; min-height: 18px;
+}
+.schedule-body  { padding-bottom: 0.875rem; }
+.schedule-time  { font-size: 0.73rem; font-weight: 600; color: var(--ion-color-primary); margin: 0; }
+.schedule-subject { font-size: 0.85rem; font-weight: 500; color: var(--ion-color-dark); margin: 0; }
+.schedule-room  { font-size: 0.72rem; color: var(--ion-color-medium); margin: 0; }
+.schedule-full-btn { --border-radius: 10px; }
+
+/* ════════ Comptes en attente ════════ */
+.pending-list { background: transparent; }
+
+.pending-item {
+  --background: var(--ion-color-light);
+  --border-radius: 10px;
+  --padding-start: 0.75rem;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+.pending-name { font-size: 0.86rem; font-weight: 600; color: var(--ion-color-dark) !important; }
+.pending-meta { font-size: 0.73rem; color: var(--ion-color-medium) !important; }
+
+/* ════════ Cours professeur ════════ */
+.prof-course-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.65rem; border-radius: 10px;
+  background: var(--ion-color-light);
+  margin: 0.25rem 0; transition: background 0.15s;
+}
+.prof-course-item:hover { background: var(--ion-color-light-shade); }
+
+.prof-course-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.prof-course-icon ion-icon { font-size: 1rem; color: var(--ion-color-primary); }
+
+.prof-course-body { min-width: 0; flex: 1; }
+.prof-course-name {
+  font-size: 0.84rem; font-weight: 500;
+  color: var(--ion-color-dark); margin: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.prof-course-meta {
+  font-size: 0.72rem; color: var(--ion-color-medium); margin: 0;
+  display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap;
+}
