@@ -3,7 +3,7 @@ import { IonContent, IonPage, IonSpinner } from '../lib/ionic';
 import { useAuth } from '../hooks/useAuth';
 import { Role } from '../lib/store';
 import { Redirect } from 'react-router-dom';
-import "../styles/_ProtectedRoute.css";
+import "../styles/components/_ProtectedRoute.css";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -27,7 +27,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     }
   
     if (!user) {
-        return <Redirect to="/auth/login"></Redirect>;
+        return <Redirect to="/login" />;
     }
 
     if (allowedRoles && !allowedRoles.includes(user.role)) {

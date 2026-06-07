@@ -35,10 +35,10 @@ const Landing: React.FC = () => {
 
             <div className="landing-nav-actions">
               <Link to="/login">
-                <IonButton fill="clear" size="small">Se connecter</IonButton>
+                <IonButton fill="clear" size="small" className="action-btn">Se connecter</IonButton>
               </Link>
               <Link to="/register">
-                <IonButton size="small">S'inscrire</IonButton>
+                <IonButton size="small" className="action-btn">S'inscrire</IonButton>
               </Link>
             </div>
           </div>
@@ -47,10 +47,6 @@ const Landing: React.FC = () => {
         <section className="landing-hero">
           <div className="landing-hero-bg" />
           <div className="landing-hero-body">
-            <div className="landing-hero-badge">
-              <IonIcon icon={schoolOutline} />
-              CFI-CIRAS — Centre de Formation
-            </div>
             <h1 className="landing-hero-title">
               Votre avenir commence avec{" "}
               <span className="landing-hero-gradient">CFI-LINK</span>
@@ -61,13 +57,13 @@ const Landing: React.FC = () => {
             </p>
             <div className="landing-hero-ctas">
               <Link to="/login">
-                <IonButton shape="round" expand="block" size="large">
+                <IonButton expand="block" size="large"  className="ctas-btn">
                   <IonIcon slot="end" icon={arrowForwardOutline}></IonIcon>
                   Commencer maintenant
                 </IonButton>
               </Link>
               <a href="#features">
-                <IonButton fill="outline" size="large">
+                <IonButton fill="outline" size="large" color="light" className="ctas-btn" style={{ fontWeight: "bold" }}>
                   Découvrir la plateforme
                 </IonButton>
               </a>

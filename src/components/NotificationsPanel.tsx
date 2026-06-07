@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { bookOutline, cardOutline, checkmarkDoneOutline, closeOutline, IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonPopover, IonText, IonTitle, IonToolbar, megaphoneOutline, notificationsOutline, schoolOutline, settingsOutline } from '../lib/ionic';
 import { getNotifications, getUnreadCount, markAllAsRead, markAsRead, NotificationType, Notification, NOTIF_TYPE_LABELS } from '../lib/notifications';
 import { useAuth } from '../hooks/useAuth';
-import "../styles/_NotificationPanel.css";
+import "../styles/components/_NotificationPanel.css";
 import Badge from './ui/Badge';
 import Avatar from './ui/Avatar';
 import { SkeletonAvatar, Skeleton } from './ui/Skeleton';
@@ -96,7 +96,7 @@ const NotificationPanel: React.FC = () => {
     <div className="notif-wrapper">
 
       <div className="notif-bell-container" onClick={openPopover}>
-        <IonButton fill="clear" className="notif-bell-btn">
+        <IonButton fill="clear" shape="round" className="notif-bell-btn">
           <IonIcon icon={notificationsOutline} slot="icon-only" className="notif-bell-icon" />
         </IonButton>
 
@@ -134,6 +134,7 @@ const NotificationPanel: React.FC = () => {
                   size="small"
                   onClick={handleMarkAllRead}
                   className="notif-mark-all-btn"
+                  shape="round"
                 >
                   <IonIcon icon={checkmarkDoneOutline} slot="start" />
                   Tout lire

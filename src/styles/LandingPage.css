@@ -35,8 +35,15 @@
 @media (min-width: 768px) { .landing-nav-links { display: flex; } }
 
 .landing-nav-link {
-  font-size: 0.9rem; font-weight: 500;
+  font-size: 1.2rem; font-weight: 600;
   color: var(--ion-color-medium); text-decoration: none; transition: color 0.18s;
+}
+.action-btn {
+  height: 2.25rem;
+  --border-radius: 0.5rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-transform: none;
 }
 .landing-nav-link:hover { color: var(--ion-color-dark); }
 
@@ -48,7 +55,7 @@
 .landing-hero {
   position: relative;
   min-height: 88vh;
-  background: linear-gradient(135deg, var(--ion-color-primary-shade), var(--ion-color-primary));
+  background: linear-gradient(180deg, transparent 0%, var(--ion-color-primary) 100%);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; overflow: hidden;
 }
@@ -56,12 +63,13 @@
 .landing-hero-bg {
   position: absolute; inset: 0;
   background-image: url('../assets/hero-campus.jpg');
-  background-size: cover; background-position: center; opacity: 0.15;
+  background-size: cover; background-position: center; 
+  opacity: 0.45;
 }
 
 .landing-hero-body {
   position: relative; z-index: 1; text-align: center;
-  padding: 5rem 1.5rem 4rem; max-width: 760px; width: 100%;
+  padding: 5rem 1.5rem 4rem; max-width: 950px; width: 100%;
 }
 
 .landing-hero-badge {
@@ -74,7 +82,7 @@
 .landing-hero-badge ion-icon { font-size: 1rem; }
 
 .landing-hero-title {
-  font-size: 2.6rem; font-weight: 800; color: #fff;
+  font-size: 3.75rem; font-weight: 800; color: #fff;
   line-height: 1.15; margin: 0 0 1.25rem; letter-spacing: -0.02em;
 }
 .landing-hero-gradient {
@@ -83,8 +91,8 @@
 }
 
 .landing-hero-sub {
-  font-size: 1.05rem; color: rgba(255,255,255,0.75); line-height: 1.7;
-  margin: 0 auto 2.5rem; max-width: 560px;
+  font-size: 1.5rem !important; color: rgba(0,0,0, 0.8); line-height: 1.7;
+  margin: 0 auto 2.5rem; max-width: 560px; font-weight: bold;
 }
 
 .landing-hero-ctas {
@@ -102,6 +110,12 @@
   --border-radius: 14px !important;
 }
 
+.ctas-btn {
+  height: 3rem;
+  font-weight: 800;
+  text-transform: none;
+}
+
 .landing-hero-wave { position: absolute; bottom: -1px; left: 0; right: 0; }
 .landing-hero-wave svg { display: block; width: 100%; height: 80px; }
 
@@ -114,11 +128,11 @@
 .landing-section-header { text-align: center; margin-bottom: 3rem; }
 
 .landing-section-title {
-  font-size: 2rem; font-weight: 700; color: var(--ion-color-dark);
+  font-size: 3rem; font-weight: 700; color: var(--ion-color-dark);
   margin: 0 0 0.75rem; letter-spacing: -0.01em;
 }
 .landing-section-sub {
-  font-size: 1rem; color: var(--ion-color-medium);
+  font-size: 1.5rem; color: var(--ion-color-medium);
   margin: 0 auto; max-width: 560px; line-height: 1.6;
 }
 
@@ -137,15 +151,15 @@
 }
 
 .landing-feature-icon {
-  width: 52px; height: 52px; border-radius: 14px;
+  width: 60px; height: 60px; border-radius: 14px;
   background: var(--ion-color-light);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 1rem; transition: background 0.2s;
 }
-.landing-feature-icon ion-icon { font-size: 1.5rem; color: var(--ion-color-primary); transition: color 0.2s; }
+.landing-feature-icon ion-icon { font-size: 2rem; color: var(--ion-color-primary); transition: color 0.2s; }
 
-.landing-feature-title { font-size: 1.05rem; font-weight: 600; color: var(--ion-color-dark); margin: 0 0 0.5rem; }
-.landing-feature-desc  { font-size: 0.88rem; color: var(--ion-color-medium); line-height: 1.6; margin: 0; }
+.landing-feature-title { font-size: 1.3rem !important; font-weight: 600 !important; color: var(--ion-color-dark); margin: 0 0 0.5rem !important; }
+.landing-feature-desc  { font-size: 1.1rem !important; color: var(--ion-color-medium); line-height: 1.6 !important; margin: 0 !important; }
 
 /* ── Filière card — sur base Card UI CFI ── */
 .landing-filiere-card { margin: 0.375rem !important; }
@@ -154,18 +168,18 @@
   width: 60px; height: 60px; border-radius: 16px;
   display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;
 }
-.landing-filiere-icon ion-icon { font-size: 1.75rem; color: #fff; }
+.landing-filiere-icon ion-icon { font-size: 2rem !important; color: #fff; }
 .landing-filiere-icon--blue  { background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade)); }
 .landing-filiere-icon--green { background: linear-gradient(135deg, var(--ion-color-success), #1ea85b); }
 
-.landing-filiere-title { font-size: 1.35rem; font-weight: 700; color: var(--ion-color-dark); margin: 0 0 0.5rem; }
-.landing-filiere-desc  { font-size: 0.9rem; color: var(--ion-color-medium); margin: 0 0 1rem; line-height: 1.5; }
+.landing-filiere-title { font-size: 1.6rem !important; font-weight: 700 !important; color: var(--ion-color-dark); margin: 0 0 0.5rem !important; }
+.landing-filiere-desc  { font-size: 1.2rem !important; color: var(--ion-color-medium); margin: 0 0 1rem !important; line-height: 1.5 !important; }
 
 .landing-filiere-list {
   list-style: none; margin: 0; padding: 0;
   display: flex; flex-direction: column; gap: 0.5rem;
 }
-.landing-filiere-list li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: var(--ion-color-medium); }
+.landing-filiere-list li { display: flex; align-items: center; gap: 0.6rem; font-size: 1.15rem !important; color: var(--ion-color-medium); }
 .landing-filiere-list strong { color: var(--ion-color-dark); }
 
 .landing-filiere-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
@@ -185,11 +199,11 @@
 
 .landing-footer-brand { display: flex; align-items: center; gap: 0.875rem; }
 .landing-footer-logo {
-  width: 42px; height: 42px; border-radius: 12px;
+  width: 50px; height: 50px; border-radius: 12px;
   background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.landing-footer-logo ion-icon { font-size: 1.3rem; color: #fff; }
-.landing-footer-name { font-size: 1.05rem; font-weight: 700; color: #fff; margin: 0 0 0.2rem; }
-.landing-footer-sub  { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin: 0; }
-.landing-footer-copy { font-size: 0.82rem; color: rgba(255,255,255,0.35); margin: 0; }
+.landing-footer-logo ion-icon { font-size: 2rem !important; color: #fff; }
+.landing-footer-name { font-size: 1.25rem !important; font-weight: 700; color: #fff; margin: 0 0 0.2rem; }
+.landing-footer-sub  { font-size: 1rem !important; color: rgba(255,255,255,0.45); margin: 0; }
+.landing-footer-copy { font-size: 1rem !important; color: rgba(255,255,255,0.35); margin: 0; }

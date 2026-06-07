@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { alertCircleOutline, IonButton, IonContent, IonIcon, IonPage } from '../lib/ionic'
-import "../styles/_NotFound.css";
+import "../styles/components/_NotFound.css";
 
 const NotFound: React.FC = () => {
     const location = useLocation();

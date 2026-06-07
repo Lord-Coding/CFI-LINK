@@ -1,0 +1,239 @@
+/* ════════════════════════════════════════════
+   ManagePayment.css — préfixe mp-
+   Contenu rendu dans .dashboard-page-body
+   ════════════════════════════════════════════ */
+
+/* ── Bannière hero ── */
+.mp-hero {
+    background:      linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary, #5260ff) 100%);
+    border-radius:   18px;
+    padding:         1.5rem 1.75rem;
+    margin-bottom:   1.25rem;
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    gap:             1rem;
+    overflow:        hidden;
+    position:        relative;
+}
+
+.mp-hero::before {
+    content:        '';
+    position:       absolute;
+    width:          200px;
+    height:         200px;
+    border-radius:  50%;
+    background:     rgba(255,255,255,0.07);
+    top:            -60px;
+    right:          -40px;
+    pointer-events: none;
+}
+.mp-hero::after {
+    content:        '';
+    position:       absolute;
+    width:          120px;
+    height:         120px;
+    border-radius:  50%;
+    background:     rgba(255,255,255,0.05);
+    bottom:         -30px;
+    right:          80px;
+    pointer-events: none;
+}
+
+.mp-hero-text   { flex: 1; min-width: 0; position: relative; z-index: 1; }
+
+.mp-hero-title {
+    font-size:      1.4rem;
+    font-weight:    800;
+    color:          #fff;
+    margin:         0 0 0.35rem;
+    line-height:    1.2;
+    letter-spacing: -0.01em;
+}
+
+.mp-hero-sub {
+    font-size:  0.85rem;
+    color:      rgba(255,255,255,0.78);
+    margin:     0 0 1rem;
+    line-height: 1.4;
+}
+
+.mp-hero-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.mp-hero-badge {
+    display:       inline-flex;
+    align-items:   center;
+    gap:           0.3rem;
+    padding:       0.3rem 0.75rem;
+    border-radius: 999px;
+    background:    rgba(255,255,255,0.15);
+    border:        1px solid rgba(255,255,255,0.25);
+    font-size:     0.75rem;
+    font-weight:   600;
+    color:         #fff;
+    backdrop-filter: blur(4px);
+}
+.mp-hero-badge ion-icon { font-size: 0.85rem; }
+
+@media (max-width: 576px) {
+    .mp-hero       { padding: 1.25rem; }
+    .mp-hero-title { font-size: 1.2rem; }
+}
+
+/* ── Stats chips ── */
+.mp-stats-row {
+    display:               grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:                   0.75rem;
+    margin-bottom:         1.25rem;
+}
+
+.mp-stat-chip {
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    gap:            0.3rem;
+    padding:        0.875rem 0.5rem;
+    border-radius:  14px;
+    border:         1.5px solid var(--ion-color-light-shade);
+    background:     var(--ion-background-color, #fff);
+    text-align:     center;
+}
+
+.mp-stat-chip-icon { font-size: 1.25rem; color: var(--ion-color-primary); }
+.mp-stat-chip-icon--success { color: var(--ion-color-success) !important; }
+.mp-stat-chip-icon--danger  { color: var(--ion-color-danger) !important;  }
+.mp-stat-chip-icon--warning { color: var(--ion-color-warning) !important; }
+
+.mp-stat-chip-count { font-size: 1.3rem; font-weight: 800; color: var(--ion-color-dark); line-height: 1; }
+.mp-stat-chip-label { font-size: 0.68rem; font-weight: 500; color: var(--ion-color-medium); white-space: nowrap; }
+
+@media (max-width: 576px) { .mp-stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+/* ── Card tableau ── */
+.mp-table-wrap { margin-bottom: 1.25rem; }
+
+.mp-table-card { margin: 0 !important; overflow: hidden; }
+
+.mp-table-card-header {
+    display:         flex !important;
+    align-items:     center !important;
+    justify-content: space-between !important;
+    padding:         0.875rem 1.25rem 0.5rem !important;
+}
+
+.mp-count-chip {
+    --background: rgba(var(--ion-color-primary-rgb), 0.1) !important;
+    color:        var(--ion-color-primary) !important;
+    font-size:    0.78rem !important;
+    font-weight:  600 !important;
+    height:       22px !important;
+}
+
+.mp-searchbar {
+    --background:        var(--ion-color-light);
+    --border-radius:     10px;
+    --box-shadow:        none;
+    --placeholder-color: var(--ion-color-medium);
+    padding-inline:      0 !important;
+    margin-bottom:       0.5rem;
+}
+
+.mp-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── Tableau ── */
+.mp-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+
+.mp-thead-tr { background: var(--ion-color-light); }
+
+.mp-th {
+    padding:        0.625rem 0.875rem;
+    text-align:     left;
+    font-size:      0.7rem;
+    font-weight:    700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color:          var(--ion-color-medium);
+    white-space:    nowrap;
+    border-bottom:  2px solid var(--ion-color-light-shade);
+}
+.mp-th--actions { text-align: center; }
+
+.mp-tr { border-bottom: 1px solid var(--ion-color-light-shade); transition: background 0.15s; }
+.mp-tr:last-child { border-bottom: none; }
+.mp-tr:hover { background: rgba(var(--ion-color-primary-rgb), 0.035); }
+
+.mp-td { padding: 0.75rem 0.875rem; vertical-align: middle; }
+
+.mp-td--student { min-width: 200px; }
+.mp-td--filiere { min-width: 100px; }
+.mp-td--status  { min-width: 100px; }
+.mp-td--actions { min-width: 180px; text-align: center; }
+.mp-td--code    { min-width: 150px; }
+.mp-td--month   { min-width: 130px; }
+
+/* Cellule étudiant */
+.mp-student-cell {
+    display:     flex;
+    align-items: center;
+    gap:         0.625rem;
+}
+
+.mp-student-info { display: flex; flex-direction: column; min-width: 0; }
+.mp-student-name { font-size: 0.86rem; font-weight: 600; color: var(--ion-color-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-student-email { font-size: 0.72rem; color: var(--ion-color-medium); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Filière */
+.mp-filiere-cell { display: flex; align-items: center; gap: 0.375rem; }
+.mp-annee        { font-size: 0.78rem; color: var(--ion-color-medium); font-weight: 500; }
+
+/* Code monospace */
+.mp-code {
+    font-family:   'Courier New', Courier, monospace;
+    font-size:     0.82rem;
+    font-weight:   600;
+    color:         var(--ion-color-primary);
+    background:    rgba(var(--ion-color-primary-rgb), 0.08);
+    padding:       0.2rem 0.5rem;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+    white-space:   nowrap;
+}
+
+.mp-month { font-size: 0.82rem; color: var(--ion-color-medium); font-weight: 500; }
+
+/* Actions */
+.mp-actions {
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    gap:             0.375rem;
+    flex-wrap:       wrap;
+}
+
+.mp-block-btn   { --border-radius: 8px !important; font-size: 0.78rem !important; height: 32px !important; }
+.mp-gencode-btn { --border-radius: 8px !important; font-size: 0.78rem !important; height: 32px !important; }
+
+.mp-copy-btn {
+    --padding-start: 6px !important;
+    --padding-end:   6px !important;
+    --border-radius: 8px !important;
+    height:          32px !important;
+    width:           32px !important;
+}
+
+/* Ligne vide */
+.mp-empty-row { text-align: center; padding: 2.5rem 1rem !important; color: var(--ion-color-medium); font-size: 0.875rem; }
+.mp-empty-row > * { display: block; margin: 0 auto; }
+.mp-empty-icon    { font-size: 2.5rem; opacity: 0.35; margin-bottom: 0.5rem; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .mp-td--filiere { display: none; }
+    .mp-student-email { display: none; }
+    .mp-block-btn, .mp-gencode-btn { font-size: 0.72rem !important; }
+}
+
+@media (max-width: 480px) {
+    .mp-actions { flex-direction: column; gap: 0.25rem; }
+}

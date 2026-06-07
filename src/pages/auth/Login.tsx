@@ -7,7 +7,6 @@ import { Alert } from '../../components';
 import '../../styles/LoginPage.css';
 
 const Login: React.FC = () => {
-    const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");

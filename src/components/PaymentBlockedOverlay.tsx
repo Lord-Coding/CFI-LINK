@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { validatePaymentCode } from '../lib/store';
 import { useAuth } from '../hooks/useAuth';
 import { alertCircleOutline, IonButton, IonCard, IonCardContent, IonIcon, IonInput, IonLabel, IonSpinner, IonText } from '../lib/ionic';
-import "../styles/_PaymentBlockedOverlay.css";
+import "../styles/components/_PaymentBlockedOverlay.css";
 import Alert from './ui/Alert';
 import { Card, CardContent } from './ui/Card';
 

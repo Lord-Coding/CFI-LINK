@@ -1,0 +1,511 @@
+/* ════════════════════════════════════════════
+   ManageUsers.css
+   — Le contenu est rendu dans .dashboard-page-body
+     (padding: 1.25rem géré par DashboardLayout)
+   ════════════════════════════════════════════ */
+
+/* ── Bannière hero ── */
+.mu-hero {
+    background:    linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary, #5260ff) 100%);
+    border-radius: 18px;
+    padding:       1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+    display:       flex;
+    align-items:   center;
+    justify-content: space-between;
+    gap:           1rem;
+    overflow:      hidden;
+    position:      relative;
+}
+
+/* Cercle décoratif en fond */
+.mu-hero::before {
+    content:       '';
+    position:      absolute;
+    width:         200px;
+    height:        200px;
+    border-radius: 50%;
+    background:    rgba(255,255,255,0.07);
+    top:           -60px;
+    right:         -40px;
+    pointer-events: none;
+}
+.mu-hero::after {
+    content:       '';
+    position:      absolute;
+    width:         120px;
+    height:        120px;
+    border-radius: 50%;
+    background:    rgba(255,255,255,0.05);
+    bottom:        -30px;
+    right:         80px;
+    pointer-events: none;
+}
+
+.mu-hero-text { flex: 1; min-width: 0; position: relative; z-index: 1; }
+
+.mu-hero-title {
+    font-size:      1.4rem;
+    font-weight:    800;
+    color:          #fff;
+    margin:         0 0 0.35rem;
+    line-height:    1.2;
+    letter-spacing: -0.01em;
+}
+
+.mu-hero-sub {
+    font-size:  0.85rem;
+    color:      rgba(255,255,255,0.78);
+    margin:     0 0 1rem;
+    line-height: 1.4;
+}
+
+.mu-hero-badges {
+    display:  flex;
+    gap:      0.5rem;
+    flex-wrap: wrap;
+}
+
+.mu-hero-badge {
+    display:       inline-flex;
+    align-items:   center;
+    gap:           0.3rem;
+    padding:       0.3rem 0.75rem;
+    border-radius: 999px;
+    background:    rgba(255,255,255,0.15);
+    border:        1px solid rgba(255,255,255,0.25);
+    font-size:     0.75rem;
+    font-weight:   600;
+    color:         #fff;
+    backdrop-filter: blur(4px);
+}
+
+.mu-hero-badge ion-icon { font-size: 0.85rem; }
+
+.mu-hero-action {
+    flex-shrink:     0;
+    position:        relative;
+    z-index:         1;
+}
+
+.mu-hero-btn {
+    --background:     rgba(255,255,255,0.18) !important;
+    --background-hover: rgba(255,255,255,0.28) !important;
+    --color:          #fff !important;
+    --border-radius:  12px !important;
+    --border-color:   rgba(255,255,255,0.35) !important;
+    --border-width:   1.5px !important;
+    --border-style:   solid !important;
+    backdrop-filter:  blur(8px);
+    font-weight:      600 !important;
+}
+
+@media (max-width: 576px) {
+    .mu-hero          { flex-direction: column; align-items: flex-start; padding: 1.25rem; }
+    .mu-hero-title    { font-size: 1.2rem; }
+    .mu-hero-action   { width: 100%; }
+    .mu-hero-btn      { width: 100%; }
+}
+
+/* ── Compteurs rapides ── */
+.mu-stats-row {
+    display:         grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:             0.75rem;
+    margin-bottom:   1.25rem;
+}
+
+.mu-stat-chip {
+    display:         flex;
+    flex-direction:  column;
+    align-items:     center;
+    gap:             0.3rem;
+    padding:         0.875rem 0.5rem;
+    border-radius:   14px;
+    border:          1.5px solid var(--ion-color-light-shade);
+    background:      var(--ion-background-color, #fff);
+    cursor:          pointer;
+    transition:      background 0.18s, border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+    text-align:      center;
+}
+
+.mu-stat-chip:hover {
+    background:   var(--ion-color-light);
+    border-color: var(--ion-color-medium);
+    transform:    translateY(-2px);
+}
+
+.mu-stat-chip--active {
+    background:   rgba(var(--ion-color-primary-rgb), 0.1) !important;
+    border-color: var(--ion-color-primary) !important;
+    box-shadow:   0 4px 14px rgba(var(--ion-color-primary-rgb), 0.2);
+}
+
+.mu-stat-chip-icon {
+    font-size:  1.25rem;
+    color:      var(--ion-color-medium);
+    transition: color 0.18s, transform 0.18s;
+}
+.mu-stat-chip--active .mu-stat-chip-icon  { color: var(--ion-color-primary); transform: scale(1.1); }
+
+.mu-stat-chip-count {
+    font-size:   1.3rem;
+    font-weight: 800;
+    color:       var(--ion-color-dark);
+    line-height: 1;
+}
+.mu-stat-chip--active .mu-stat-chip-count { color: var(--ion-color-primary); }
+
+.mu-stat-chip-label {
+    font-size:   0.68rem;
+    font-weight: 500;
+    color:       var(--ion-color-medium);
+    white-space: nowrap;
+}
+.mu-stat-chip--active .mu-stat-chip-label { color: var(--ion-color-primary-shade); }
+
+@media (max-width: 576px) {
+    .mu-stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Barre segment + recherche ── */
+.mu-toolbar {
+    display:        flex;
+    flex-direction: column;
+    gap:            0.75rem;
+    margin-bottom:  1rem;
+}
+
+.mu-segment {
+    --background: var(--ion-color-light);
+    border-radius: 12px !important;
+}
+
+.mu-seg-btn {
+    font-size:  0.8rem !important;
+    min-height: 36px !important;
+    --color:    var(--ion-color-medium) !important;
+}
+
+.mu-segment .segment-button-checked {
+    --background-checked:  var(--ion-color-primary) !important;
+    --color-checked:       #fff !important;
+    --indicator-color:     transparent !important;
+    border-radius:         10px !important;
+    box-shadow:            0 2px 8px rgba(var(--ion-color-primary-rgb), 0.35) !important;
+}
+
+.mu-segment .segment-button-checked ion-label {
+    color:       #fff !important;
+    font-weight: 600 !important;
+}
+
+.mu-searchbar {
+    --background:        var(--ion-color-light);
+    --border-radius:     10px;
+    --box-shadow:        none;
+    --placeholder-color: var(--ion-color-medium);
+    padding-inline:      0 !important;
+}
+
+/* ── Card tableau ── */
+.mu-table-card {
+    margin: 0 !important;
+    overflow: hidden;
+}
+
+.mu-table-card-header {
+    display:         flex !important;
+    align-items:     center !important;
+    justify-content: space-between !important;
+    padding:         0.875rem 1.25rem 0.5rem !important;
+}
+
+.mu-count-chip {
+    --background: rgba(var(--ion-color-primary-rgb), 0.1) !important;
+    color:        var(--ion-color-primary) !important;
+    font-size:    0.78rem !important;
+    font-weight:  600 !important;
+    height:       22px !important;
+}
+
+/* Zone scrollable horizontale */
+.mu-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── Tableau ── */
+.mu-table {
+    width:           100%;
+    border-collapse: collapse;
+    font-size:       0.875rem;
+}
+
+.mu-thead-tr { background: var(--ion-color-light); }
+
+.mu-th {
+    padding:        0.625rem 0.875rem;
+    text-align:     left;
+    font-size:      0.7rem;
+    font-weight:    700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color:          var(--ion-color-medium);
+    white-space:    nowrap;
+    border-bottom:  2px solid var(--ion-color-light-shade);
+}
+
+.mu-th--actions { text-align: center; }
+
+.mu-tr {
+    border-bottom: 1px solid var(--ion-color-light-shade);
+    transition:    background 0.15s;
+}
+.mu-tr:last-child { border-bottom: none; }
+.mu-tr:hover      { background: rgba(var(--ion-color-primary-rgb), 0.035); }
+
+.mu-td {
+    padding:        0.75rem 0.875rem;
+    vertical-align: middle;
+}
+
+.mu-td--name    { min-width: 170px; }
+.mu-td--email   { min-width: 200px; }
+.mu-td--role    { min-width: 150px; }
+.mu-td--filiere { min-width: 120px; }
+.mu-td--status  { min-width: 90px;  }
+.mu-td--actions { min-width: 90px;  }
+
+.mu-user-cell {
+    display:     flex;
+    align-items: center;
+    gap:         0.625rem;
+}
+
+.mu-user-name {
+    font-weight:   500;
+    color:         var(--ion-color-dark);
+    white-space:   nowrap;
+    overflow:      hidden;
+    text-overflow: ellipsis;
+    max-width:     160px;
+}
+
+.mu-email {
+    font-size:   0.82rem;
+    color:       var(--ion-color-medium);
+    white-space: nowrap;
+}
+
+.mu-filiere {
+    font-size:   0.82rem;
+    color:       var(--ion-color-dark);
+    font-weight: 500;
+}
+
+.mu-empty { color: var(--ion-color-medium); }
+
+.mu-actions {
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    gap:             0.125rem;
+}
+
+.mu-action-btn {
+    --padding-start: 6px !important;
+    --padding-end:   6px !important;
+    --border-radius: 8px !important;
+    height:          32px !important;
+    width:           32px !important;
+}
+
+.mu-empty-row {
+    text-align: center;
+    padding:    2.5rem 1rem !important;
+    color:      var(--ion-color-medium);
+    font-size:  0.875rem;
+}
+.mu-empty-row > * { display: block; margin: 0 auto; }
+.mu-empty-icon    { font-size: 2.5rem; opacity: 0.35; margin-bottom: 0.5rem; }
+
+/* ── Modal ── */
+.mu-modal {
+    --width:         min(520px, 96vw);
+    --border-radius: 22px;
+    --height:        auto;
+    --max-height:    94vh;
+}
+
+.mu-modal-inner {
+    display:         flex;
+    flex-direction:  column;
+    max-height:      94vh;
+    overflow-y:      auto;
+    background:      var(--ion-background-color, #fff);
+    border-radius:   22px;
+    scrollbar-width: thin;
+}
+
+.mu-modal-header {
+    display:     flex;
+    align-items: flex-start;
+    gap:         0.875rem;
+    padding:     2rem 1.5rem 0;
+}
+
+.mu-modal-header-icon {
+    width:           44px;
+    height:          44px;
+    border-radius:   12px;
+    background:      rgba(var(--ion-color-primary-rgb), 0.12);
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    flex-shrink:     0;
+}
+.mu-modal-header-icon ion-icon { font-size: 1.4rem; color: var(--ion-color-primary); }
+
+.mu-modal-title {
+    font-size:   1.1rem;
+    font-weight: 700;
+    color:       var(--ion-color-dark);
+    margin:      0 0 0.2rem;
+    line-height: 1.2;
+}
+.mu-modal-subtitle { font-size: 0.8rem; color: var(--ion-color-medium); margin: 0; }
+
+.mu-modal-close {
+    margin-left:     auto;
+    flex-shrink:     0;
+    --color:         var(--ion-color-medium) !important;
+    --border-radius: 50% !important;
+    font-size:       1.3rem;
+}
+
+/* ── Formulaire modal ── */
+.mu-form {
+    display:        flex;
+    flex-direction: column;
+    padding:        2.25rem 1.5rem 2rem;
+    gap:            1rem;
+}
+
+.mu-form-section { margin-bottom: 0.25rem; }
+
+.mu-form-section-label {
+    display:        block;
+    font-size:      0.7rem;
+    font-weight:    700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color:          var(--ion-color-medium);
+    margin-bottom:  0.625rem;
+}
+
+.mu-form-grid {
+    display:               grid;
+    grid-template-columns: 1fr 1fr;
+    gap:                   0.75rem;
+}
+
+.mu-field         { display: flex; flex-direction: column; gap: 0.3rem; }
+.mu-field--full   { grid-column: 1 / -1; }
+
+.mu-field-label {
+    display:     flex;
+    align-items: center;
+    gap:         0.3rem;
+    font-size:   0.78rem;
+    font-weight: 600;
+    color:       var(--ion-color-dark);
+}
+.mu-field-icon  { font-size: 0.9rem; color: var(--ion-color-primary); flex-shrink: 0; }
+.mu-required    { color: var(--ion-color-danger); }
+
+.mu-field-input {
+    --background:        var(--ion-color-light);
+    --border-radius:     10px;
+    --padding-start:     0.875rem;
+    --padding-end:       0.875rem;
+    --padding-top:       0.625rem;
+    --padding-bottom:    0.625rem;
+    --placeholder-color: var(--ion-color-medium);
+    --color:             var(--ion-color-dark);
+    border-radius:       10px !important;
+    border:              1.5px solid var(--ion-color-light-shade) !important;
+    font-size:           0.875rem !important;
+    transition:          border-color 0.18s !important;
+    min-height:          44px;
+}
+.mu-field-input:focus-within,
+.mu-field-input.has-focus {
+    border-color: var(--ion-color-primary) !important;
+    --background: rgba(var(--ion-color-primary-rgb), 0.04) !important;
+}
+
+.mu-role-picker {
+    display:               grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap:                   0.625rem;
+}
+
+.mu-role-card {
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    gap:            0.3rem;
+    padding:        0.875rem 0.5rem;
+    border-radius:  14px;
+    border:         1.5px solid var(--ion-color-light-shade);
+    background:     var(--ion-color-light);
+    cursor:         pointer;
+    transition:     all 0.18s;
+    text-align:     center;
+}
+.mu-role-card:hover { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.05); }
+
+.mu-role-card--active {
+    border-color: var(--ion-color-primary) !important;
+    background:   rgba(var(--ion-color-primary-rgb), 0.1) !important;
+    box-shadow:   0 2px 12px rgba(var(--ion-color-primary-rgb), 0.2);
+}
+
+.mu-role-card-icon   { font-size: 1.4rem; color: var(--ion-color-medium); transition: color 0.18s; }
+.mu-role-card--active .mu-role-card-icon  { color: var(--ion-color-primary); }
+
+.mu-role-card-label  { font-size: 0.8rem; font-weight: 600; color: var(--ion-color-dark); line-height: 1.2; }
+.mu-role-card--active .mu-role-card-label { color: var(--ion-color-primary); }
+
+.mu-role-card-sub    { font-size: 0.67rem; color: var(--ion-color-medium); line-height: 1; }
+
+.mu-form-actions {
+    display:               grid;
+    grid-template-columns: 1fr 1fr;
+    gap:                   0.75rem;
+    margin-top:            0.5rem;
+    padding-top:           1.25rem;
+    border-top:            1px solid var(--ion-color-light-shade);
+}
+.mu-form-actions ion-button { --border-radius: 12px !important; height: 46px; font-weight: 600; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .mu-td--email, .mu-th:nth-child(2) { display: none; }
+    .mu-seg-btn { font-size: 0.72rem !important; }
+}
+
+@media (max-width: 480px) {
+    .mu-td--role, .mu-th:nth-child(3) { display: none; }
+    .mu-user-name    { max-width: 110px; }
+    .mu-modal-inner  { border-radius: 18px; }
+    .mu-form         { padding: 1rem 1.25rem 1.25rem; }
+    .mu-modal-header { padding: 1.25rem 1.25rem 0; }
+    .mu-form-grid    { grid-template-columns: 1fr; }
+    .mu-form-actions { grid-template-columns: 1fr; }
+    .mu-role-picker  { grid-template-columns: 1fr 1fr; }
+}
+
+
+

@@ -361,3 +361,13 @@ export const FILIERE_LABELS: Record<Filiere, string> = {
   LIC: 'Licence Informatique',
   LAP: 'Licence Administrative',
 };
+
+/*
+ * Mapping semestre ↔ niveau d'études
+ * L1 = S1, S2 | L2 = S3, S4 | L3 = S5, S6
+ */
+export const ANNEE_TO_SEMESTERS: Record<Annee, ['S1','S2'] | ['S3','S4'] | ['S5','S6']> = {
+  L1: ['S1', 'S2'],
+  L2: ['S3', 'S4'],
+  L3: ['S5', 'S6'],
+};

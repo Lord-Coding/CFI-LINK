@@ -1,0 +1,328 @@
+.dashboard-menu {
+  --width: 260px;
+  --background: #12122a;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.menu-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem 1rem;
+  flex-shrink: 0;
+  background: #12122a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.menu-brand-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    var(--ion-color-primary),
+    var(--ion-color-secondary, #5260ff)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.4);
+}
+
+.menu-brand-logo ion-icon {
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.menu-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.menu-brand-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+.menu-brand-sub {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.05em;
+}
+
+/* ── Zone scrollable ── */
+.menu-content {
+  --background:    #12122a;
+  --padding-top:   0;
+  --overflow:      hidden;       /* Ionic CSS custom prop pour le scroll interne */
+  scrollbar-width: none;
+}
+
+.menu-content::-webkit-scrollbar                     { display: none; }
+.menu-content::part(scroll)::-webkit-scrollbar       { display: none; }
+.menu-content::part(scroll)                          { scrollbar-width: none; }
+
+
+.menu-accordion-group {
+  padding: 0.75rem 0.625rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.menu-single-item {
+  --background: transparent;
+  --background-hover: rgba(255, 255, 255, 0.06);
+  --background-activated: rgba(255, 255, 255, 0.06);
+  --color: rgba(255, 255, 255, 0.6);
+  --padding-start: 0.75rem;
+  --padding-end: 0.75rem;
+  --inner-padding-end: 0;
+  --border-radius: 10px;
+  --min-height: 44px;
+  border-radius: 10px;
+  margin-bottom: 2px;
+  transition: background 0.18s;
+}
+
+.menu-single-item--active {
+  --background: var(--ion-color-primary) !important;
+  --color: #fff !important;
+  box-shadow: 0 4px 14px rgba(var(--ion-color-primary-rgb), 0.35);
+}
+
+.menu-single-icon {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-right: 0.5rem;
+}
+
+.menu-single-item--active .menu-single-icon {
+  color: #fff;
+}
+
+.menu-single-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.menu-accordion {
+  border-radius: 12px !important;
+  overflow: hidden;
+  background: transparent;
+  margin-bottom: 3px;
+}
+
+.menu-accordion .ion-accordion-toggle-icon {
+  color: rgba(255, 255, 255, 0.35) !important;
+  font-size: 0.9rem !important;
+  transition: color 0.2s !important;
+}
+
+.menu-accordion--active .ion-accordion-toggle-icon {
+  color: var(--ion-color-primary) !important;
+}
+
+/* ── En-tête du module ── */
+.menu-module-header {
+  --background: rgba(255, 255, 255, 0.03);
+  --background-hover: rgba(255, 255, 255, 0.07);
+  --background-activated: rgba(255, 255, 255, 0.07);
+  --color: rgba(255, 255, 255, 0.65);
+  --padding-start: 0.625rem;
+  --padding-end: 0.5rem;
+  --inner-padding-end: 0.5rem;
+  --border-radius: 10px;
+  --min-height: 46px;
+  border-radius: 10px;
+  transition: background 0.18s;
+}
+
+.menu-module-header--active {
+  --background: rgba(var(--ion-color-primary-rgb), 0.12) !important;
+  --color: #fff !important;
+}
+
+/* Icône ronde du module */
+.menu-module-icon-wrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 0.625rem;
+  transition: background 0.18s;
+}
+
+.menu-module-icon-wrap--active {
+  background: rgba(var(--ion-color-primary-rgb), 0.25);
+}
+
+.menu-module-icon {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.18s;
+}
+
+.menu-module-icon-wrap--active .menu-module-icon {
+  color: var(--ion-color-light-tint);
+}
+
+.menu-module-label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  text-transform: uppercase !important;
+  color: #ffffff;
+}
+
+.menu-module-header--active .menu-module-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ════════════════════════════════════════════
+   ACCORDÉON — contenu (panneau ouvert)
+   ════════════════════════════════════════════ */
+.menu-accordion-content {
+  background: rgba(0, 0, 0, 0.18);
+  padding: 0.25rem 0 0.375rem;
+  /* Ligne verticale décorative à gauche */
+  border-left: 2px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  margin-left: 0.875rem;
+  border-radius: 0 0 10px 0;
+}
+
+.menu-items-list {
+  background: transparent;
+  padding: 0 0.375rem 0 0.375rem;
+}
+
+/* ── Item de navigation dans un module ── */
+.menu-nav-item {
+  --background: transparent;
+  --background-hover: rgba(255, 255, 255, 0.06);
+  --background-activated: rgba(255, 255, 255, 0.05);
+  --color: rgba(255, 255, 255, 0.55);
+  --padding-start: 0.625rem;
+  --padding-end: 0.375rem;
+  --inner-padding-end: 0.375rem;
+  --border-radius: 8px;
+  --min-height: 40px;
+  border-radius: 8px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  margin-bottom: 1px;
+}
+
+.menu-nav-item--active {
+  --background: var(--ion-color-primary) !important;
+  --color: #fff !important;
+  box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.3);
+}
+
+.menu-nav-icon {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.menu-nav-item--active .menu-nav-icon {
+  color: #fff;
+}
+
+.menu-nav-label {
+  font-size: 0.85rem !important;
+  font-weight: 400;
+}
+
+.menu-nav-item--active .menu-nav-label {
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Pastille active */
+.menu-nav-active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00e5ff;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.55);
+}
+
+/* ════════════════════════════════════════════
+   PIED DU MENU
+   ════════════════════════════════════════════ */
+.menu-footer {
+  flex-shrink: 0;
+  background: #12122a;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 0.75rem;
+}
+
+.menu-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.375rem 0.75rem 0.625rem;
+}
+
+.menu-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.menu-user-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.menu-user-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-user-role {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.38);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-logout-item {
+  --background: transparent;
+  --background-hover: rgba(255, 255, 255, 0.06);
+  --color: rgba(255, 255, 255, 0.5);
+  --padding-start: 0.75rem;
+  --border-radius: 10px;
+  --min-height: 40px;
+  border-radius: 10px;
+}
+
+.menu-logout-icon {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.45);
+}

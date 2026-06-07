@@ -5,7 +5,7 @@ export {
     IonMenu, IonMenuButton, IonSplitPane, IonMenuToggle, IonGrid, IonRow, IonCol, IonModal,
     IonTextarea, IonSelect, IonSelectOption, IonAlert, IonText, IonCardSubtitle, IonInfiniteScroll, IonInfiniteScrollContent,
     IonChip, IonSearchbar, IonCheckbox, IonBackButton, IonSegment, IonSegmentButton, IonToast, IonDatetimeButton,
-    IonDatetime, IonAccordion, IonAccordionGroup
+    IonDatetime, IonAccordion, IonAccordionGroup, IonToggle
 } from "@ionic/react";
 
 
