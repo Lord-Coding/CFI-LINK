@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import {
-  cogOutline,
   IonAccordion,
   IonAccordionGroup,
   IonContent,
@@ -10,6 +9,7 @@ import {
   IonList,
   IonMenu,
   IonMenuToggle,
+  logOutOutline,
   schoolOutline,
 } from "../lib/ionic";
 import { useHistory, useLocation } from "react-router-dom";
@@ -159,15 +159,6 @@ const SideMenu: React.FC = () => {
       </IonContent>
 
       <div className="menu-footer">
-        <div className="menu-user-info">
-          <div className="menu-avatar" style={{ backgroundColor: avatarColor }}>
-            {initials}
-          </div>
-          <div className="menu-user-text">
-            <span className="menu-user-name">{user.nom_complet}</span>
-            <span className="menu-user-role">{ROLE_LABELS[user.role]}</span>
-          </div>
-        </div>
         <IonItem
           className="menu-logout-item"
           button
@@ -177,10 +168,11 @@ const SideMenu: React.FC = () => {
         >
           <IonIcon
             slot="start"
-            icon={cogOutline}
+            icon={logOutOutline}
+            color="light"
             className="menu-logout-icon"
           />
-          <IonLabel>Déconnexion</IonLabel>
+          <IonLabel color="light">Déconnexion</IonLabel>
         </IonItem>
       </div>
     </IonMenu>

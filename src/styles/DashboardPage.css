@@ -125,9 +125,9 @@
 }
 
 /* ── Cards espacées ── */
-.stat-card         { margin: 0.3rem !important; }
-.action-card       { margin: 0.3rem !important; }
-.dashboard-card    { margin: 0 !important; }
+.stat-card      { margin: 0.3rem !important; }
+.action-card    { margin: 0.4rem !important; }
+.dashboard-card { margin: 0 !important; }
 
 /* ── Stat cards ── */
 .stat-card-content { padding: 1.1rem !important; }
@@ -176,7 +176,7 @@
 }
 
 /* ── Action cards ── */
-.action-card         { margin: 0 !important; }
+.action-card         { margin: 0.4rem !important; }
 .action-card-content { padding: 1.25rem !important; }
 
 .action-card-icon-wrap {
@@ -228,8 +228,8 @@
 .dashboard-see-all { --color: var(--ion-color-primary); font-size: 0.78rem; flex-shrink: 0; }
 
 /* ── Grilles IonGrid ── */
-.db-stats-grid { --ion-grid-column-padding: 0.375rem; }
-.db-action-grid { --ion-grid-column-padding: 0.375rem; }
+.db-stats-grid  { --ion-grid-column-padding: 0.375rem; }
+.db-action-grid { --ion-grid-column-padding: 0.5rem; }
 
 /* ── Cours ── */
 .courses-list { display: flex; flex-direction: column; gap: 0.5rem; }

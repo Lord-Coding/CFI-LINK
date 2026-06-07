@@ -45,6 +45,11 @@ import Messages        from './pages/Messages';
 import CalendarPage    from './pages/CalendarPage';
 import Documents       from './pages/Documents';
 import Settings        from './pages/Settings';
+import Grades          from './pages/Grades';
+import Attendance      from './pages/Attendance';
+import Forum           from './pages/Forum';
+import Community       from './pages/Community';
+import Payments        from './pages/Payments';
 
 setupIonicReact();
 
@@ -137,35 +142,10 @@ const ProtectedApp: React.FC = () => {
                 <Route path="/settings">
                     <ProtectedRoute><Settings /></ProtectedRoute>
                 </Route>
-
-                {/* Routes à implémenter
-                <Route path="/schedule">
-                    <ProtectedRoute><Schedule /></ProtectedRoute>
-                </Route>
                 <Route path="/grades">
                     <ProtectedRoute allowedRoles={['etudiant_concours', 'etudiant_externe', 'professeur']}>
                         <Grades />
                     </ProtectedRoute>
-                </Route>
-                <Route path="/settings">
-                    <ProtectedRoute><Settings /></ProtectedRoute>
-                </Route>
-                <Route path="/documents">
-                    <ProtectedRoute><Documents /></ProtectedRoute>
-                </Route>
-                <Route path="/community">
-                    <ProtectedRoute allowedRoles={['etudiant_concours', 'etudiant_externe']}>
-                        <Community />
-                    </ProtectedRoute>
-                </Route>
-                <Route path="/elearning">
-                    <ProtectedRoute><ELearning /></ProtectedRoute>
-                </Route>
-                <Route path="/messages">
-                    <ProtectedRoute><Messages /></ProtectedRoute>
-                </Route>
-                <Route path="/calendar">
-                    <ProtectedRoute><CalendarPage /></ProtectedRoute>
                 </Route>
                 <Route path="/attendance">
                     <ProtectedRoute allowedRoles={['etudiant_concours', 'etudiant_externe', 'professeur']}>
@@ -177,13 +157,14 @@ const ProtectedApp: React.FC = () => {
                         <Forum />
                     </ProtectedRoute>
                 </Route>
-                <Route path="/library">
-                    <ProtectedRoute><LibraryPage /></ProtectedRoute>
+                <Route path="/community">
+                    <ProtectedRoute allowedRoles={['etudiant_concours', 'etudiant_externe']}>
+                        <Community />
+                    </ProtectedRoute>
                 </Route>
                 <Route path="/payments">
                     <ProtectedRoute><Payments /></ProtectedRoute>
                 </Route>
-                */}
 
                 {/* Redrection admin */}
                 <Route path="/admin/users">
