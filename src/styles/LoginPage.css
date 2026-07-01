@@ -233,3 +233,10 @@ ion-input {
 .login-form .cfi-alert {
   animation: alertIn 0.2s ease;
 }
+
+/* ── Bouton retour à l'accueil ── */
+.login-back-btn {
+  margin-bottom: 0.75rem;
+  --color: var(--ion-color-medium);
+  font-size: 0.875rem;
+}

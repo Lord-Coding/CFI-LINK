@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     IonButton, IonIcon, IonModal, IonChip,
     IonSearchbar, IonSegment, IonSegmentButton, IonLabel,
@@ -6,17 +6,20 @@ import {
 import {
     documentTextOutline, downloadOutline, addCircleOutline,
     checkmarkCircleOutline, closeCircleOutline, printOutline,
-    eyeOutline, timeOutline, personOutline, calendarOutline,
-    archiveOutline, cloudDownloadOutline, ribbonOutline,
+    eyeOutline, timeOutline,
+    cloudDownloadOutline, ribbonOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
-import { isAdmin, isStaff, isStudent, FILIERE_LABELS } from '../lib/store';
+import { isAdmin, isStaff, isStudent } from '../lib/store';
 import {
     getDocumentRequests, getStudentRequests,
     createDocumentRequest, processRequest,
     DOC_TYPE_LABELS, DOC_STATUS_LABELS, DocumentRequest,
 } from '../lib/documents-store';
-import { Badge, Card, CardContent, CardHeader, CardTitle, AlertDialog } from '../components';
+import {
+    generateDocument, printDocument, downloadDocumentAsPdf, DocTemplateType,
+} from '../lib/document-templates';
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Documents.css';
 
@@ -68,41 +71,68 @@ const REQ_STATUS_BADGE: Record<string, ReqBadge> = {
 type MainTab = 'docs' | 'requests';
 type DocFilter = 'all' | 'attestation' | 'releve' | 'certificat' | 'administratif';
 
+/* ── Modal aperçu document généré ── */
+interface DocPreviewModalProps {
+    isOpen:  boolean;
+    html:    string;
+    title:   string;
+    onClose: () => void;
+    onPrint: () => void;
+    onDownload: () => void;
+}
+
+const DocPreviewModal: React.FC<DocPreviewModalProps> = ({ isOpen, html, title, onClose, onPrint, onDownload }) => {
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+
+    return (
+        <IonModal isOpen={isOpen} onDidDismiss={onClose} className="dc-preview-modal">
+            <div className="dc-preview-inner">
+                <div className="dc-preview-header">
+                    <div className="dc-preview-header-icon">
+                        <IonIcon icon={documentTextOutline} />
+                    </div>
+                    <div className="dc-preview-header-text">
+                        <h2 className="dc-preview-title">{title}</h2>
+                        <p className="dc-preview-subtitle">Aperçu du document généré</p>
+                    </div>
+                    <IonButton fill="clear" size="small" onClick={onClose} className="dc-view-close">
+                        <IonIcon slot="icon-only" icon={closeCircleOutline} />
+                    </IonButton>
+                </div>
+
+                <div className="dc-preview-frame-wrap">
+                    <iframe
+                        ref={iframeRef}
+                        srcDoc={html}
+                        className="dc-preview-frame"
+                        title={title}
+                        sandbox="allow-same-origin"
+                    />
+                </div>
+
+                <div className="dc-preview-footer">
+                    <IonButton fill="outline" color="medium" onClick={onClose}>
+                        Fermer
+                    </IonButton>
+                    <IonButton fill="outline" color="primary" onClick={onPrint}>
+                        <IonIcon slot="start" icon={printOutline} />
+                        Imprimer
+                    </IonButton>
+                    <IonButton color="success" onClick={onDownload}>
+                        <IonIcon slot="start" icon={cloudDownloadOutline} />
+                        Télécharger PDF
+                    </IonButton>
+                </div>
+            </div>
+        </IonModal>
+    );
+};
+
 /* ── Génération attestation imprimable ── */
 function printAttestation(user: ReturnType<typeof useAuth>['user']) {
     if (!user) return;
-    const filiere = user.filiere ? FILIERE_LABELS[user.filiere] : '—';
-    const html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<title>Attestation — ${user.nom_complet}</title>
-<style>
-  body{font-family:Georgia,serif;padding:60px;color:#333;max-width:700px;margin:0 auto}
-  h1{text-align:center;color:#1d4ed8;border-bottom:3px solid #1d4ed8;padding-bottom:15px}
-  .content{margin:40px 0;line-height:2;font-size:16px}
-  .signature{margin-top:60px;text-align:right}
-  .stamp{border:2px solid #1d4ed8;padding:10px 20px;display:inline-block;color:#1d4ed8;font-weight:bold;transform:rotate(-5deg);margin-top:20px}
-</style></head>
-<body>
-  <h1>CFI-CIRAS</h1>
-  <p style="text-align:center;color:#666">Centre de Formation en Informatique — CIRAS</p>
-  <h2 style="text-align:center;margin-top:40px">ATTESTATION D'INSCRIPTION</h2>
-  <div class="content">
-    <p>Le Directeur du CFI-CIRAS atteste que :</p>
-    <p><strong>M./Mme ${user.nom_complet}</strong></p>
-    <p>est régulièrement inscrit(e) au sein de notre établissement pour l'année académique <strong>2024-2025</strong>.</p>
-    <p><strong>Filière :</strong> ${filiere}</p>
-    <p><strong>Niveau :</strong> ${user.annee ?? '—'}${user.option ? ` (Option : ${user.option})` : ''}</p>
-    <p>En foi de quoi, la présente attestation est délivrée pour servir et valoir ce que de droit.</p>
-  </div>
-  <div class="signature">
-    <p>Fait à Yaoundé, le ${new Date().toLocaleDateString('fr-FR')}</p>
-    <p style="margin-top:30px"><strong>Le Directeur</strong></p>
-    <p>Dr. Michel Fouda</p>
-    <div class="stamp">CFI-CIRAS</div>
-  </div>
-</body></html>`;
-    const w = window.open('', '_blank');
-    if (w) { w.document.write(html); w.document.close(); w.print(); }
+    const html = generateDocument('attestation_inscription', user);
+    printDocument(html);
 }
 
 /* ════════════════════════════════
@@ -111,18 +141,30 @@ function printAttestation(user: ReturnType<typeof useAuth>['user']) {
 const Documents: React.FC = () => {
     const { user } = useAuth();
 
-    const [mainTab,      setMainTab]      = useState<MainTab>('docs');
-    const [docFilter,    setDocFilter]    = useState<DocFilter>('all');
-    const [search,       setSearch]       = useState('');
-    const [viewDoc,      setViewDoc]      = useState<Doc | null>(null);
-    const [requestOpen,  setRequestOpen]  = useState(false);
-    const [reqType,      setReqType]      = useState<DocumentRequest['type']>('attestation_inscription');
-    const [refreshKey,   setRefreshKey]   = useState(0);
+    const [mainTab,       setMainTab]       = useState<MainTab>('docs');
+    const [docFilter,     setDocFilter]     = useState<DocFilter>('all');
+    const [search,        setSearch]        = useState('');
+    const [viewDoc,       setViewDoc]       = useState<Doc | null>(null);
+    const [requestOpen,   setRequestOpen]   = useState(false);
+    const [reqType,       setReqType]       = useState<DocumentRequest['type']>('attestation_inscription');
+    const [refreshKey,    setRefreshKey]    = useState(0);
+
+    /* Aperçu document généré */
+    const [previewHtml,   setPreviewHtml]   = useState('');
+    const [previewTitle,  setPreviewTitle]  = useState('');
+    const [previewOpen,   setPreviewOpen]   = useState(false);
 
     if (!user) return null;
 
-    const canManage = isAdmin(user.role) || isStaff(user.role);
+    const canManage  = isAdmin(user.role) || isStaff(user.role);
     const canRequest = isStudent(user.role);
+
+    const openPreview = (type: DocTemplateType, title: string) => {
+        const html = generateDocument(type, user);
+        setPreviewHtml(html);
+        setPreviewTitle(title);
+        setPreviewOpen(true);
+    };
 
     /* Documents */
     const q = search.toLowerCase().trim();
@@ -185,8 +227,7 @@ const Documents: React.FC = () => {
                             </IonButton>
                         </>
                     )}
-                </div>
-            </div>
+                </div>            </div>
 
             {/* ── Onglets principaux ── */}
             <div className="dc-main-tabs">
@@ -270,8 +311,20 @@ const Documents: React.FC = () => {
                                             size="small"
                                             color="primary"
                                             className="dc-icon-btn"
-                                            onClick={() => setViewDoc(doc)}
-                                            title="Voir"
+                                            onClick={() => {
+                                                if (canRequest) {
+                                                    const typeMap: Record<string, DocTemplateType> = {
+                                                        attestation:   'attestation_inscription',
+                                                        releve:        'releve_notes',
+                                                        certificat:    'certificat_scolarite',
+                                                        administratif: 'attestation_inscription',
+                                                    };
+                                                    openPreview(typeMap[doc.type] ?? 'attestation_inscription', doc.title);
+                                                } else {
+                                                    setViewDoc(doc);
+                                                }
+                                            }}
+                                            title="Aperçu"
                                         >
                                             <IonIcon slot="icon-only" icon={eyeOutline} />
                                         </IonButton>
@@ -282,6 +335,18 @@ const Documents: React.FC = () => {
                                                 color="success"
                                                 className="dc-icon-btn"
                                                 title="Télécharger"
+                                                onClick={() => {
+                                                    if (canRequest) {
+                                                        const typeMap: Record<string, DocTemplateType> = {
+                                                            attestation:   'attestation_inscription',
+                                                            releve:        'releve_notes',
+                                                            certificat:    'certificat_scolarite',
+                                                            administratif: 'attestation_inscription',
+                                                        };
+                                                        const html = generateDocument(typeMap[doc.type] ?? 'attestation_inscription', user);
+                                                        downloadDocumentAsPdf(html, doc.title);
+                                                    }
+                                                }}
                                             >
                                                 <IonIcon slot="icon-only" icon={downloadOutline} />
                                             </IonButton>
@@ -391,7 +456,7 @@ const Documents: React.FC = () => {
                 </div>
             )}
 
-            {/* ── Modal détail document ── */}
+            {/* ── Modal détail document (admin/staff) ── */}
             <IonModal isOpen={!!viewDoc} onDidDismiss={() => setViewDoc(null)} className="dc-view-modal">
                 {viewDoc && (
                     <div className="dc-view-inner">
@@ -499,6 +564,24 @@ const Documents: React.FC = () => {
                             <IonButton expand="block" fill="outline" color="medium" type="button" onClick={() => setRequestOpen(false)}>
                                 Annuler
                             </IonButton>
+                            <IonButton
+                                expand="block"
+                                fill="outline"
+                                color="primary"
+                                type="button"
+                                onClick={() => {
+                                    const typeMap: Record<string, DocTemplateType> = {
+                                        attestation_inscription: 'attestation_inscription',
+                                        releve_notes:            'releve_notes',
+                                        certificat_scolarite:    'certificat_scolarite',
+                                        attestation_reussite:    'attestation_reussite',
+                                    };
+                                    openPreview(typeMap[reqType], DOC_TYPE_LABELS[reqType]);
+                                }}
+                            >
+                                <IonIcon slot="start" icon={eyeOutline} />
+                                Aperçu
+                            </IonButton>
                             <IonButton expand="block" type="submit" color="primary">
                                 <IonIcon slot="start" icon={checkmarkCircleOutline} />
                                 Soumettre
@@ -507,6 +590,16 @@ const Documents: React.FC = () => {
                     </form>
                 </div>
             </IonModal>
+
+            {/* ── Modal aperçu document généré ── */}
+            <DocPreviewModal
+                isOpen={previewOpen}
+                html={previewHtml}
+                title={previewTitle}
+                onClose={() => setPreviewOpen(false)}
+                onPrint={() => printDocument(previewHtml)}
+                onDownload={() => downloadDocumentAsPdf(previewHtml, previewTitle)}
+            />
 
         </DashboardLayout>
     );

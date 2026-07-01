@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth';
 import { Link, useHistory } from 'react-router-dom';
-import { getUserByEmail, setCurrentUser } from '../../lib/store';
-import { IonButton, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonInputPasswordToggle, IonLabel, IonPage, IonRow, IonSpinner, lockClosedOutline, mailOutline, schoolOutline } from '../../lib/ionic';
+import { IonButton, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonInputPasswordToggle, IonLabel, IonPage, IonRow, IonSpinner, lockClosedOutline, mailOutline, schoolOutline, arrowBackOutline } from '../../lib/ionic';
 import { Alert } from '../../components';
 import '../../styles/LoginPage.css';
 
@@ -25,10 +24,7 @@ const Login: React.FC = () => {
             if (result.success) {
                 history.replace("/dashboard");
             } else if (result.error === "PAYMENT_BLOCKED") {
-                const user = getUserByEmail(email);
-                if (user) setCurrentUser(user);
                 history.replace("/dashboard");
-                window.location.reload();
             } else {
                 setError(result.error || "Erreur de connexion.");
             }
@@ -64,6 +60,16 @@ const Login: React.FC = () => {
                                     </div>
                                     <span className="login-mobile-logo-text">CFI-LINK</span>
                                 </Link>
+
+                                <IonButton
+                                    fill="clear"
+                                    size="small"
+                                    onClick={() => history.push("/landing")}
+                                    className="login-back-btn"
+                                >
+                                    <IonIcon slot="start" icon={arrowBackOutline} />
+                                    Retour à l'accueil
+                                </IonButton>
 
                                 <h1 className="login-title">Connexion</h1>
                                 <p className="login-subtitle">Entrez vos identifiants pour accéder à votre espace.</p>

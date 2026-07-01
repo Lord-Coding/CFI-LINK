@@ -1,113 +1,27 @@
 import React, { useState } from 'react';
 import {
-    IonButton, IonIcon, IonProgressBar, IonSearchbar, IonChip,
+    IonButton, IonIcon, IonProgressBar, IonSearchbar, IonChip, IonModal,
+    IonInput, IonSelect, IonSelectOption,
 } from '../lib/ionic';
 import {
     playOutline, documentTextOutline, helpCircleOutline, ribbonOutline,
     bookOutline, arrowBackOutline, checkmarkCircleOutline, lockClosedOutline,
-    chevronForwardOutline, timeOutline, peopleOutline, videocamOutline,
-    schoolOutline, layersOutline,
+    chevronForwardOutline, timeOutline, videocamOutline,
+    schoolOutline, layersOutline, addOutline, createOutline, trashOutline,
+    closeOutline, addCircleOutline, removeCircleOutline,
 } from 'ionicons/icons';
 import { Badge, Card, CardContent } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
+import { useAuth } from '../hooks/useAuth';
+import { isProfessor } from '../lib/store';
+import {
+    getAllCourses, getCoursesForProfessor, getLessonsForCourse,
+    addLesson, updateLesson, deleteLesson, markLessonComplete,
+    initializeCourseStore, CourseData, Lesson, QuizQuestion,
+} from '../lib/courses-data';
 import '../styles/ELearning.css';
 
-/* ── Types ── */
-interface Lesson {
-    id:        string;
-    title:     string;
-    type:      'video' | 'document' | 'quiz' | 'exam';
-    duration:  string;
-    completed: boolean;
-    locked:    boolean;
-}
-
-interface Course {
-    id:               string;
-    name:             string;
-    teacher:          string;
-    filiere:          string;
-    annee:            string;
-    description:      string;
-    progress:         number;
-    totalLessons:     number;
-    completedLessons: number;
-    lessons:          Lesson[];
-}
-
-/* ── Données mockées ── */
-const mockCourses: Course[] = [
-    {
-        id: '1', name: 'Algorithmique avancée', teacher: 'Prof. Mbarga',
-        filiere: 'LIC', annee: 'L2',
-        description: 'Structures de données avancées, complexité algorithmique et programmation dynamique.',
-        progress: 65, totalLessons: 12, completedLessons: 8,
-        lessons: [
-            { id: 'l1',  title: 'Introduction aux structures avancées',   type: 'video',    duration: '45 min', completed: true,  locked: false },
-            { id: 'l2',  title: 'Supports de cours — Chapitre 1',         type: 'document', duration: '15 min', completed: true,  locked: false },
-            { id: 'l3',  title: 'Arbres binaires de recherche',            type: 'video',    duration: '50 min', completed: true,  locked: false },
-            { id: 'l4',  title: 'Quiz — Arbres & Graphes',                 type: 'quiz',     duration: '20 min', completed: true,  locked: false },
-            { id: 'l5',  title: 'Graphes : parcours & plus courts chemins',type: 'video',    duration: '55 min', completed: true,  locked: false },
-            { id: 'l6',  title: 'Tables de hachage',                       type: 'video',    duration: '40 min', completed: true,  locked: false },
-            { id: 'l7',  title: 'TD noté — Structures de données',         type: 'document', duration: '30 min', completed: true,  locked: false },
-            { id: 'l8',  title: 'Programmation dynamique',                 type: 'video',    duration: '60 min', completed: true,  locked: false },
-            { id: 'l9',  title: 'Quiz — Programmation dynamique',          type: 'quiz',     duration: '25 min', completed: false, locked: false },
-            { id: 'l10', title: 'Algorithmes de tri avancés',              type: 'video',    duration: '50 min', completed: false, locked: false },
-            { id: 'l11', title: 'Complexité NP',                           type: 'video',    duration: '55 min', completed: false, locked: true  },
-            { id: 'l12', title: 'Examen final — Algorithmique',            type: 'exam',     duration: '2h',     completed: false, locked: true  },
-        ],
-    },
-    {
-        id: '2', name: 'Base de données', teacher: 'Dr. Nkoulou',
-        filiere: 'LIC', annee: 'L2',
-        description: 'Modélisation, SQL avancé, normalisation et administration de bases de données.',
-        progress: 40, totalLessons: 10, completedLessons: 4,
-        lessons: [
-            { id: 'b1',  title: 'Modèle relationnel',           type: 'video',    duration: '40 min', completed: true,  locked: false },
-            { id: 'b2',  title: 'SQL — Les fondamentaux',        type: 'video',    duration: '50 min', completed: true,  locked: false },
-            { id: 'b3',  title: 'Quiz — SQL Basics',             type: 'quiz',     duration: '15 min', completed: true,  locked: false },
-            { id: 'b4',  title: 'Jointures et sous-requêtes',    type: 'video',    duration: '45 min', completed: true,  locked: false },
-            { id: 'b5',  title: 'Normalisation (1NF-3NF)',       type: 'video',    duration: '55 min', completed: false, locked: false },
-            { id: 'b6',  title: 'Supports — Normalisation',      type: 'document', duration: '20 min', completed: false, locked: false },
-            { id: 'b7',  title: 'Quiz — Normalisation',          type: 'quiz',     duration: '20 min', completed: false, locked: true  },
-            { id: 'b8',  title: 'Transactions & concurrence',    type: 'video',    duration: '50 min', completed: false, locked: true  },
-            { id: 'b9',  title: 'Administration PostgreSQL',     type: 'video',    duration: '60 min', completed: false, locked: true  },
-            { id: 'b10', title: 'Examen final — BDD',            type: 'exam',     duration: '2h',     completed: false, locked: true  },
-        ],
-    },
-    {
-        id: '3', name: 'Droit administratif', teacher: 'Me. Atangana',
-        filiere: 'LAP', annee: 'L1',
-        description: 'Principes du droit administratif, actes administratifs et contentieux.',
-        progress: 80, totalLessons: 8, completedLessons: 6,
-        lessons: [
-            { id: 'd1', title: 'Introduction au droit administratif',  type: 'video',    duration: '35 min', completed: true,  locked: false },
-            { id: 'd2', title: "L'organisation administrative",        type: 'video',    duration: '45 min', completed: true,  locked: false },
-            { id: 'd3', title: 'Les actes administratifs',             type: 'video',    duration: '50 min', completed: true,  locked: false },
-            { id: 'd4', title: 'Quiz — Actes administratifs',          type: 'quiz',     duration: '15 min', completed: true,  locked: false },
-            { id: 'd5', title: 'Le service public',                    type: 'video',    duration: '40 min', completed: true,  locked: false },
-            { id: 'd6', title: 'Documents — Jurisprudence',            type: 'document', duration: '25 min', completed: true,  locked: false },
-            { id: 'd7', title: 'Le contentieux administratif',         type: 'video',    duration: '55 min', completed: false, locked: false },
-            { id: 'd8', title: 'Examen final — Droit admin',           type: 'exam',     duration: '2h',     completed: false, locked: true  },
-        ],
-    },
-    {
-        id: '4', name: 'Anglais technique', teacher: 'Mme. Fotso',
-        filiere: 'LIC', annee: 'L1',
-        description: 'Anglais technique orienté informatique et communication professionnelle.',
-        progress: 30, totalLessons: 8, completedLessons: 2,
-        lessons: [
-            { id: 'a1', title: 'Technical vocabulary',   type: 'video',    duration: '30 min', completed: true,  locked: false },
-            { id: 'a2', title: 'Reading comprehension',  type: 'document', duration: '20 min', completed: true,  locked: false },
-            { id: 'a3', title: 'Quiz — Vocabulary',      type: 'quiz',     duration: '15 min', completed: false, locked: false },
-            { id: 'a4', title: 'Writing emails',         type: 'video',    duration: '35 min', completed: false, locked: false },
-            { id: 'a5', title: 'Presentation skills',    type: 'video',    duration: '40 min', completed: false, locked: true  },
-            { id: 'a6', title: 'Mock presentation',      type: 'document', duration: '30 min', completed: false, locked: true  },
-            { id: 'a7', title: 'Quiz — Communication',   type: 'quiz',     duration: '20 min', completed: false, locked: true  },
-            { id: 'a8', title: 'Final exam — English',   type: 'exam',     duration: '1h30',   completed: false, locked: true  },
-        ],
-    },
-];
+initializeCourseStore();
 
 /* ── Helpers ── */
 const LESSON_ICON: Record<string, string> = {
@@ -119,25 +33,254 @@ const LESSON_ICON: Record<string, string> = {
 const LESSON_LABEL: Record<string, string> = {
     video: 'Vidéo', document: 'Document', quiz: 'Quiz', exam: 'Examen',
 };
-
 type LessonBadge = 'default' | 'warning' | 'info' | 'danger';
 const LESSON_BADGE: Record<string, LessonBadge> = {
     video: 'default', document: 'warning', quiz: 'info', exam: 'danger',
 };
 
 /* ════════════════════════════════
+   Modal Leçon (ajout / édition)
+════════════════════════════════ */
+interface LessonForm {
+    title:    string;
+    type:     'video' | 'document' | 'quiz' | 'exam';
+    duration: string;
+    file_url: string;
+    locked:   boolean;
+}
+const EMPTY_LESSON: LessonForm = { title: '', type: 'video', duration: '', file_url: '', locked: false };
+
+interface LessonModalProps {
+    isOpen:   boolean;
+    courseId: string;
+    initial?: Lesson | null;
+    nextOrder: number;
+    onClose:  () => void;
+    onSave:   () => void;
+}
+
+const LessonModal: React.FC<LessonModalProps> = ({ isOpen, courseId, initial, nextOrder, onClose, onSave }) => {
+    const [form, setForm] = useState<LessonForm>(() =>
+        initial
+            ? { title: initial.title, type: initial.type, duration: initial.duration, file_url: initial.file_url ?? '', locked: initial.locked }
+            : { ...EMPTY_LESSON }
+    );
+    const [questions, setQuestions] = useState<QuizQuestion[]>(initial?.quizQuestions ?? []);
+    const [error, setError] = useState('');
+
+    const set = (field: keyof LessonForm) => (val: string | boolean) =>
+        setForm(f => ({ ...f, [field]: val }));
+
+    const addQuestion = () =>
+        setQuestions(q => [...q, { id: crypto.randomUUID(), question: '', options: ['', '', '', ''], correctIndex: 0 }]);
+
+    const updateQuestion = (qi: number, field: 'question' | 'correctIndex', val: string | number) =>
+        setQuestions(q => q.map((item, i) => i === qi ? { ...item, [field]: val } : item));
+
+    const updateOption = (qi: number, oi: number, val: string) =>
+        setQuestions(q => q.map((item, i) => i === qi ? { ...item, options: item.options.map((o, j) => j === oi ? val : o) } : item));
+
+    const removeQuestion = (qi: number) =>
+        setQuestions(q => q.filter((_, i) => i !== qi));
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!form.title.trim())    { setError('Le titre est requis.'); return; }
+        if (!form.duration.trim()) { setError('La durée est requise.'); return; }
+        if ((form.type === 'quiz' || form.type === 'exam') && questions.length === 0) {
+            setError('Ajoutez au moins une question pour ce type de leçon.'); return;
+        }
+
+        const data: Omit<Lesson, 'id'> = {
+            courseId,
+            title:        form.title.trim(),
+            type:         form.type,
+            duration:     form.duration.trim(),
+            file_url:     form.file_url.trim() || undefined,
+            completed:    initial?.completed ?? false,
+            locked:       form.locked,
+            order:        initial?.order ?? nextOrder,
+            quizQuestions: (form.type === 'quiz' || form.type === 'exam') ? questions : undefined,
+        };
+
+        if (initial) {
+            updateLesson(initial.id, data);
+        } else {
+            addLesson(data);
+        }
+        onSave();
+        onClose();
+    };
+
+    const isQuizType = form.type === 'quiz' || form.type === 'exam';
+
+    return (
+        <IonModal isOpen={isOpen} onDidDismiss={onClose} className="el-lesson-modal">
+            <div className="el-lesson-modal-inner">
+                <div className="el-lesson-modal-header">
+                    <div className="el-lesson-modal-icon">
+                        <IonIcon icon={addCircleOutline} />
+                    </div>
+                    <div>
+                        <h2 className="el-lesson-modal-title">{initial ? 'Modifier la leçon' : 'Nouvelle leçon'}</h2>
+                        <p className="el-lesson-modal-subtitle">Remplissez les informations de la leçon.</p>
+                    </div>
+                    <IonButton fill="clear" size="small" onClick={onClose} className="el-lesson-modal-close">
+                        <IonIcon slot="icon-only" icon={closeOutline} />
+                    </IonButton>
+                </div>
+
+                <form onSubmit={handleSubmit} className="el-lesson-modal-form">
+                    {error && <p className="el-lesson-modal-error">{error}</p>}
+
+                    <div className="el-form-group">
+                        <label className="el-form-label">Titre *</label>
+                        <IonInput
+                            value={form.title}
+                            onIonInput={e => set('title')(String(e.detail.value ?? ''))}
+                            placeholder="Ex. : Introduction aux structures"
+                            className="el-form-input"
+                        />
+                    </div>
+
+                    <div className="el-form-row">
+                        <div className="el-form-group el-form-group--half">
+                            <label className="el-form-label">Type *</label>
+                            <IonSelect
+                                value={form.type}
+                                onIonChange={e => set('type')(e.detail.value)}
+                                className="el-form-select"
+                                interface="popover"
+                            >
+                                <IonSelectOption value="video">Vidéo</IonSelectOption>
+                                <IonSelectOption value="document">Document</IonSelectOption>
+                                <IonSelectOption value="quiz">Quiz</IonSelectOption>
+                                <IonSelectOption value="exam">Examen</IonSelectOption>
+                            </IonSelect>
+                        </div>
+
+                        <div className="el-form-group el-form-group--half">
+                            <label className="el-form-label">Durée *</label>
+                            <IonInput
+                                value={form.duration}
+                                onIonInput={e => set('duration')(String(e.detail.value ?? ''))}
+                                placeholder="Ex. : 45 min ou 2h"
+                                className="el-form-input"
+                            />
+                        </div>
+                    </div>
+
+                    {!isQuizType && (
+                        <div className="el-form-group">
+                            <label className="el-form-label">URL du fichier</label>
+                            <IonInput
+                                value={form.file_url}
+                                onIonInput={e => set('file_url')(String(e.detail.value ?? ''))}
+                                placeholder="https://… (vidéo MP4 ou PDF)"
+                                className="el-form-input"
+                            />
+                        </div>
+                    )}
+
+                    <div className="el-form-group el-form-group--check">
+                        <label className="el-form-label">Verrouillée</label>
+                        <IonSelect
+                            value={form.locked ? 'yes' : 'no'}
+                            onIonChange={e => set('locked')(e.detail.value === 'yes')}
+                            className="el-form-select"
+                            interface="popover"
+                        >
+                            <IonSelectOption value="no">Non — accessible librement</IonSelectOption>
+                            <IonSelectOption value="yes">Oui — accès restreint</IonSelectOption>
+                        </IonSelect>
+                    </div>
+
+                    {/* Questions quiz */}
+                    {isQuizType && (
+                        <div className="el-quiz-builder">
+                            <div className="el-quiz-builder-header">
+                                <span className="el-quiz-builder-title">Questions ({questions.length})</span>
+                                <IonButton fill="clear" size="small" color="primary" type="button" onClick={addQuestion}>
+                                    <IonIcon slot="start" icon={addOutline} /> Ajouter
+                                </IonButton>
+                            </div>
+
+                            {questions.map((q, qi) => (
+                                <div key={q.id} className="el-quiz-builder-q">
+                                    <div className="el-quiz-builder-q-header">
+                                        <span className="el-quiz-builder-q-num">Q{qi + 1}</span>
+                                        <IonButton fill="clear" size="small" color="danger" type="button" onClick={() => removeQuestion(qi)}>
+                                            <IonIcon slot="icon-only" icon={removeCircleOutline} />
+                                        </IonButton>
+                                    </div>
+                                    <IonInput
+                                        value={q.question}
+                                        onIonInput={e => updateQuestion(qi, 'question', String(e.detail.value ?? ''))}
+                                        placeholder="Texte de la question"
+                                        className="el-form-input el-form-input--q"
+                                    />
+                                    <div className="el-quiz-builder-options">
+                                        {q.options.map((opt, oi) => (
+                                            <div key={oi} className={`el-quiz-builder-opt ${q.correctIndex === oi ? 'el-quiz-builder-opt--correct' : ''}`}>
+                                                <button
+                                                    type="button"
+                                                    className="el-quiz-builder-opt-radio"
+                                                    onClick={() => updateQuestion(qi, 'correctIndex', oi)}
+                                                    title="Marquer comme bonne réponse"
+                                                />
+                                                <IonInput
+                                                    value={opt}
+                                                    onIonInput={e => updateOption(qi, oi, String(e.detail.value ?? ''))}
+                                                    placeholder={`Réponse ${oi + 1}`}
+                                                    className="el-form-input el-form-input--opt"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="el-quiz-builder-hint">Cliquez sur le cercle pour définir la bonne réponse.</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="el-lesson-modal-actions">
+                        <IonButton expand="block" fill="outline" color="medium" type="button" onClick={onClose}>
+                            Annuler
+                        </IonButton>
+                        <IonButton expand="block" type="submit" color="primary">
+                            {initial ? 'Enregistrer' : 'Ajouter'}
+                        </IonButton>
+                    </div>
+                </form>
+            </div>
+        </IonModal>
+    );
+};
+
+/* ════════════════════════════════
    Vue Quiz / Examen
 ════════════════════════════════ */
-const QUIZ_QUESTIONS = [
-    { q: "Quelle est la complexité temporelle d'un BFS ?", options: ["O(n)", "O(n log n)", "O(V + E)", "O(n²)"], correct: 2 },
-    { q: "Algorithme pour le plus court chemin dans un graphe pondéré ?", options: ["DFS", "BFS", "Dijkstra", "Bubble Sort"], correct: 2 },
-    { q: "Quelle structure utilise le principe LIFO ?", options: ["File", "Pile", "Liste", "Arbre"], correct: 1 },
-];
-
 const QuizView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, onBack }) => {
-    const [answers,   setAnswers]   = useState<(number | null)[]>(new Array(QUIZ_QUESTIONS.length).fill(null));
+    const questions = lesson.quizQuestions ?? [];
+    const [answers,   setAnswers]   = useState<(number | null)[]>(new Array(questions.length).fill(null));
     const [submitted, setSubmitted] = useState(false);
-    const score = submitted ? answers.filter((a, i) => a === QUIZ_QUESTIONS[i].correct).length : 0;
+    const score = submitted ? answers.filter((a, i) => a === questions[i].correctIndex).length : 0;
+
+    const handleSubmit = () => {
+        setSubmitted(true);
+        markLessonComplete(lesson.id);
+    };
+
+    if (questions.length === 0) {
+        return (
+            <div className="el-quiz">
+                <button className="el-back-btn" onClick={onBack}>
+                    <IonIcon icon={arrowBackOutline} /> Retour au cours
+                </button>
+                <p style={{ textAlign:'center', color:'var(--ion-color-medium)', padding:'2rem' }}>Aucune question disponible.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="el-quiz">
@@ -148,45 +291,32 @@ const QuizView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, on
             <div className="el-quiz-header">
                 <h2 className="el-quiz-title">{lesson.title}</h2>
                 <Badge variant={LESSON_BADGE[lesson.type]} size="sm">
-                    <IonIcon icon={LESSON_ICON[lesson.type]} />
-                    {LESSON_LABEL[lesson.type]}
+                    <IonIcon icon={LESSON_ICON[lesson.type]} /> {LESSON_LABEL[lesson.type]}
                 </Badge>
             </div>
 
             {submitted && (
-                <div className={`el-quiz-result ${score === QUIZ_QUESTIONS.length ? 'el-quiz-result--perfect' : 'el-quiz-result--partial'}`}>
-                    <IonIcon icon={score === QUIZ_QUESTIONS.length ? checkmarkCircleOutline : ribbonOutline} />
-                    <span>{score}/{QUIZ_QUESTIONS.length} — {score === QUIZ_QUESTIONS.length ? 'Parfait ! 🎉' : 'Continuez à réviser !'}</span>
+                <div className={`el-quiz-result ${score === questions.length ? 'el-quiz-result--perfect' : 'el-quiz-result--partial'}`}>
+                    <IonIcon icon={score === questions.length ? checkmarkCircleOutline : ribbonOutline} />
+                    <span>{score}/{questions.length} — {score === questions.length ? 'Parfait ! 🎉' : 'Continuez à réviser !'}</span>
                 </div>
             )}
 
             <div className="el-quiz-questions">
-                {QUIZ_QUESTIONS.map((q, qi) => (
-                    <div key={qi} className="el-quiz-question">
-                        <p className="el-quiz-q">{qi + 1}. {q.q}</p>
+                {questions.map((q, qi) => (
+                    <div key={q.id} className="el-quiz-question">
+                        <p className="el-quiz-q">{qi + 1}. {q.question}</p>
                         <div className="el-quiz-options">
                             {q.options.map((opt, oi) => {
                                 const selected  = answers[qi] === oi;
-                                const isCorrect = submitted && oi === q.correct;
-                                const isWrong   = submitted && selected && oi !== q.correct;
+                                const isCorrect = submitted && oi === q.correctIndex;
+                                const isWrong   = submitted && selected && oi !== q.correctIndex;
                                 return (
                                     <button
-                                        key={oi}
-                                        disabled={submitted}
-                                        onClick={() => {
-                                            const next = [...answers];
-                                            next[qi] = oi;
-                                            setAnswers(next);
-                                        }}
-                                        className={[
-                                            'el-quiz-option',
-                                            isCorrect ? 'el-quiz-option--correct'  : '',
-                                            isWrong   ? 'el-quiz-option--wrong'    : '',
-                                            !submitted && selected ? 'el-quiz-option--selected' : '',
-                                        ].filter(Boolean).join(' ')}
-                                    >
-                                        {opt}
-                                    </button>
+                                        key={oi} disabled={submitted}
+                                        onClick={() => { const n = [...answers]; n[qi] = oi; setAnswers(n); }}
+                                        className={['el-quiz-option', isCorrect ? 'el-quiz-option--correct' : '', isWrong ? 'el-quiz-option--wrong' : '', !submitted && selected ? 'el-quiz-option--selected' : ''].filter(Boolean).join(' ')}
+                                    >{opt}</button>
                                 );
                             })}
                         </div>
@@ -195,15 +325,8 @@ const QuizView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, on
             </div>
 
             {!submitted && (
-                <IonButton
-                    expand="block"
-                    color="primary"
-                    disabled={answers.includes(null)}
-                    onClick={() => setSubmitted(true)}
-                    className="el-submit-btn"
-                >
-                    <IonIcon slot="start" icon={checkmarkCircleOutline} />
-                    Soumettre le quiz
+                <IonButton expand="block" color="primary" disabled={answers.includes(null)} onClick={handleSubmit} className="el-submit-btn">
+                    <IonIcon slot="start" icon={checkmarkCircleOutline} /> Soumettre le quiz
                 </IonButton>
             )}
         </div>
@@ -213,170 +336,288 @@ const QuizView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, on
 /* ════════════════════════════════
    Vue Vidéo / Document
 ════════════════════════════════ */
-const VideoView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, onBack }) => (
-    <div className="el-video">
-        <button className="el-back-btn" onClick={onBack}>
-            <IonIcon icon={arrowBackOutline} /> Retour au cours
-        </button>
+const MediaView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, onBack }) => {
+    const [done, setDone] = useState(lesson.completed);
 
-        <h2 className="el-video-title">{lesson.title}</h2>
+    const handleComplete = () => {
+        markLessonComplete(lesson.id);
+        setDone(true);
+    };
 
-        <div className="el-video-player">
-            <div className="el-video-placeholder">
-                <div className="el-video-play-wrap">
-                    <IonIcon icon={playOutline} className="el-video-play-icon" />
+    return (
+        <div className="el-video">
+            <button className="el-back-btn" onClick={onBack}>
+                <IonIcon icon={arrowBackOutline} /> Retour au cours
+            </button>
+
+            <h2 className="el-video-title">{lesson.title}</h2>
+
+            {lesson.type === 'video' ? (
+                lesson.file_url ? (
+                    <div style={{ borderRadius:'16px', overflow:'hidden', border:'1.5px solid var(--ion-color-light-shade)', background:'#000' }}>
+                        <video controls style={{ width:'100%', display:'block', maxHeight:'480px' }} src={lesson.file_url} onEnded={handleComplete}>
+                            Votre navigateur ne supporte pas la lecture vidéo.
+                        </video>
+                    </div>
+                ) : (
+                    <div className="el-video-player">
+                        <div className="el-video-placeholder">
+                            <div className="el-video-play-wrap">
+                                <IonIcon icon={playOutline} className="el-video-play-icon" />
+                            </div>
+                            <p className="el-video-duration">{lesson.duration}</p>
+                            <p className="el-video-note">Aucune vidéo liée — ajoutez une URL dans les paramètres de la leçon.</p>
+                        </div>
+                    </div>
+                )
+            ) : (
+                lesson.file_url ? (
+                    <div style={{ borderRadius:'16px', overflow:'hidden', border:'1.5px solid var(--ion-color-light-shade)', height:'600px' }}>
+                        <iframe src={lesson.file_url} style={{ width:'100%', height:'100%', border:'none' }} title={lesson.title} />
+                    </div>
+                ) : (
+                    <div className="el-video-player">
+                        <div className="el-video-placeholder">
+                            <div className="el-video-play-wrap">
+                                <IonIcon icon={documentTextOutline} className="el-video-play-icon" />
+                            </div>
+                            <p className="el-video-duration">Document PDF — {lesson.duration}</p>
+                            <p className="el-video-note">Aucun fichier lié à cette leçon.</p>
+                        </div>
+                    </div>
+                )
+            )}
+
+            <Card variant="default" className="el-video-desc-card">
+                <CardContent padding="md">
+                    <h3 className="el-video-desc-title">Description</h3>
+                    <p className="el-video-desc-text">
+                        Suivez attentivement ce contenu et prenez des notes pour les activités suivantes.
+                    </p>
+                </CardContent>
+            </Card>
+
+            {done ? (
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'0.5rem', padding:'0.875rem', borderRadius:'12px', background:'rgba(var(--ion-color-success-rgb),0.1)', border:'1.5px solid rgba(var(--ion-color-success-rgb),0.25)', color:'var(--ion-color-success)', fontWeight:600 }}>
+                    <IonIcon icon={checkmarkCircleOutline} /> Leçon terminée
                 </div>
-                <p className="el-video-duration">{lesson.type === 'video' ? 'Vidéo de cours' : 'Document PDF'} — {lesson.duration}</p>
-                <p className="el-video-note">Lecteur intégré — à connecter avec le backend</p>
-            </div>
+            ) : (
+                <IonButton expand="block" color="success" className="el-done-btn" onClick={handleComplete}>
+                    <IonIcon slot="start" icon={checkmarkCircleOutline} /> Marquer comme terminé
+                </IonButton>
+            )}
         </div>
-
-        <Card variant="default" className="el-video-desc-card">
-            <CardContent padding="md">
-                <h3 className="el-video-desc-title">Description</h3>
-                <p className="el-video-desc-text">
-                    Ce cours couvre les concepts essentiels liés au sujet. Suivez attentivement et prenez des notes pour le quiz suivant.
-                </p>
-            </CardContent>
-        </Card>
-
-        <IonButton expand="block" color="success" className="el-done-btn">
-            <IonIcon slot="start" icon={checkmarkCircleOutline} />
-            Marquer comme terminé
-        </IonButton>
-    </div>
-);
+    );
+};
 
 /* ════════════════════════════════
-   Détail d'un cours
+   Détail d'un cours (vue leçons)
 ════════════════════════════════ */
-const CourseDetail: React.FC<{ course: Course; onBack: () => void }> = ({ course, onBack }) => {
-    const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+interface CourseDetailViewProps {
+    course: CourseData;
+    onBack: () => void;
+    isProf: boolean;
+}
+
+const CourseDetailView: React.FC<CourseDetailViewProps> = ({ course, onBack, isProf }) => {
+    const [activeLesson,  setActiveLesson]  = useState<Lesson | null>(null);
+    const [lessonModal,   setLessonModal]   = useState(false);
+    const [editLesson,    setEditLesson]    = useState<Lesson | null>(null);
+    const [refreshKey,    setRefreshKey]    = useState(0);
+
+    const lessons      = getLessonsForCourse(course.id);
+    const completedCnt = lessons.filter(l => l.completed).length;
+    const progress     = lessons.length > 0 ? Math.round((completedCnt / lessons.length) * 100) : 0;
+
+    const handleSaveLesson = () => setRefreshKey(k => k + 1);
+
+    const handleDeleteLesson = (id: string) => {
+        if (window.confirm('Supprimer cette leçon ?')) {
+            deleteLesson(id);
+            setRefreshKey(k => k + 1);
+        }
+    };
 
     if (activeLesson) {
-        if (activeLesson.type === 'quiz' || activeLesson.type === 'exam') {
-            return <QuizView lesson={activeLesson} onBack={() => setActiveLesson(null)} />;
+        const fresh = getLessonsForCourse(course.id).find(l => l.id === activeLesson.id) ?? activeLesson;
+        if (fresh.type === 'quiz' || fresh.type === 'exam') {
+            return <QuizView lesson={fresh} onBack={() => setActiveLesson(null)} />;
         }
-        return <VideoView lesson={activeLesson} onBack={() => setActiveLesson(null)} />;
+        return <MediaView lesson={fresh} onBack={() => setActiveLesson(null)} />;
     }
 
     return (
-        <div className="el-detail">
+        <div className="el-detail" key={refreshKey}>
             <button className="el-back-btn" onClick={onBack}>
                 <IonIcon icon={arrowBackOutline} /> Tous les cours
             </button>
 
-            {/* Header du cours */}
+            {/* Header */}
             <Card variant="default" className="el-detail-header-card">
                 <CardContent padding="md">
                     <div className="el-detail-header">
                         <div className="el-detail-header-info">
                             <h2 className="el-detail-name">{course.name}</h2>
                             <p className="el-detail-teacher">{course.teacher} • {course.filiere} {course.annee}</p>
-                            <p className="el-detail-desc">{course.description}</p>
+                            {course.description && <p className="el-detail-desc">{course.description}</p>}
                         </div>
                         <IonChip className="el-detail-chip">
-                            {course.completedLessons}/{course.totalLessons} leçons
+                            {completedCnt}/{lessons.length} leçons
                         </IonChip>
                     </div>
                     <div className="el-detail-progress">
-                        <IonProgressBar value={course.progress / 100} className="el-detail-progress-bar" />
-                        <span className="el-detail-pct">{course.progress}%</span>
+                        <IonProgressBar value={progress / 100} className="el-detail-progress-bar" />
+                        <span className="el-detail-pct">{progress}%</span>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Liste des leçons */}
+            {/* Barre actions prof */}
+            {isProf && (
+                <div className="el-prof-actions">
+                    <IonButton
+                        fill="outline" size="small"
+                        onClick={() => { setEditLesson(null); setLessonModal(true); }}
+                    >
+                        <IonIcon slot="start" icon={addOutline} /> Ajouter une leçon
+                    </IonButton>
+                </div>
+            )}
+
+            {/* Leçons */}
             <h3 className="el-lessons-title">Contenu du cours</h3>
             <div className="el-lessons-list">
-                {course.lessons.map((lesson) => (
-                    <button
-                        key={lesson.id}
-                        disabled={lesson.locked}
-                        onClick={() => !lesson.locked && setActiveLesson(lesson)}
-                        className={[
-                            'el-lesson-item',
-                            lesson.locked    ? 'el-lesson-item--locked'    : '',
-                            lesson.completed ? 'el-lesson-item--completed' : '',
-                        ].filter(Boolean).join(' ')}
-                    >
-                        <div className={[
-                            'el-lesson-icon',
-                            lesson.locked    ? 'el-lesson-icon--locked'    : '',
-                            lesson.completed ? 'el-lesson-icon--completed' : `el-lesson-icon--${lesson.type}`,
-                        ].filter(Boolean).join(' ')}>
-                            <IonIcon icon={
-                                lesson.locked    ? lockClosedOutline :
-                                lesson.completed ? checkmarkCircleOutline :
-                                LESSON_ICON[lesson.type]
-                            } />
+                {lessons.length === 0 ? (
+                    <div className="el-empty">
+                        <IonIcon icon={layersOutline} className="el-empty-icon" />
+                        <p>Aucune leçon — {isProf ? 'ajoutez du contenu ci-dessus.' : 'contenu à venir.'}</p>
+                    </div>
+                ) : (
+                    lessons.map((lesson) => (
+                        <div key={lesson.id} className="el-lesson-row">
+                            <button
+                                disabled={lesson.locked && !isProf}
+                                onClick={() => (!lesson.locked || isProf) && setActiveLesson(lesson)}
+                                className={[
+                                    'el-lesson-item',
+                                    lesson.locked && !isProf ? 'el-lesson-item--locked'    : '',
+                                    lesson.completed         ? 'el-lesson-item--completed' : '',
+                                ].filter(Boolean).join(' ')}
+                            >
+                                <div className={[
+                                    'el-lesson-icon',
+                                    lesson.locked && !isProf ? 'el-lesson-icon--locked'    : '',
+                                    lesson.completed         ? 'el-lesson-icon--completed' : `el-lesson-icon--${lesson.type}`,
+                                ].filter(Boolean).join(' ')}>
+                                    <IonIcon icon={
+                                        lesson.locked && !isProf ? lockClosedOutline :
+                                        lesson.completed         ? checkmarkCircleOutline :
+                                        LESSON_ICON[lesson.type]
+                                    } />
+                                </div>
+                                <div className="el-lesson-body">
+                                    <p className="el-lesson-title">{lesson.title}</p>
+                                    <div className="el-lesson-meta">
+                                        <Badge variant={LESSON_BADGE[lesson.type]} size="sm">
+                                            {LESSON_LABEL[lesson.type]}
+                                        </Badge>
+                                        <span className="el-lesson-duration">
+                                            <IonIcon icon={timeOutline} /> {lesson.duration}
+                                        </span>
+                                    </div>
+                                </div>
+                                {(!lesson.locked || isProf) && (
+                                    <IonIcon icon={chevronForwardOutline} className="el-lesson-arrow" />
+                                )}
+                            </button>
+
+                            {/* Actions prof */}
+                            {isProf && (
+                                <div className="el-lesson-prof-actions">
+                                    <IonButton fill="clear" size="small" color="medium"
+                                        onClick={() => { setEditLesson(lesson); setLessonModal(true); }}>
+                                        <IonIcon slot="icon-only" icon={createOutline} />
+                                    </IonButton>
+                                    <IonButton fill="clear" size="small" color="danger"
+                                        onClick={() => handleDeleteLesson(lesson.id)}>
+                                        <IonIcon slot="icon-only" icon={trashOutline} />
+                                    </IonButton>
+                                </div>
+                            )}
                         </div>
-                        <div className="el-lesson-body">
-                            <p className="el-lesson-title">{lesson.title}</p>
-                            <div className="el-lesson-meta">
-                                <Badge variant={LESSON_BADGE[lesson.type]} size="sm">
-                                    {LESSON_LABEL[lesson.type]}
-                                </Badge>
-                                <span className="el-lesson-duration">
-                                    <IonIcon icon={timeOutline} />
-                                    {lesson.duration}
-                                </span>
-                            </div>
-                        </div>
-                        {!lesson.locked && (
-                            <IonIcon icon={chevronForwardOutline} className="el-lesson-arrow" />
-                        )}
-                    </button>
-                ))}
+                    ))
+                )}
             </div>
+
+            {/* Modal leçon */}
+            {isProf && (
+                <LessonModal
+                    isOpen={lessonModal}
+                    courseId={course.id}
+                    initial={editLesson}
+                    nextOrder={lessons.length + 1}
+                    onClose={() => setLessonModal(false)}
+                    onSave={handleSaveLesson}
+                />
+            )}
         </div>
     );
 };
 
 /* ════════════════════════════════
-   Page principale — liste des cours
+   Page principale E-Learning
 ════════════════════════════════ */
 const ELearning: React.FC = () => {
-    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+    const { user }                          = useAuth();
+    const [selectedCourse, setSelectedCourse] = useState<CourseData | null>(null);
     const [search,         setSearch]         = useState('');
 
-    const filtered = mockCourses.filter(c =>
+    if (!user) return null;
+
+    const isProf = isProfessor(user.role);
+
+    const courses = isProf
+        ? getCoursesForProfessor(user.nom_complet)
+        : getAllCourses();
+
+    const filtered = courses.filter(c =>
         c.name.toLowerCase().includes(search.toLowerCase()) ||
         c.teacher.toLowerCase().includes(search.toLowerCase())
     );
 
-    const totalProgress = Math.round(
-        mockCourses.reduce((a, c) => a + c.progress, 0) / mockCourses.length
-    );
-    const totalLessons = mockCourses.reduce((a, c) => a + c.totalLessons, 0);
-    const doneLessons  = mockCourses.reduce((a, c) => a + c.completedLessons, 0);
+    const totalLessons = courses.reduce((a, c) => a + getLessonsForCourse(c.id).length, 0);
+    const doneLessons  = courses.reduce((a, c) => a + getLessonsForCourse(c.id).filter(l => l.completed).length, 0);
+    const totalProgress = courses.length > 0
+        ? Math.round(courses.reduce((a, c) => a + c.progress, 0) / courses.length)
+        : 0;
 
     if (selectedCourse) {
         return (
             <DashboardLayout>
-                <CourseDetail course={selectedCourse} onBack={() => setSelectedCourse(null)} />
+                <CourseDetailView
+                    course={selectedCourse}
+                    onBack={() => setSelectedCourse(null)}
+                    isProf={isProf}
+                />
             </DashboardLayout>
         );
     }
 
     return (
         <DashboardLayout>
-
             {/* ── Hero ── */}
             <div className="el-hero">
                 <div className="el-hero-text">
-                    <h1 className="el-hero-title">E-Learning 📖</h1>
-                    <p className="el-hero-sub">Vidéos, quiz et examens pour chaque cours.</p>
+                    <h1 className="el-hero-title">{isProf ? 'E-Learning — Mes cours 📚' : 'E-Learning 📖'}</h1>
+                    <p className="el-hero-sub">
+                        {isProf
+                            ? 'Gérez le contenu pédagogique de vos cours.'
+                            : 'Vidéos, quiz et examens pour chaque cours.'}
+                    </p>
                     <div className="el-hero-badges">
-                        <span className="el-hero-badge">
-                            <IonIcon icon={bookOutline} />{mockCourses.length} cours
-                        </span>
-                        <span className="el-hero-badge">
-                            <IonIcon icon={layersOutline} />{doneLessons}/{totalLessons} leçons
-                        </span>
-                        <span className="el-hero-badge">
-                            <IonIcon icon={schoolOutline} />{totalProgress}% progression
-                        </span>
+                        <span className="el-hero-badge"><IonIcon icon={bookOutline} />{courses.length} cours</span>
+                        <span className="el-hero-badge"><IonIcon icon={layersOutline} />{doneLessons}/{totalLessons} leçons</span>
+                        {!isProf && <span className="el-hero-badge"><IonIcon icon={schoolOutline} />{totalProgress}% progression</span>}
                     </div>
                 </div>
             </div>
@@ -393,7 +634,7 @@ const ELearning: React.FC = () => {
                 <IonChip className="el-count-chip">{filtered.length}</IonChip>
             </div>
 
-            {/* ── Grille de cours ── */}
+            {/* ── Grille ── */}
             {filtered.length === 0 ? (
                 <div className="el-empty">
                     <IonIcon icon={bookOutline} className="el-empty-icon" />
@@ -401,48 +642,37 @@ const ELearning: React.FC = () => {
                 </div>
             ) : (
                 <div className="el-grid">
-                    {filtered.map(course => (
-                        <button
-                            key={course.id}
-                            className="el-course-card"
-                            onClick={() => setSelectedCourse(course)}
-                        >
-                            {/* Icône */}
-                            <div className="el-course-card-top">
-                                <div className="el-course-icon">
-                                    <IonIcon icon={bookOutline} />
+                    {filtered.map(course => {
+                        const lessons      = getLessonsForCourse(course.id);
+                        const completedCnt = lessons.filter(l => l.completed).length;
+                        return (
+                            <button key={course.id} className="el-course-card" onClick={() => setSelectedCourse(course)}>
+                                <div className="el-course-card-top">
+                                    <div className="el-course-icon"><IonIcon icon={bookOutline} /></div>
+                                    <div className="el-course-badges">
+                                        <Badge variant="info"      size="sm">{course.filiere}</Badge>
+                                        <Badge variant="secondary" size="sm">{course.annee}</Badge>
+                                    </div>
                                 </div>
-                                <div className="el-course-badges">
-                                    <Badge variant="info"      size="sm">{course.filiere}</Badge>
-                                    <Badge variant="secondary" size="sm">{course.annee}</Badge>
+                                <h3 className="el-course-name">{course.name}</h3>
+                                <p className="el-course-teacher">{course.teacher}</p>
+                                {course.description && <p className="el-course-desc">{course.description}</p>}
+                                <div className="el-course-meta">
+                                    <span className="el-course-meta-item">
+                                        <IonIcon icon={layersOutline} />
+                                        {completedCnt}/{lessons.length} leçons
+                                    </span>
+                                    <span className="el-course-pct">{course.progress}%</span>
                                 </div>
-                            </div>
-
-                            <h3 className="el-course-name">{course.name}</h3>
-                            <p className="el-course-teacher">{course.teacher}</p>
-                            <p className="el-course-desc">{course.description}</p>
-
-                            <div className="el-course-meta">
-                                <span className="el-course-meta-item">
-                                    <IonIcon icon={layersOutline} />
-                                    {course.completedLessons}/{course.totalLessons} leçons
-                                </span>
-                                <span className="el-course-pct">{course.progress}%</span>
-                            </div>
-
-                            <IonProgressBar
-                                value={course.progress / 100}
-                                className="el-course-progress"
-                            />
-
-                            <div className="el-course-footer">
-                                <IonIcon icon={chevronForwardOutline} className="el-course-arrow" />
-                            </div>
-                        </button>
-                    ))}
+                                <IonProgressBar value={course.progress / 100} className="el-course-progress" />
+                                <div className="el-course-footer">
+                                    <IonIcon icon={chevronForwardOutline} className="el-course-arrow" />
+                                </div>
+                            </button>
+                        );
+                    })}
                 </div>
             )}
-
         </DashboardLayout>
     );
 };

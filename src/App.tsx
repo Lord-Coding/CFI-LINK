@@ -21,6 +21,7 @@ import './theme/variables.css';
 import './theme/global.css';
 
 import { AuthProvider } from './components/providers/AuthProvider';
+import { ToastProvider } from './components/providers/ToastProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import SideMenu from './components/SideMenu';
 import { useAuth } from './hooks/useAuth';
@@ -38,6 +39,7 @@ import ManageSemesters from './pages/admin/ManageSemesters';
 import AuditLog        from './pages/admin/AuditLog';
 import AdminStats      from './pages/admin/AdminStats';
 import Courses         from './pages/Courses';
+import CourseDetail    from './pages/CourseDetail';
 import ELearning       from './pages/ELearning';
 import Schedule        from './pages/Schedule';
 import Library         from './pages/Library';
@@ -53,10 +55,7 @@ import Payments        from './pages/Payments';
 
 setupIonicReact();
 
-/* ─────────────────────────────────────────────
-   Error Boundary — évite le crash silencieux
-   "Consider adding an error boundary" de React
-───────────────────────────────────────────── */
+
 interface EBState { hasError: boolean; message: string; }
 
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, EBState> {
@@ -118,8 +117,11 @@ const ProtectedApp: React.FC = () => {
                     <ProtectedRoute><Dashboard /></ProtectedRoute>
                 </Route>
 
-                <Route path="/courses">
+                <Route exact path="/courses">
                     <ProtectedRoute><Courses /></ProtectedRoute>
+                </Route>
+                <Route path="/courses/:id">
+                    <ProtectedRoute><CourseDetail /></ProtectedRoute>
                 </Route>
                 <Route path="/elearning">
                     <ProtectedRoute><ELearning /></ProtectedRoute>
@@ -197,10 +199,7 @@ const ProtectedApp: React.FC = () => {
     );
 };
 
-/* ─────────────────────────────────────────────
-   Routeur principal : pages publiques + délégation
-   vers ProtectedApp pour toutes les routes privées.
-───────────────────────────────────────────── */
+
 const AppRoutes: React.FC = () => {
     const { user, loading } = useAuth();
 
@@ -209,19 +208,24 @@ const AppRoutes: React.FC = () => {
     return (
         <IonRouterOutlet>
             {/* Pages publiques */}
-            <Route exact path="/" component={Landing} />
-            <Route exact path="/login"    component={Login}    />
-            <Route exact path="/register" component={Register} />
+            <Route exact path="/landing" component={Landing} />
+            <Route exact path="/login">
+                {user ? <Redirect to="/dashboard" /> : <Login />}
+            </Route>
+            <Route exact path="/register">
+                {user ? <Redirect to="/dashboard" /> : <Register />}
+            </Route>
 
             {/* Racine : redirige selon l'état auth */}
             <Route exact path="/">
-                {user ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
+                {user ? <Redirect to="/dashboard" /> : <Redirect to="/landing" />}
             </Route>
 
             {/* Toutes les routes privées sont déléguées à ProtectedApp */}
             <Route path={[
                 '/dashboard',
                 '/courses',
+                '/courses/:id',
                 '/schedule',
                 '/grades',
                 '/settings',
@@ -256,11 +260,13 @@ const AppRoutes: React.FC = () => {
 const App: React.FC = () => (
     <IonApp>
         <AuthProvider>
-            <IonReactRouter>
-                <AppErrorBoundary>
-                    <AppRoutes />
-                </AppErrorBoundary>
-            </IonReactRouter>
+            <ToastProvider>
+                <IonReactRouter>
+                    <AppErrorBoundary>
+                        <AppRoutes />
+                    </AppErrorBoundary>
+                </IonReactRouter>
+            </ToastProvider>
         </AuthProvider>
     </IonApp>
 );

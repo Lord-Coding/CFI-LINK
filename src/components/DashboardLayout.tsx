@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { ROLE_LABELS } from '../lib/store';
 import PaymentBlockedOverlay from './PaymentBlockedOverlay';
 import NotificationPanel from './NotificationsPanel';
+import OnboardingModal from './OnboardingModal';
 import '../styles/components/_DashboardLayout.css';
 
 interface DashboardLayoutProps {
@@ -44,6 +45,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
 
                 <PaymentBlockedOverlay />
+                <OnboardingModal />
                 <div className="dashboard-page-body">
                     {children}
                 </div>

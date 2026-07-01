@@ -44,6 +44,20 @@ export function getScheduleForProfessor(teacherName: string): ScheduleEntry[] {
 
 export function getAllSchedules(): ScheduleEntry[] { return getAll(); }
 
+export function addScheduleEntry(entry: Omit<ScheduleEntry, 'id'>): ScheduleEntry {
+  const newEntry: ScheduleEntry = { ...entry, id: crypto.randomUUID() };
+  saveAll([...getAll(), newEntry]);
+  return newEntry;
+}
+
+export function updateScheduleEntry(id: string, updates: Partial<Omit<ScheduleEntry, 'id'>>): void {
+  saveAll(getAll().map(e => e.id === id ? { ...e, ...updates } : e));
+}
+
+export function deleteScheduleEntry(id: string): void {
+  saveAll(getAll().filter(e => e.id !== id));
+}
+
 export function initializeSchedules() {
   if (getAll().length > 0) return;
   const entries: Omit<ScheduleEntry, 'id'>[] = [

@@ -280,3 +280,39 @@
     font-size: 0.76rem;
   }
 }
+
+/* ── Bouton supprimer sur l'item ── */
+.notif-delete-btn {
+    --padding-start:  4px !important;
+    --padding-end:    4px !important;
+    --border-radius:  8px !important;
+    width:            30px !important;
+    height:           30px !important;
+    opacity:          0;
+    transition:       opacity 0.15s, color 0.15s;
+    flex-shrink:      0;
+}
+
+.notif-item:hover .notif-delete-btn,
+.notif-item:focus-within .notif-delete-btn {
+    opacity: 1;
+}
+
+.notif-delete-btn:hover {
+    --color: var(--ion-color-danger) !important;
+}
+
+/* ── Footer "N notifications non affichées" ── */
+.notif-more-hint {
+    text-align:   center;
+    font-size:    0.72rem;
+    color:        var(--ion-color-medium);
+    padding:      0.75rem 1rem;
+    border-top:   1px solid var(--ion-color-light-shade);
+    margin:       0;
+}
+
+/* ── Accessibilité mobile : toujours visible ── */
+@media (max-width: 576px) {
+    .notif-delete-btn { opacity: 1; }
+}

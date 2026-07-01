@@ -1,36 +1,22 @@
-import { toastController } from "@ionic/core";
+import { useContext } from "react";
+import { ToastContext } from "../contexts/toastContext";
 
-export type ToastColor = "success" | "danger" | "warning" | "medium";
+export type { ToastColor, ToastOptions } from "../contexts/toastContext";
 
-export interface ToastOptions {
-  message: string;
-  color?: ToastColor;
-  duration?: number;
-  position?: "top" | "bottom";
-  icon?: string;
-}
-
+/**
+ * Hook pour afficher des toasts depuis n'importe quel composant.
+ * Nécessite <ToastProvider> dans l'arbre (injecté dans App.tsx).
+ *
+ * @example
+ * const toast = useToast();
+ * toast.success("Sauvegardé !");
+ * toast.error("Une erreur est survenue.");
+ * toast.warning("Attention, champ manquant.");
+ * toast.info("Mise à jour disponible.");
+ * toast.show({ message: "Custom", color: "primary", duration: 5000 });
+ */
 export function useToast() {
-  const show = async (options: ToastOptions) => {
-    const toast = await toastController.create({
-      message: options.message,
-      color: options.color ?? "medium",
-      duration: options.duration || 3000,
-      position: options.position || "top",
-      icon: options.icon,
-      buttons: [{ icon: "close", role: "cancel" }],
-    });
-    await toast.present();
-  };
-
-  const success = (message: string, opts?: Partial<ToastOptions>) =>
-    show({ message, color: "success", icon: "checkmark-circle", ...opts });
-  const error = (message: string, opts?: Partial<ToastOptions>) =>
-    show({ message, color: "danger", icon: "alert-circle", ...opts });
-  const warning = (message: string, opts?: Partial<ToastOptions>) =>
-    show({ message, color: "warning", icon: "warning", ...opts });
-  const info = (message: string, opts?: Partial<ToastOptions>) =>
-    show({ message, color: "medium", icon: "information-circle", ...opts });
-
-  return { show, success, error, warning, info };
+    const ctx = useContext(ToastContext);
+    if (!ctx) throw new Error("useToast must be used within a <ToastProvider>");
+    return ctx;
 }

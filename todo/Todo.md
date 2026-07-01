@@ -1,18 +1,17 @@
 # CFI-LINK — Tâches à accomplir
 
-> Dernière mise à jour : Juin 2026
+> Dernière mise à jour : Juin 2026 — T-01 résolu
 
 ---
 
 ## 🔴 Priorité haute (bugs / bloquants)
 
-### T-01 · Redirection après connexion
-**Problème :** L'utilisateur reste sur `/login` après s'être connecté alors que la redirection vers `/dashboard` est déjà configurée — nécessite une actualisation manuelle.  
-**À faire :**
-- [ ] Revoir le flux d'authentification dans `AuthProvider` et `Login.tsx`
-- [ ] S'assurer que le state `user` est mis à jour synchroniquement après `login()`
-- [ ] Déclencher la redirection via `useHistory` dès que `user` passe de `null` à défini
-- [ ] Vérifier qu'aucun `useEffect` ne court-circuite la mise à jour du context
+### ~~T-01 · Redirection après connexion~~ ✅
+~~**Problème :** L'utilisateur reste sur `/login` après s'être connecté alors que la redirection vers `/dashboard` est déjà configurée — nécessite une actualisation manuelle.~~
+- [x] Revoir le flux d'authentification dans `AuthProvider` et `Login.tsx`
+- [x] S'assurer que le state `user` est mis à jour synchroniquement après `login()`
+- [x] Déclencher la redirection via guard sur la route `/login` dès que `user` est défini
+- [x] Cas `PAYMENT_BLOCKED` : `setCurrentUser` déplacé dans le store, `window.location.reload()` supprimé
 
 ---
 
@@ -37,33 +36,31 @@
 
 ---
 
-### T-04 · Navigation vers le détail d'un cours
-**À faire :**
-- [ ] Créer une page `CourseDetail.tsx` avec vue complète : infos, liste des leçons, professeur, progression
-- [ ] Ajouter un bouton "Voir le cours" sur chaque `CourseCard` dans `Courses.tsx`
-- [ ] Relier la route `/courses/:id` à `CourseDetail`
-- [ ] Afficher les leçons associées depuis `ELearning` avec un lien direct
+### ~~T-04 · Navigation vers le détail d'un cours~~ ✅
+- [x] Page `CourseDetail.tsx` : hero, stats, progression, liste des leçons avec quiz et lecteur vidéo/PDF inline
+- [x] Bouton "Voir le cours" sur chaque `CourseCard` dans `Courses.tsx`
+- [x] Route `/courses/:id` reliée à `CourseDetail` dans `App.tsx`
+- [x] Leçons associées accessibles depuis `CourseDetail` avec quiz interactif
 
 ---
 
-### T-05 · Professeurs — Ajout de cours et contenu E-Learning
-**À faire :**
-- [ ] Ajouter un formulaire dans `Courses.tsx` (visible prof) : nom du cours, filière, année, heures, semestre
-- [ ] Ajouter les fonctions `addCourse`, `updateCourse`, `deleteCourse` dans `courses-data.ts`
-- [ ] Dans `ELearning.tsx` (vue prof), permettre l'ajout de leçons : titre, type (vidéo/doc/quiz), durée, fichier
-- [ ] Interface pour créer les questions d'un quiz directement depuis la vue prof
-- [ ] Boutons Modifier/Supprimer sur les leçons existantes
+### ~~T-05 · Professeurs — Ajout de cours et contenu E-Learning~~ ✅
+- [x] Formulaire modal dans `Courses.tsx` (visible prof) : nom, filière, année, option, heures, semestre, description
+- [x] Fonctions `addCourse`, `updateCourse`, `deleteCourse` dans `courses-data.ts` (store localStorage)
+- [x] Boutons Modifier/Supprimer sur les cours du prof
+- [x] Dans `ELearning.tsx` (vue prof), ajout/modif/suppression de leçons : titre, type, durée, URL fichier, verrouillage
+- [x] Interface quiz builder : ajout de questions, 4 options, sélection de la bonne réponse
+- [x] Lecteur HTML5 `<video>` natif + viewer PDF via `<iframe>` si `file_url` est renseigné
 
 ---
 
-### T-06 · Documents — Modèles et prévisualisation
-**À faire :**
-- [ ] Créer des modèles HTML pour chaque type de document (attestation, relevé, certificat, fiche d'inscription)
-- [ ] Chaque modèle doit avoir des zones nommées (nom, filière, année, date, etc.)
-- [ ] Fonction `generateDocument(type, user)` qui préremplie le modèle avec les données de l'utilisateur
-- [ ] Afficher un aperçu du document généré dans un `IonModal` avant impression/téléchargement
-- [ ] Bouton "Imprimer" et "Télécharger PDF" dans l'aperçu (via `window.print()` ou une lib dédiée)
-- [ ] Revoir le flux de demande de document côté étudiant pour être cohérent avec les modèles
+### ~~T-06 · Documents — Modèles et prévisualisation~~ ✅
+- [x] 4 modèles HTML complets : attestation d'inscription, relevé de notes, certificat de scolarité, attestation de réussite
+- [x] Chaque modèle est pré-rempli avec les données réelles de l'utilisateur (nom, filière, année, option, date)
+- [x] Fonction `generateDocument(type, user)` dans `document-templates.ts`
+- [x] Aperçu du document dans `IonModal` via `<iframe srcDoc>` avant impression
+- [x] Boutons "Imprimer" (`window.print()`) et "Télécharger PDF" (nouvel onglet + bouton impression)
+- [x] Bouton "Aperçu" ajouté dans la modal de demande de document
 
 ---
 
@@ -99,7 +96,7 @@
 
 ### T-10 · Révision des rôles du personnel administratif
 **À faire :**
-- [ ] Ajouter des sous-rôles dans `store.ts` : `secretariat`, `comptable`, `bibliothequaire`, `responsable_scolarite`
+- [ ] Ajouter des sous-rôles dans `store.ts` : `secretariat`, `comptable`, `responsable_scolarite`
 - [ ] Adapter le menu latéral (`SideMenu.tsx`) selon le sous-rôle du staff
 - [ ] Restreindre les accès : comptable → paiements uniquement, secrétariat → documents + emploi du temps, etc.
 - [ ] Mettre à jour `ROLE_LABELS` et le formulaire de création dans `ManageUsers.tsx`
@@ -121,6 +118,10 @@
 
 ## ✅ Terminé
 
+- [x] **T-04** · Navigation vers le détail d'un cours — page `CourseDetail`, route `/courses/:id`, bouton "Voir le cours"
+- [x] **T-05** · Professeurs — CRUD cours + leçons + quiz builder dans `ELearning`, lecteur vidéo HTML5 + PDF iframe
+- [x] **T-06** · Documents — 4 modèles HTML, `generateDocument()`, aperçu iframe dans modal, Imprimer + Télécharger PDF
+- [x] **T-01** · Redirection après connexion — guard sur `/login` et `/register`, `PAYMENT_BLOCKED` géré proprement sans `reload()`
 - [x] Toutes les pages admin (ManageUsers, ManageCodes, ManagePayments, ManageSemesters, AdminStats, AuditLog)
 - [x] Dashboard par rôle (super_admin, admin, étudiant, professeur, staff)
 - [x] Emploi du temps (lecture seule)

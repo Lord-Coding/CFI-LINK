@@ -40,7 +40,7 @@ const SideMenu: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    history.push("/login");
+    history.push("/");
   };
 
   return (

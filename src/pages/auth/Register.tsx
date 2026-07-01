@@ -117,6 +117,16 @@ const Register: React.FC = () => {
                 {/* ════ ÉTAPE : Choisir le type ════ */}
                 {step === "choose" && (
                   <div className="register-step">
+                    <IonButton
+                      size="small"
+                      fill="clear"
+                      onClick={() => history.push("/landing")}
+                      className="register-back-btn"
+                    >
+                      <IonIcon slot="start" icon={arrowBackOutline} />
+                      Retour à l'accueil
+                    </IonButton>
+
                     <h1 className="register-title">Inscription</h1>
                     <p className="register-subtitle">Choisissez votre type d'inscription.</p>
                     <div className="register-type-cards">

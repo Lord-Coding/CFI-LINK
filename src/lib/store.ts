@@ -245,7 +245,10 @@ export function login(email: string, password: string): { success: boolean; user
   if (!user) return { success: false, error: 'Email ou mot de passe incorrect.' };
   if (user.password !== password) return { success: false, error: 'Email ou mot de passe incorrect.' };
   if (!user.is_active) return { success: false, error: 'Votre compte n\'est pas encore activé. Contactez l\'administration.' };
-  if (user.payment_blocked) return { success: false, error: 'PAYMENT_BLOCKED' };
+  if (user.payment_blocked) {
+    setCurrentUser(user);
+    return { success: false, user, error: 'PAYMENT_BLOCKED' };
+  }
   // Refresh user data from store
   const freshUser = getUserById(user.id);
   setCurrentUser(freshUser || user);

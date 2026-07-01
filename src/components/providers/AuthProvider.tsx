@@ -48,6 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = storeLogin(email, password);
         if (result.success && result.user) {
             setUser(result.user);
+        } else if (result.error === "PAYMENT_BLOCKED" && result.user) {
+            setUser(result.user);
         }
         return { success: result.success, error: result.error };
     }

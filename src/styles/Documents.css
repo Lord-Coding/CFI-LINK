@@ -209,3 +209,73 @@
     .dc-req-modal-inner  { border-radius:18px; }
     .dc-req-td--date     { display:none; }
 }
+
+/* ════════════════════════════════
+   Modal aperçu document généré
+════════════════════════════════ */
+.dc-preview-modal {
+    --width:  min(820px, 98vw);
+    --height: 92vh;
+    --border-radius: 22px;
+}
+
+.dc-preview-inner {
+    display:        flex;
+    flex-direction: column;
+    height:         100%;
+    background:     var(--ion-background-color, #fff);
+    border-radius:  22px;
+    overflow:       hidden;
+}
+
+.dc-preview-header {
+    display:     flex;
+    align-items: center;
+    gap:         0.75rem;
+    padding:     1.25rem 1.5rem;
+    border-bottom: 1.5px solid var(--ion-color-light-shade);
+    flex-shrink: 0;
+}
+
+.dc-preview-header-icon {
+    width:44px; height:44px; border-radius:12px;
+    background:rgba(var(--ion-color-primary-rgb),0.12);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.dc-preview-header-icon ion-icon { font-size:1.3rem; color:var(--ion-color-primary); }
+
+.dc-preview-header-text { flex:1; min-width:0; }
+.dc-preview-title    { font-size:1rem; font-weight:700; color:var(--ion-color-dark); margin:0 0 0.1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dc-preview-subtitle { font-size:0.75rem; color:var(--ion-color-medium); margin:0; }
+
+.dc-preview-frame-wrap {
+    flex:        1;
+    overflow:    hidden;
+    background:  #f1f3f5;
+    padding:     1rem;
+}
+
+.dc-preview-frame {
+    width:         100%;
+    height:        100%;
+    border:        none;
+    border-radius: 12px;
+    background:    #fff;
+    box-shadow:    0 4px 20px rgba(0,0,0,0.08);
+}
+
+.dc-preview-footer {
+    display:     flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap:         0.75rem;
+    padding:     1rem 1.5rem;
+    border-top:  1.5px solid var(--ion-color-light-shade);
+    flex-shrink: 0;
+}
+.dc-preview-footer ion-button { --border-radius:12px !important; }
+
+@media (max-width:576px) {
+    .dc-preview-footer { flex-direction:column; }
+    .dc-preview-footer ion-button { width:100%; }
+}
