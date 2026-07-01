@@ -22,6 +22,7 @@ import './theme/global.css';
 
 import { AuthProvider } from './components/providers/AuthProvider';
 import { ToastProvider } from './components/providers/ToastProvider';
+import { ThemeProvider } from './components/ThemeProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import SideMenu from './components/SideMenu';
 import { useAuth } from './hooks/useAuth';
@@ -258,17 +259,19 @@ const AppRoutes: React.FC = () => {
    App root
 ───────────────────────────────────────────── */
 const App: React.FC = () => (
-    <IonApp>
-        <AuthProvider>
-            <ToastProvider>
-                <IonReactRouter>
-                    <AppErrorBoundary>
-                        <AppRoutes />
-                    </AppErrorBoundary>
-                </IonReactRouter>
-            </ToastProvider>
-        </AuthProvider>
-    </IonApp>
+  <IonApp>
+    <ThemeProvider>
+      <AuthProvider>
+          <ToastProvider>
+              <IonReactRouter>
+                  <AppErrorBoundary>
+                      <AppRoutes />
+                  </AppErrorBoundary>
+              </IonReactRouter>
+          </ToastProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  </IonApp>
 );
 
 export default App;

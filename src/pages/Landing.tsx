@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { arrowForwardOutline, bookOutline, desktopOutline, documentTextOutline, IonButton, IonCol, IonContent, IonGrid, IonIcon, IonPage, IonRow, peopleOutline, ribbonOutline, schoolOutline, shieldOutline } from '../lib/ionic';
+import { arrowForwardOutline, bookOutline, desktopOutline, documentTextOutline, IonButton, IonCol, IonContent, IonGrid, IonIcon, IonPage, IonRow, moonOutline, peopleOutline, ribbonOutline, schoolOutline, shieldOutline, sunnyOutline } from '../lib/ionic';
 import { Card, CardContent } from '../components';
+import { useTheme } from '../hooks/useTheme';
 import '../styles/LandingPage.css';
 
 
@@ -15,6 +16,8 @@ const features = [
 ];
 
 const Landing: React.FC = () => {
+  const { isDark, toggleTheme } = useTheme();
+
   return (
     <IonPage>
       <IonContent className="landing-content" scrollEvents={true}>
@@ -34,6 +37,15 @@ const Landing: React.FC = () => {
             </div>
 
             <div className="landing-nav-actions">
+              <IonButton
+                fill="clear"
+                size="small"
+                onClick={toggleTheme}
+                className="action-btn landing-theme-toggle"
+                aria-label={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
+              >
+                <IonIcon slot="icon-only" icon={isDark ? sunnyOutline : moonOutline} />
+              </IonButton>
               <Link to="/login">
                 <IonButton fill="clear" size="small" className="action-btn">Se connecter</IonButton>
               </Link>
