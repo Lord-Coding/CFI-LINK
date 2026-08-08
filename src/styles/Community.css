@@ -36,7 +36,7 @@
     display:       flex;
     gap:           0.875rem;
     padding:       1.1rem 1.25rem;
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 16px;
 }
@@ -82,7 +82,7 @@
 .co-posts-list { display:flex; flex-direction:column; gap:0.875rem; }
 
 .co-post {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 16px;
     padding:       1.1rem 1.25rem;
@@ -155,7 +155,7 @@
     align-items:   center;
     gap:           0.75rem;
     padding:       0.875rem 1rem;
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 14px;
     transition:    all 0.18s;

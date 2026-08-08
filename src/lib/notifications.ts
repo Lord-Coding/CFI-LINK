@@ -1,5 +1,3 @@
-import { Role } from "./store";
-
 export type NotificationType = 'annonce' | 'note' | 'paiement' | 'systeme' | 'cours';
 
 export interface Notification {
@@ -9,7 +7,7 @@ export interface Notification {
   message: string;
   date: string;
   read: boolean;
-  target_role?: Role | 'all';
+  target_role?: string;   // Role | 'all' — string pour éviter la dépendance circulaire avec store.ts
   target_user_id?: string;
 }
 
@@ -26,7 +24,7 @@ function saveAll(notifs: Notification[]) {
   localStorage.setItem(KEY, JSON.stringify(notifs));
 }
 
-export function getNotifications(userId?: string, role?: Role): Notification[] {
+export function getNotifications(userId?: string, role?: string): Notification[] {
   return getAll().filter(n => {
     if (n.target_user_id && n.target_user_id !== userId) return false;
     if (n.target_role && n.target_role !== 'all' && n.target_role !== role) return false;
@@ -34,7 +32,7 @@ export function getNotifications(userId?: string, role?: Role): Notification[] {
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
-export function getUnreadCount(userId?: string, role?: Role): number {
+export function getUnreadCount(userId?: string, role?: string): number {
   return getNotifications(userId, role).filter(n => !n.read).length;
 }
 
@@ -42,7 +40,7 @@ export function markAsRead(id: string) {
   saveAll(getAll().map(n => n.id === id ? { ...n, read: true } : n));
 }
 
-export function markAllAsRead(userId?: string, role?: Role) {
+export function markAllAsRead(userId?: string, role?: string) {
   const all = getAll();
   const userNotifIds = new Set(getNotifications(userId, role).map(n => n.id));
   saveAll(all.map(n => userNotifIds.has(n.id) ? { ...n, read: true } : n));

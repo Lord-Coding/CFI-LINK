@@ -4,7 +4,7 @@ import {
     alertCircleOutline, arrowForwardOutline, bookOutline, calendarOutline, cardOutline,
     desktopOutline, documentTextOutline, IonButton, IonCol, IonGrid, IonIcon, IonItem,
     IonLabel, IonList, IonProgressBar, IonRow, keyOutline, notificationsOutline, peopleOutline,
-    personCircleOutline, schoolOutline, timeOutline, trendingUpOutline,
+    personCircleOutline, schoolOutline, timeOutline, trendingUpOutline, megaphoneOutline,
 } from '../lib/ionic';
 import { useHistory } from 'react-router-dom';
 import {
@@ -12,10 +12,12 @@ import {
     getConcoursCodes, getValidationCodes, ROLE_LABELS, FILIERE_LABELS,
 } from '../lib/store';
 import { getNotifications } from '../lib/notifications';
+import { getAnnouncements } from '../lib/announcements-store';
 import { useAuth } from '../hooks/useAuth';
 import { getCoursesForProfessor, getCoursesForStudent } from '../lib/courses-data';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/DashboardPage.css';
+import '../styles/Announcements.css';
 
 /* ────────────────────────────────────────────
    Composants réutilisables
@@ -284,6 +286,7 @@ function StudentDashboard() {
 
     const courses    = getCoursesForStudent(user.filiere, user.annee, user.option);
     const notifs     = getNotifications(user.id, user.role).filter(n => !n.read);
+    const announcements = getAnnouncements(user.role).slice(0, 3);
     const avProgress = courses.length > 0
         ? Math.round(courses.reduce((acc, c) => acc + c.progress, 0) / courses.length)
         : 0;
@@ -409,6 +412,37 @@ function StudentDashboard() {
                     </IonCol>
                 </IonRow>
             </IonGrid>
+
+            {/* Annonces officielles */}
+            {announcements.length > 0 && (
+                <Card variant="default" className="dashboard-card">
+                    <CardHeader>
+                        <div className="dashboard-card-header">
+                            <IonIcon icon={megaphoneOutline} className="dashboard-card-header-icon--warning" />
+                            <CardTitle>Annonces officielles</CardTitle>
+                            <IonButton fill="clear" size="small" routerLink="/announcements" className="dashboard-see-all">
+                                Voir tout <IonIcon slot="end" icon={arrowForwardOutline} />
+                            </IonButton>
+                        </div>
+                    </CardHeader>
+                    <CardContent padding="md">
+                        <div className="an-widget">
+                            {announcements.map(a => (
+                                <div key={a.id} className={`an-widget-item an-widget-item--${a.priority}`}>
+                                    <div className={`an-widget-dot an-widget-dot--${a.priority}`} />
+                                    <div className="an-widget-body">
+                                        <p className="an-widget-title">{a.title}</p>
+                                        <p className="an-widget-date">
+                                            {new Date(a.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            {' · '}{a.author}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Actions */}
             <div>

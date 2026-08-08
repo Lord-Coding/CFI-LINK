@@ -93,7 +93,7 @@
 
 /* ── Grille ── */
 .sc-grid-wrap {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 18px;
     overflow:      hidden;

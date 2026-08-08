@@ -16,9 +16,13 @@ import { useAuth } from '../hooks/useAuth';
 import { isProfessor } from '../lib/store';
 import {
     getAllCourses, getCoursesForProfessor, getLessonsForCourse,
-    addLesson, updateLesson, deleteLesson, markLessonComplete,
+    addLesson, updateLesson, deleteLesson,
     initializeCourseStore, CourseData, Lesson, QuizQuestion,
 } from '../lib/courses-data';
+import {
+    markLessonComplete as persistComplete,
+    getCompletedLessonIds, getCourseProgressPercent, getLessonProgress,
+} from '../lib/elearning-store';
 import '../styles/ELearning.css';
 
 initializeCourseStore();
@@ -260,7 +264,7 @@ const LessonModal: React.FC<LessonModalProps> = ({ isOpen, courseId, initial, ne
 /* ════════════════════════════════
    Vue Quiz / Examen
 ════════════════════════════════ */
-const QuizView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, onBack }) => {
+const QuizView: React.FC<{ lesson: Lesson; courseId: string; studentId: string; onBack: () => void }> = ({ lesson, courseId, studentId, onBack }) => {
     const questions = lesson.quizQuestions ?? [];
     const [answers,   setAnswers]   = useState<(number | null)[]>(new Array(questions.length).fill(null));
     const [submitted, setSubmitted] = useState(false);
@@ -268,7 +272,8 @@ const QuizView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, on
 
     const handleSubmit = () => {
         setSubmitted(true);
-        markLessonComplete(lesson.id);
+        const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 100;
+        persistComplete(studentId, lesson.id, courseId, pct);
     };
 
     if (questions.length === 0) {
@@ -336,11 +341,14 @@ const QuizView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, on
 /* ════════════════════════════════
    Vue Vidéo / Document
 ════════════════════════════════ */
-const MediaView: React.FC<{ lesson: Lesson; onBack: () => void }> = ({ lesson, onBack }) => {
-    const [done, setDone] = useState(lesson.completed);
+const MediaView: React.FC<{ lesson: Lesson; courseId: string; studentId: string; onBack: () => void }> = ({ lesson, courseId, studentId, onBack }) => {
+    const [done, setDone] = useState(() => {
+        const p = studentId ? getLessonProgress(studentId, lesson.id) : undefined;
+        return p?.completed ?? false;
+    });
 
     const handleComplete = () => {
-        markLessonComplete(lesson.id);
+        persistComplete(studentId, lesson.id, courseId);
         setDone(true);
     };
 
@@ -417,16 +425,18 @@ interface CourseDetailViewProps {
     course: CourseData;
     onBack: () => void;
     isProf: boolean;
+    studentId: string;
 }
 
-const CourseDetailView: React.FC<CourseDetailViewProps> = ({ course, onBack, isProf }) => {
+const CourseDetailView: React.FC<CourseDetailViewProps> = ({ course, onBack, isProf, studentId }) => {
     const [activeLesson,  setActiveLesson]  = useState<Lesson | null>(null);
     const [lessonModal,   setLessonModal]   = useState(false);
     const [editLesson,    setEditLesson]    = useState<Lesson | null>(null);
     const [refreshKey,    setRefreshKey]    = useState(0);
 
     const lessons      = getLessonsForCourse(course.id);
-    const completedCnt = lessons.filter(l => l.completed).length;
+    const completedIds = isProf ? new Set<string>() : getCompletedLessonIds(studentId, course.id);
+    const completedCnt = isProf ? lessons.filter(l => l.completed).length : completedIds.size;
     const progress     = lessons.length > 0 ? Math.round((completedCnt / lessons.length) * 100) : 0;
 
     const handleSaveLesson = () => setRefreshKey(k => k + 1);
@@ -441,9 +451,9 @@ const CourseDetailView: React.FC<CourseDetailViewProps> = ({ course, onBack, isP
     if (activeLesson) {
         const fresh = getLessonsForCourse(course.id).find(l => l.id === activeLesson.id) ?? activeLesson;
         if (fresh.type === 'quiz' || fresh.type === 'exam') {
-            return <QuizView lesson={fresh} onBack={() => setActiveLesson(null)} />;
+            return <QuizView lesson={fresh} courseId={course.id} studentId={studentId} onBack={() => { setActiveLesson(null); setRefreshKey(k => k + 1); }} />;
         }
-        return <MediaView lesson={fresh} onBack={() => setActiveLesson(null)} />;
+        return <MediaView lesson={fresh} courseId={course.id} studentId={studentId} onBack={() => { setActiveLesson(null); setRefreshKey(k => k + 1); }} />;
     }
 
     return (
@@ -493,7 +503,9 @@ const CourseDetailView: React.FC<CourseDetailViewProps> = ({ course, onBack, isP
                         <p>Aucune leçon — {isProf ? 'ajoutez du contenu ci-dessus.' : 'contenu à venir.'}</p>
                     </div>
                 ) : (
-                    lessons.map((lesson) => (
+                    lessons.map((lesson) => {
+                        const isDone = isProf ? lesson.completed : completedIds.has(lesson.id);
+                        return (
                         <div key={lesson.id} className="el-lesson-row">
                             <button
                                 disabled={lesson.locked && !isProf}
@@ -501,17 +513,17 @@ const CourseDetailView: React.FC<CourseDetailViewProps> = ({ course, onBack, isP
                                 className={[
                                     'el-lesson-item',
                                     lesson.locked && !isProf ? 'el-lesson-item--locked'    : '',
-                                    lesson.completed         ? 'el-lesson-item--completed' : '',
+                                    isDone                   ? 'el-lesson-item--completed' : '',
                                 ].filter(Boolean).join(' ')}
                             >
                                 <div className={[
                                     'el-lesson-icon',
                                     lesson.locked && !isProf ? 'el-lesson-icon--locked'    : '',
-                                    lesson.completed         ? 'el-lesson-icon--completed' : `el-lesson-icon--${lesson.type}`,
+                                    isDone                   ? 'el-lesson-icon--completed' : `el-lesson-icon--${lesson.type}`,
                                 ].filter(Boolean).join(' ')}>
                                     <IonIcon icon={
                                         lesson.locked && !isProf ? lockClosedOutline :
-                                        lesson.completed         ? checkmarkCircleOutline :
+                                        isDone                   ? checkmarkCircleOutline :
                                         LESSON_ICON[lesson.type]
                                     } />
                                 </div>
@@ -545,7 +557,8 @@ const CourseDetailView: React.FC<CourseDetailViewProps> = ({ course, onBack, isP
                                 </div>
                             )}
                         </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 
@@ -586,9 +599,17 @@ const ELearning: React.FC = () => {
     );
 
     const totalLessons = courses.reduce((a, c) => a + getLessonsForCourse(c.id).length, 0);
-    const doneLessons  = courses.reduce((a, c) => a + getLessonsForCourse(c.id).filter(l => l.completed).length, 0);
+    const doneLessons  = isProf
+        ? courses.reduce((a, c) => a + getLessonsForCourse(c.id).filter(l => l.completed).length, 0)
+        : courses.reduce((a, c) => {
+            const lessons = getLessonsForCourse(c.id);
+            return a + getCourseProgressPercent(user.id, c.id, lessons.length) * lessons.length / 100;
+          }, 0);
     const totalProgress = courses.length > 0
-        ? Math.round(courses.reduce((a, c) => a + c.progress, 0) / courses.length)
+        ? Math.round(courses.reduce((a, c) => {
+            const lessons = getLessonsForCourse(c.id);
+            return a + (isProf ? c.progress : getCourseProgressPercent(user.id, c.id, lessons.length));
+          }, 0) / courses.length)
         : 0;
 
     if (selectedCourse) {
@@ -598,6 +619,7 @@ const ELearning: React.FC = () => {
                     course={selectedCourse}
                     onBack={() => setSelectedCourse(null)}
                     isProf={isProf}
+                    studentId={user.id}
                 />
             </DashboardLayout>
         );

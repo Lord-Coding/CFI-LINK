@@ -110,7 +110,7 @@
     padding:       0.875rem 1rem;
     border-radius: 14px;
     border:        1.5px solid var(--ion-color-light-shade);
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     cursor:        pointer;
     text-align:    left;
     transition:    all 0.18s;
@@ -149,7 +149,7 @@
     height:        10px;
     border-radius: 50%;
     background:    var(--ion-color-primary);
-    border:        2px solid var(--ion-background-color, #fff);
+    border:        2px solid var(--ion-background-color);
     box-shadow:    0 0 6px rgba(var(--ion-color-primary-rgb),0.5);
 }
 
@@ -188,7 +188,7 @@
     display:        flex;
     flex-direction: column;
     max-height:     92vh;
-    background:     var(--ion-background-color, #fff);
+    background:     var(--ion-background-color);
     border-radius:  22px;
     overflow:       hidden;
 }
@@ -275,7 +275,7 @@
 .mg-detail-meta-date { font-size:0.82rem; color:var(--ion-color-medium); }
 
 .mg-detail-body {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 14px;
     padding:       1.25rem;
@@ -301,7 +301,7 @@
 .mg-compose-inner {
     display:flex; flex-direction:column;
     max-height:94vh; overflow-y:auto;
-    background:var(--ion-background-color, #fff);
+    background:var(--ion-background-color);
     border-radius:22px; scrollbar-width:thin;
 }
 

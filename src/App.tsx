@@ -14,7 +14,7 @@ import '@ionic/react/css/text-alignment.css';
 import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
-import '@ionic/react/css/palettes/dark.system.css';
+import '@ionic/react/css/palettes/dark.class.css';
 
 /* Theme & global styles */
 import './theme/variables.css';
@@ -53,6 +53,7 @@ import Attendance      from './pages/Attendance';
 import Forum           from './pages/Forum';
 import Community       from './pages/Community';
 import Payments        from './pages/Payments';
+import Announcements   from './pages/Announcements';
 
 setupIonicReact();
 
@@ -168,6 +169,9 @@ const ProtectedApp: React.FC = () => {
                 <Route path="/payments">
                     <ProtectedRoute><Payments /></ProtectedRoute>
                 </Route>
+                <Route path="/announcements">
+                    <ProtectedRoute><Announcements /></ProtectedRoute>
+                </Route>
 
                 {/* Redrection admin */}
                 <Route path="/admin/users">
@@ -187,12 +191,6 @@ const ProtectedApp: React.FC = () => {
                 </Route>
                 <Route path="/admin/audit">
                     <ProtectedRoute allowedRoles={['super_admin', 'admin']}><AuditLog /></ProtectedRoute>
-                </Route>
-
-
-                {/* Redirection racine vers le dashboard */}
-                <Route exact path="/">
-                    <Redirect to="/dashboard" />
                 </Route>
 
             </IonRouterOutlet>
@@ -245,6 +243,7 @@ const AppRoutes: React.FC = () => {
                 '/admin/stats',
                 '/admin/semesters',
                 '/admin/audit',
+                '/announcements',
             ]}>
                 <ProtectedApp />
             </Route>

@@ -3,7 +3,7 @@
 .cfi-calendar {
   --cal-accent:      var(--ion-color-primary);
   --cal-accent-rgb:  var(--ion-color-primary-rgb);
-  --cal-bg:          var(--ion-background-color, #fff);
+  --cal-bg:          var(--ion-background-color);
   --cal-border:      var(--ion-color-light-shade);
   --cal-text:        var(--ion-color-dark);
   --cal-muted:       var(--ion-color-medium);

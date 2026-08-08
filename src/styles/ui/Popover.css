@@ -13,7 +13,7 @@
 
 /* Contenu interne */
 .cfi-popover-content {
-  background: var(--ion-background-color, #fff);
+  background: var(--ion-background-color);
   border-radius: 14px;
   overflow: hidden;
 }

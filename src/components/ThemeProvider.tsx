@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ThemeMode, readStoredTheme, getSystemPreference, applyTheme, STORAGE_KEY, CYCLE, ThemeContext } from "../contexts/ThemeContext";
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
-    return readStoredTheme() ?? getSystemPreference();
+    const initial = readStoredTheme() ?? getSystemPreference();
+    applyTheme(initial); // applique immédiatement, avant le premier paint
+    return initial;
   });
 
   const [manuallySet, setManuallySet] = useState<boolean>(

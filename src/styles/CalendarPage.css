@@ -47,7 +47,7 @@
 .cp-sidebar { display:flex; flex-direction:column; gap:1rem; }
 
 .cp-cal-wrap {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border-radius: 18px;
     border:        1.5px solid var(--ion-color-light-shade);
     padding:       0.5rem;
@@ -63,7 +63,7 @@
 
 /* Événements du jour sélectionné */
 .cp-day-events {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 16px;
     padding:       1rem;
@@ -209,7 +209,7 @@
 
 /* ── Modal ── */
 .cp-modal { --width:min(500px, 96vw); --border-radius:22px; --height:auto; --max-height:94vh; }
-.cp-modal-inner { display:flex; flex-direction:column; max-height:94vh; overflow-y:auto; background:var(--ion-background-color, #fff); border-radius:22px; scrollbar-width:thin; }
+.cp-modal-inner { display:flex; flex-direction:column; max-height:94vh; overflow-y:auto; background:var(--ion-background-color); border-radius:22px; scrollbar-width:thin; }
 
 .cp-modal-header { display:flex; align-items:flex-start; gap:0.875rem; padding:2rem 1.5rem 0; }
 .cp-modal-header-icon { width:44px; height:44px; border-radius:12px; background:rgba(var(--ion-color-primary-rgb),0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; }

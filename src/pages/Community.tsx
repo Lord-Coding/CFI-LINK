@@ -5,47 +5,30 @@ import {
 } from '../lib/ionic';
 import {
     chatbubblesOutline, peopleOutline, heartOutline, heart,
-    sendOutline, personOutline, schoolOutline,
+    sendOutline, trashOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
 import { getUsers, isStudent, FILIERE_LABELS } from '../lib/store';
+import {
+    getCommunityPosts, addCommunityPost, toggleLike, deleteCommunityPost,
+    CommunityPost,
+} from '../lib/community-store';
 import { Badge } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Community.css';
 
-/* ── Posts mockés ── */
-interface Post {
-    id:      string;
-    author:  string;
-    initials: string;
-    content: string;
-    date:    string;
-    likes:   number;
-    replies: number;
-}
-
-const MOCK_POSTS: Post[] = [
-    { id: '1', author: 'Jean Kamga',    initials: 'J', content: "Quelqu'un a les notes du TD d'algorithmique de la semaine dernière ?", date: 'Il y a 2h',  likes: 5,  replies: 3  },
-    { id: '2', author: 'Marie Nkoulou', initials: 'M', content: "Le projet tutoré de base de données est à rendre vendredi. N'oubliez pas !",              date: 'Il y a 5h',  likes: 12, replies: 7  },
-    { id: '3', author: 'Paul Essomba',  initials: 'P', content: 'Super cours de réseaux aujourd\'hui ! Le prof a bien expliqué les sous-réseaux.',            date: 'Hier',        likes: 8,  replies: 2  },
-    { id: '4', author: 'Sophie Mbarga', initials: 'S', content: 'Qui est intéressé par un groupe d\'étude pour les examens de fin de semestre ?',             date: 'Hier',        likes: 15, replies: 11 },
-];
-
 type TabKey = 'feed' | 'members';
 
-/* ════════════════════════════════
-   Page principale
-════════════════════════════════ */
 const Community: React.FC = () => {
-    const { user }   = useAuth();
-    const [tab,      setTab]      = useState<TabKey>('feed');
-    const [search,   setSearch]   = useState('');
-    const [newPost,  setNewPost]  = useState('');
-    const [posts,    setPosts]    = useState<Post[]>(MOCK_POSTS);
-    const [liked,    setLiked]    = useState<Set<string>>(new Set());
+    const { user }  = useAuth();
+    const [tab,     setTab]     = useState<TabKey>('feed');
+    const [search,  setSearch]  = useState('');
+    const [newPost, setNewPost] = useState('');
+    const [refresh, setRefresh] = useState(0); // force re-render après mutation
 
     if (!user) return null;
 
+    const posts    = getCommunityPosts();
     const students = getUsers().filter(u => isStudent(u.role) && u.is_active);
 
     const q = search.toLowerCase().trim();
@@ -57,35 +40,26 @@ const Community: React.FC = () => {
 
     const handlePublish = () => {
         if (!newPost.trim()) return;
-        const p: Post = {
-            id:       crypto.randomUUID(),
-            author:   user.nom_complet,
-            initials: user.nom_complet.charAt(0).toUpperCase(),
-            content:  newPost.trim(),
-            date:     'À l\'instant',
-            likes:    0,
-            replies:  0,
-        };
-        setPosts([p, ...posts]);
+        addCommunityPost({ author_id: user.id, author_name: user.nom_complet, content: newPost.trim() });
         setNewPost('');
+        setRefresh(r => r + 1);
     };
 
-    const toggleLike = (id: string) => {
-        setLiked(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) { next.delete(id); } else { next.add(id); }
-            return next;
-        });
-        setPosts(prev => prev.map(p =>
-            p.id === id ? { ...p, likes: p.likes + (liked.has(id) ? -1 : 1) } : p
-        ));
+    const handleLike = (postId: string) => {
+        toggleLike(postId, user.id);
+        setRefresh(r => r + 1);
+    };
+
+    const handleDelete = (postId: string) => {
+        deleteCommunityPost(postId);
+        setRefresh(r => r + 1);
     };
 
     const initials = user.nom_complet.charAt(0).toUpperCase();
 
     return (
         <DashboardLayout>
-            <div className="co-page">
+            <div className="co-page" key={refresh}>
 
                 {/* ── Hero ── */}
                 <div className="co-hero">
@@ -124,7 +98,7 @@ const Community: React.FC = () => {
                     </IonSegmentButton>
                 </IonSegment>
 
-                {/* ════ Onglet Fil d'actualité ════ */}
+                {/* ════ Fil d'actualité ════ */}
                 {tab === 'feed' && (
                     <div className="co-feed">
 
@@ -158,36 +132,53 @@ const Community: React.FC = () => {
 
                         {/* Posts */}
                         <div className="co-posts-list">
-                            {posts.map(p => (
-                                <div key={p.id} className="co-post">
-                                    <div className="co-post-header">
-                                        <div className="co-post-avatar">{p.initials}</div>
-                                        <div className="co-post-meta">
-                                            <span className="co-post-author">{p.author}</span>
-                                            <span className="co-post-date">{p.date}</span>
+                            {posts.length === 0 ? (
+                                <div className="co-empty">
+                                    <IonIcon icon={chatbubblesOutline} className="co-empty-icon" />
+                                    <p>Aucune publication pour l'instant.</p>
+                                </div>
+                            ) : posts.map((p: CommunityPost) => {
+                                const hasLiked = p.likes.includes(user.id);
+                                const isOwner  = p.author_id === user.id;
+                                return (
+                                    <div key={p.id} className="co-post">
+                                        <div className="co-post-header">
+                                            <div className="co-post-avatar">{p.author_name.charAt(0).toUpperCase()}</div>
+                                            <div className="co-post-meta">
+                                                <span className="co-post-author">{p.author_name}</span>
+                                                <span className="co-post-date">
+                                                    {new Date(p.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                            {isOwner && (
+                                                <IonButton
+                                                    fill="clear" size="small" color="medium"
+                                                    className="co-delete-btn"
+                                                    onClick={() => handleDelete(p.id)}
+                                                    aria-label="Supprimer"
+                                                >
+                                                    <IonIcon slot="icon-only" icon={trashOutline} />
+                                                </IonButton>
+                                            )}
+                                        </div>
+                                        <p className="co-post-content">{p.content}</p>
+                                        <div className="co-post-actions">
+                                            <button
+                                                className={`co-action-btn ${hasLiked ? 'co-action-btn--liked' : ''}`}
+                                                onClick={() => handleLike(p.id)}
+                                            >
+                                                <IonIcon icon={hasLiked ? heart : heartOutline} />
+                                                {p.likes.length}
+                                            </button>
                                         </div>
                                     </div>
-                                    <p className="co-post-content">{p.content}</p>
-                                    <div className="co-post-actions">
-                                        <button
-                                            className={`co-action-btn ${liked.has(p.id) ? 'co-action-btn--liked' : ''}`}
-                                            onClick={() => toggleLike(p.id)}
-                                        >
-                                            <IonIcon icon={liked.has(p.id) ? heart : heartOutline} />
-                                            {p.likes}
-                                        </button>
-                                        <button className="co-action-btn">
-                                            <IonIcon icon={chatbubblesOutline} />
-                                            {p.replies} réponse{p.replies !== 1 ? 's' : ''}
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}
 
-                {/* ════ Onglet Membres ════ */}
+                {/* ════ Membres ════ */}
                 {tab === 'members' && (
                     <div className="co-members">
                         <IonSearchbar

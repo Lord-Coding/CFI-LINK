@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { IonContent, IonMenuButton, IonPage } from '../lib/ionic';
 import { useAuth } from '../hooks/useAuth';
 import { ROLE_LABELS } from '../lib/store';
@@ -17,16 +17,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const avatarColor = localStorage.getItem('cfi_avatar_color') || '#3880ff';
     const initials    = user?.nom_complet.charAt(0).toUpperCase();
 
-    useEffect(() => {
-        const saved = localStorage.getItem('cfi_theme');
-        if (saved === 'dark') document.documentElement.classList.add('dark');
-    }, []);
-
     if (!user) return null;
 
     return (
         <IonPage>
-            <IonContent style={{ '--background': 'var(--ion-color-light, #f4f5f8)' } as React.CSSProperties}>
+            <IonContent style={{ '--background': 'var(--ion-background-color)' } as React.CSSProperties}>
                 {/* Header dans le contenu pour qu'il scroll avec la page */}
                 <div className="dashboard-inline-header">
                     <div className="dashboard-inline-start">

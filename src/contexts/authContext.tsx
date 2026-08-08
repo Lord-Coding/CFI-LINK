@@ -4,10 +4,10 @@ import { User } from "../lib/store";
 export interface AuthContextType {
     user: User | null;
     loading: boolean;
-    login: (email: string, password: string) => { 
+    login: (email: string, password: string) => Promise<{ 
         success: boolean;
         error?: string; 
-    };
+    }>;
     logout: () => void;
     refreshUser: () => void;
 }

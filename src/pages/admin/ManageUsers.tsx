@@ -8,13 +8,15 @@ import {
     addCircleOutline, shieldOutline, trashOutline,
     peopleOutline, schoolOutline, personCircleOutline, businessOutline,
     shieldCheckmarkOutline, personOutline, mailOutline, lockClosedOutline,
-    closeCircleOutline, checkmarkCircleOutline, statsChartOutline,
+    closeCircleOutline, checkmarkCircleOutline, statsChartOutline, downloadOutline,
+    alertCircleOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../../hooks/useAuth';
 import {
     createUser, deleteUser, getUsers, isStudent,
-    updateUser, User, ROLE_LABELS,
+    updateUser, User, ROLE_LABELS, STAFF_ROLE_LABELS, STAFF_ROLE_DESCRIPTIONS, StaffRole,
 } from '../../lib/store';
+import { addNotification } from '../../lib/notifications';
 import { Avatar, Badge, Card, CardContent, CardHeader, CardTitle, AlertDialog } from '../../components';
 import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/ManageUsers.css';
@@ -27,6 +29,7 @@ const TABS = [
     { value: 'professors', label: 'Professeurs',      icon: personCircleOutline },
     { value: 'staff',      label: 'Administratifs',   icon: businessOutline },
     { value: 'admins',     label: 'Admins',           icon: peopleOutline },
+    { value: 'pending',    label: 'En attente',       icon: alertCircleOutline },
 ] as const;
 
 type TabKey = typeof TABS[number]['value'];
@@ -68,6 +71,11 @@ const UserRow: React.FC<UserRowProps> = ({ user, currentUserId, showAcademic, on
                 <Badge variant="secondary" size="sm">
                     {ROLE_LABELS[user.role]}
                 </Badge>
+                {user.staff_role && (
+                    <Badge variant="info" size="sm" className="mu-staff-badge">
+                        {STAFF_ROLE_LABELS[user.staff_role]}
+                    </Badge>
+                )}
             </td>
 
             {/* Filière/Année — étudiants seulement */}
@@ -137,8 +145,22 @@ const ManageUsers: React.FC = () => {
     const [fSpecialite, setFSpecialite] = useState('');
     const [fGrade,      setFGrade]      = useState('');
     const [fService,    setFService]    = useState('');
+    const [fStaffRole,  setFStaffRole]  = useState<StaffRole>('responsable_scolarite');
 
     const refresh = () => setUsers(getUsers());
+
+    /* ── Export CSV liste filtrée ── */
+    const exportCSV = () => {
+        const header = 'Nom,Email,Rôle,Filière,Année,Option,Actif\n';
+        const rows = displayedUsers.map(u =>
+            `"${u.nom_complet}","${u.email}","${u.role}",${u.filiere ?? ''},${u.annee ?? ''},${u.option ?? ''},${u.is_active}`
+        ).join('\n');
+        const blob = new Blob([header + rows], { type: 'text/csv' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = `utilisateurs_${tab}.csv`; a.click();
+        URL.revokeObjectURL(url);
+    };
 
     /* Groupes */
     const grouped: Record<TabKey, User[]> = {
@@ -146,6 +168,7 @@ const ManageUsers: React.FC = () => {
         professors: users.filter(u => u.role === 'professeur'),
         staff:      users.filter(u => u.role === 'membre_administratif'),
         students:   users.filter(u => isStudent(u.role)),
+        pending:    users.filter(u => !u.is_active),
     };
 
     const q = search.toLowerCase().trim();
@@ -156,7 +179,7 @@ const ManageUsers: React.FC = () => {
     );
 
     /* Handlers */
-    const handleCreate = (e: React.FormEvent) => {
+    const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!fNom || !fEmail || !fPassword) return;
 
@@ -172,10 +195,11 @@ const ManageUsers: React.FC = () => {
             data.specialite = fSpecialite;
             data.grade      = fGrade;
         } else if (createRole === 'membre_administratif') {
-            data.service = fService;
+            data.service    = fService;
+            data.staff_role = fStaffRole;
         }
 
-        createUser(data);
+        await createUser(data);
         refresh();
         closeModal();
     };
@@ -184,11 +208,22 @@ const ManageUsers: React.FC = () => {
         setModalOpen(false);
         setFNom(''); setFEmail(''); setFPassword('');
         setFSpecialite(''); setFGrade(''); setFService('');
+        setFStaffRole('responsable_scolarite');
         setCreateRole('professeur');
     };
 
     const toggleActive = (id: string, current: boolean) => {
         updateUser(id, { is_active: !current });
+        // Notif à l'étudiant quand son compte est activé
+        if (current === false) {
+            // On active le compte — on notifie l'utilisateur
+            addNotification({
+                type: 'systeme',
+                title: 'Compte activé',
+                message: 'Votre compte CFI-LINK a été activé par l\'administration. Vous pouvez maintenant vous connecter.',
+                target_user_id: id,
+            });
+        }
         refresh();
     };
 
@@ -200,7 +235,7 @@ const ManageUsers: React.FC = () => {
     };
 
     const canCreateAdmin = currentUser?.role === 'super_admin';
-    const showAcademic   = tab === 'students';
+    const showAcademic   = tab === 'students' || tab === 'pending';
 
     return (
         <DashboardLayout>
@@ -222,12 +257,22 @@ const ManageUsers: React.FC = () => {
                             <IonIcon icon={schoolOutline} />
                             {grouped.students.length} étudiants
                         </span>
+                        {grouped.pending.length > 0 && (
+                            <span className="mu-hero-badge mu-hero-badge--warn">
+                                <IonIcon icon={alertCircleOutline} />
+                                {grouped.pending.length} en attente
+                            </span>
+                        )}
                     </div>
                 </div>
                 <div className="mu-hero-action">
                     <IonButton className="mu-hero-btn" fill="outline" onClick={() => setModalOpen(true)}>
                         <IonIcon slot="start" icon={addCircleOutline} />
                         Nouveau compte
+                    </IonButton>
+                    <IonButton className="mu-hero-btn" fill="clear" color="medium" onClick={exportCSV}>
+                        <IonIcon slot="start" icon={downloadOutline} />
+                        Export CSV
                     </IonButton>
                 </div>
             </div>
@@ -449,15 +494,33 @@ const ManageUsers: React.FC = () => {
 
                         {createRole === 'membre_administratif' && (
                             <div className="mu-form-section">
-                                <span className="mu-form-section-label">Service</span>
-                                <div className="mu-field mu-field--full">
-                                    <label className="mu-field-label">Nom du service</label>
-                                    <IonInput
-                                        className="mu-field-input"
-                                        value={fService}
-                                        onIonInput={e => setFService(String(e.detail.value ?? ''))}
-                                        placeholder="ex: Scolarité"
-                                    />
+                                <span className="mu-form-section-label">Service administratif</span>
+                                <div className="mu-form-grid">
+                                    <div className="mu-field mu-field--full">
+                                        <label className="mu-field-label">Sous-rôle <span className="mu-required">*</span></label>
+                                        <div className="mu-staff-role-picker">
+                                            {(Object.entries(STAFF_ROLE_LABELS) as [StaffRole, string][]).map(([val, label]) => (
+                                                <button
+                                                    key={val}
+                                                    type="button"
+                                                    className={`mu-staff-role-card ${fStaffRole === val ? 'mu-staff-role-card--active' : ''}`}
+                                                    onClick={() => setFStaffRole(val)}
+                                                >
+                                                    <span className="mu-staff-role-label">{label}</span>
+                                                    <span className="mu-staff-role-sub">{STAFF_ROLE_DESCRIPTIONS[val]}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="mu-field mu-field--full">
+                                        <label className="mu-field-label">Nom du service (optionnel)</label>
+                                        <IonInput
+                                            className="mu-field-input"
+                                            value={fService}
+                                            onIonInput={e => setFService(String(e.detail.value ?? ''))}
+                                            placeholder="ex: Scolarité, Comptabilité…"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}

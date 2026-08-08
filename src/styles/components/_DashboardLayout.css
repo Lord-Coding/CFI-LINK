@@ -6,7 +6,7 @@
   justify-content: space-between;
   padding:         0.5rem 1rem 0.5rem 0.25rem;
   min-height:      60px;
-  background:      var(--ion-color-light, #f4f5f8);
+  background:      var(--ion-color-light);
 }
 
 .dashboard-inline-start {

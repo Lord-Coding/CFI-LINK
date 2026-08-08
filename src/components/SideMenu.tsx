@@ -26,7 +26,7 @@ const SideMenu: React.FC = () => {
   const avatarColor = localStorage.getItem("cfi_avatar_color") || "#3880ff";
   const initials = user?.nom_complet.charAt(0).toUpperCase();
 
-  const modules = useMemo(() => (user ? getNavModules(user.role) : []), [user]);
+  const modules = useMemo(() => (user ? getNavModules(user.role, user.staff_role) : []), [user]);
   const activeModuleId = useMemo(() => {
     if (!user) return undefined;
     for (const mod of modules) {

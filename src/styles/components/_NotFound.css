@@ -1,6 +1,6 @@
 /* NotFound.css */
 .notfound-content {
-  --background: var(--ion-color-light, #f4f5f8);
+  --background: var(--ion-color-light);
 }
 .notfound-container {
   display: flex;

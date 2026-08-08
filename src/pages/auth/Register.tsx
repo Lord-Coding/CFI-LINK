@@ -61,7 +61,7 @@ const Register: React.FC = () => {
         setLoading(true);
         try {
             const isConcours = type === "concours";
-            const user = createUser({
+            const user = await createUser({
                 email,
                 password,
                 nom_complet: isConcours ? concoursData.nom_complet : nomComplet,

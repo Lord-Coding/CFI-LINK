@@ -89,6 +89,27 @@ export function initializeSchedules() {
     { day: "Mercredi", hour: "08:00", subject: "Droit constitutionnel", room: "Salle C1", teacher: "Me. Atangana", filiere: "LAP", annee: "L2", color: COLORS[2] },
     { day: "Jeudi", hour: "10:00", subject: "GRH", room: "Salle C2", teacher: "Dr. Fouda", filiere: "LAP", annee: "L2", color: COLORS[3] },
     { day: "Vendredi", hour: "08:00", subject: "Finances publiques", room: "Salle C3", teacher: "M. Biya", filiere: "LAP", annee: "L2", color: COLORS[4] },
+    // ── LIC L3 — Tronc commun (S5-S6) ──
+    { day: "Lundi", hour: "08:00", subject: "Génie logiciel", room: "Salle A1", teacher: "Dr. Owona", filiere: "LIC", annee: "L3", color: COLORS[0] },
+    { day: "Lundi", hour: "10:00", subject: "Intelligence artificielle", room: "Labo Info 1", teacher: "Prof. Mbarga", filiere: "LIC", annee: "L3", color: COLORS[1] },
+    { day: "Mardi", hour: "08:00", subject: "Cryptographie & Sécurité", room: "Salle A2", teacher: "Dr. Nkoulou", filiere: "LIC", annee: "L3", color: COLORS[2] },
+    { day: "Mercredi", hour: "10:00", subject: "Gestion de projet SI", room: "Salle B1", teacher: "M. Tabi", filiere: "LIC", annee: "L3", color: COLORS[3] },
+    // ── LIC L3 GL — Génie Logiciel ──
+    { day: "Mardi", hour: "14:00", subject: "Architecture logicielle", room: "Labo Info 2", teacher: "Dr. Owona", filiere: "LIC", annee: "L3", option: "GL", color: COLORS[4] },
+    { day: "Jeudi", hour: "08:00", subject: "Tests & Qualité logicielle", room: "Salle A3", teacher: "Prof. Mbarga", filiere: "LIC", annee: "L3", option: "GL", color: COLORS[0] },
+    { day: "Jeudi", hour: "10:00", subject: "Développement mobile", room: "Labo Info 1", teacher: "M. Tabi", filiere: "LIC", annee: "L3", option: "GL", color: COLORS[1] },
+    { day: "Vendredi", hour: "08:00", subject: "Stage & Projet GL", room: "Salle A1", teacher: "Dr. Owona", filiere: "LIC", annee: "L3", option: "GL", color: COLORS[2] },
+    // ── LIC L3 SR — Systèmes & Réseaux ──
+    { day: "Mardi", hour: "14:00", subject: "Administration réseaux avancée", room: "Labo Réseau", teacher: "Prof. Essomba", filiere: "LIC", annee: "L3", option: "SR", color: COLORS[3] },
+    { day: "Jeudi", hour: "08:00", subject: "Cloud computing & Virtualisation", room: "Labo Info 2", teacher: "Dr. Nkoulou", filiere: "LIC", annee: "L3", option: "SR", color: COLORS[4] },
+    { day: "Jeudi", hour: "10:00", subject: "Sécurité des réseaux", room: "Labo Réseau", teacher: "Prof. Essomba", filiere: "LIC", annee: "L3", option: "SR", color: COLORS[0] },
+    { day: "Vendredi", hour: "08:00", subject: "Stage & Projet SR", room: "Salle A2", teacher: "Prof. Essomba", filiere: "LIC", annee: "L3", option: "SR", color: COLORS[1] },
+    // ── LAP L3 (S5-S6) ──
+    { day: "Lundi", hour: "14:00", subject: "Management stratégique", room: "Salle C1", teacher: "Dr. Fouda", filiere: "LAP", annee: "L3", color: COLORS[2] },
+    { day: "Mardi", hour: "08:00", subject: "Droit du travail", room: "Salle C2", teacher: "Me. Atangana", filiere: "LAP", annee: "L3", color: COLORS[3] },
+    { day: "Mercredi", hour: "08:00", subject: "Fiscalité et budget de l'État", room: "Salle C3", teacher: "M. Biya", filiere: "LAP", annee: "L3", color: COLORS[4] },
+    { day: "Jeudi", hour: "14:00", subject: "Mémoire & Projet professionnel", room: "Salle C1", teacher: "Dr. Fouda", filiere: "LAP", annee: "L3", color: COLORS[0] },
+    { day: "Vendredi", hour: "10:00", subject: "Séminaire de recherche", room: "Amphi A", teacher: "Me. Atangana", filiere: "LAP", annee: "L3", color: COLORS[1] },
   ];
   entries.forEach(e => {
     saveAll([...getAll(), { ...e, id: crypto.randomUUID() }]);

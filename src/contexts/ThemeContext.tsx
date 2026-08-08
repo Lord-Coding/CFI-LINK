@@ -9,7 +9,7 @@ export interface ThemeContextValue {
   isDark: boolean;
 }
 
-export const STORAGE_KEY = "orderdeal-theme";
+export const STORAGE_KEY = "cfi_theme";
 export const CYCLE: ThemeMode[] = ["light", "dark"];
 
 export function getSystemPreference(): ThemeMode {
@@ -30,12 +30,11 @@ export function readStoredTheme(): ThemeMode | null {
 }
 
 export function applyTheme(mode: ThemeMode) {
-  const body = document.body;
-  body.classList.remove("ion-palette-dark", "ion-palette-high-contrast-dark");
-
+  const root = document.documentElement;
   if (mode === "dark") {
-    body.classList.add("ion-palette-dark");
-    body.classList.add("ion-palette-dark", "ion-palette-high-contrast-dark");
+    root.classList.add("ion-palette-dark");
+  } else {
+    root.classList.remove("ion-palette-dark");
   }
 }
 

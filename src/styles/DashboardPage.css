@@ -318,7 +318,7 @@
 }
 
 .db-qs-item {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 14px;
     padding:       0.875rem;

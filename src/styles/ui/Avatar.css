@@ -78,7 +78,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--ion-background-color, #fff);
+  border: 2px solid var(--ion-background-color);
   font-size: 0.6rem;
   color: #fff;
   padding: 0 2px;

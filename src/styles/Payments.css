@@ -103,7 +103,7 @@
 .py-month-cell--confirmed { background:rgba(var(--ion-color-success-rgb),0.1); border-color:rgba(var(--ion-color-success-rgb),0.3); }
 .py-month-cell--pending   { background:rgba(var(--ion-color-warning-rgb),0.1); border-color:rgba(var(--ion-color-warning-rgb),0.3); }
 .py-month-cell--rejected  { background:rgba(var(--ion-color-danger-rgb),0.08); border-color:rgba(var(--ion-color-danger-rgb),0.2);  }
-.py-month-cell--unpaid    { background:var(--ion-background-color,#fff); }
+.py-month-cell--unpaid    { background:var(--ion-background-color); }
 
 .py-month-name { font-size:0.68rem; font-weight:700; color:var(--ion-color-dark); text-transform:uppercase; letter-spacing:0.04em; }
 .py-month-year { font-size:0.6rem; color:var(--ion-color-medium); }
@@ -156,7 +156,7 @@
 
 /* ── Modal paiement ── */
 .py-modal { --width:min(480px,96vw); --border-radius:22px; --height:auto; --max-height:94vh; }
-.py-modal-inner { display:flex; flex-direction:column; max-height:94vh; background:var(--ion-background-color,#fff); border-radius:22px; overflow:hidden; }
+.py-modal-inner { display:flex; flex-direction:column; max-height:94vh; background:var(--ion-background-color); border-radius:22px; overflow:hidden; }
 
 .py-modal-header { display:flex; align-items:flex-start; gap:0.875rem; padding:1.75rem 1.5rem 0; flex-shrink:0; }
 .py-modal-header-icon { width:44px; height:44px; border-radius:12px; background:rgba(var(--ion-color-primary-rgb),0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; }

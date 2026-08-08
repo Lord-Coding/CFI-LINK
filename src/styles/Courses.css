@@ -263,7 +263,7 @@
 .co-modal-inner {
     display:flex; flex-direction:column;
     max-height:94vh; overflow-y:auto;
-    background:var(--ion-background-color, #fff);
+    background:var(--ion-background-color);
     border-radius:22px; scrollbar-width:thin;
 }
 

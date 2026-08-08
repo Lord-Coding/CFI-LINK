@@ -23,7 +23,7 @@
 
 /* ── Modal card ── */
 .ob-modal {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border-radius: 24px;
     width:         100%;
     max-width:     440px;
@@ -65,7 +65,7 @@
     width:       32px;
     height:      32px;
     border:      none;
-    background:  var(--ion-color-light, #f4f5f8);
+    background:  var(--ion-color-light);
     border-radius: 50%;
     display:     flex;
     align-items: center;

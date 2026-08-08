@@ -51,7 +51,7 @@
     padding:        0.75rem 0.25rem;
     border-radius:  14px;
     border:         1.5px solid var(--ion-color-light-shade);
-    background:     var(--ion-background-color, #fff);
+    background:     var(--ion-background-color);
     cursor:         pointer;
     transition:     all 0.18s;
     text-align:     center;

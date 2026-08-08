@@ -112,7 +112,7 @@
     padding:        0.875rem 0.5rem;
     border-radius:  14px;
     border:         1.5px solid var(--ion-color-light-shade);
-    background:     var(--ion-background-color, #fff);
+    background:     var(--ion-background-color);
     text-align:     center;
 }
 
@@ -294,7 +294,7 @@
     flex-direction:  column;
     max-height:      94vh;
     overflow-y:      auto;
-    background:      var(--ion-background-color, #fff);
+    background:      var(--ion-background-color);
     border-radius:   22px;
     scrollbar-width: thin;
 }

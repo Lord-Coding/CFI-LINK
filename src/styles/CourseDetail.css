@@ -49,7 +49,7 @@
 @media (max-width:576px) { .cd-stats-row { grid-template-columns:repeat(2,1fr); } }
 
 .cd-stat {
-    background:var(--ion-background-color,#fff);
+    background:var(--ion-background-color);
     border:1.5px solid var(--ion-color-light-shade);
     border-radius:14px; padding:0.875rem;
     display:flex; flex-direction:column; align-items:center; gap:0.25rem;
@@ -89,7 +89,7 @@
 .cd-lesson-item {
     display:flex; align-items:center; gap:0.875rem;
     padding:0.875rem 1rem;
-    background:var(--ion-background-color,#fff);
+    background:var(--ion-background-color);
     border:1.5px solid var(--ion-color-light-shade);
     border-radius:14px; cursor:pointer; text-align:left;
     transition:all 0.18s;
@@ -222,14 +222,14 @@
 .cd-quiz-result--partial { background:rgba(var(--ion-color-warning-rgb),0.1); border:1.5px solid rgba(var(--ion-color-warning-rgb),0.25); color:var(--ion-color-warning-shade); }
 
 .cd-quiz-questions { display:flex; flex-direction:column; gap:1rem; }
-.cd-quiz-question  { background:var(--ion-background-color,#fff); border:1.5px solid var(--ion-color-light-shade); border-radius:16px; padding:1.25rem; }
+.cd-quiz-question  { background:var(--ion-background-color); border:1.5px solid var(--ion-color-light-shade); border-radius:16px; padding:1.25rem; }
 .cd-quiz-q         { font-size:0.9rem; font-weight:600; color:var(--ion-color-dark); margin:0 0 1rem; line-height:1.4; }
 .cd-quiz-options   { display:flex; flex-direction:column; gap:0.5rem; }
 
 .cd-quiz-option {
     width:100%; text-align:left; padding:0.75rem 1rem;
     border-radius:10px; border:1.5px solid var(--ion-color-light-shade);
-    background:var(--ion-background-color,#fff);
+    background:var(--ion-background-color);
     font-size:0.85rem; color:var(--ion-color-dark);
     cursor:pointer; transition:all 0.15s;
 }

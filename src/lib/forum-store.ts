@@ -2,7 +2,7 @@ const KEY = 'cfi_forum';
 
 export interface ForumPost {
   id: string;
-  course_id: string;
+  course_id: string;   // 'general' pour le fil unique
   author_id: string;
   author_name: string;
   title: string;
@@ -18,6 +18,7 @@ export interface ForumReply {
   author_name: string;
   content: string;
   date: string;
+  replies?: ForumReply[];   // réponses imbriquées (1 niveau)
 }
 
 function getAll(): ForumPost[] {
@@ -25,7 +26,8 @@ function getAll(): ForumPost[] {
 }
 function saveAll(posts: ForumPost[]) { localStorage.setItem(KEY, JSON.stringify(posts)); }
 
-export function getForumPosts(courseId: string): ForumPost[] {
+/** Fil général (course_id === 'general'), triés épinglés en premier puis date DESC. */
+export function getForumPosts(courseId = 'general'): ForumPost[] {
   return getAll().filter(p => p.course_id === courseId)
     .sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
@@ -33,8 +35,17 @@ export function getForumPosts(courseId: string): ForumPost[] {
     });
 }
 
+/** 20 derniers posts pour le fil général (pagination initiale). */
+export function getRecentPosts(limit = 20, offset = 0): ForumPost[] {
+  return getForumPosts('general').slice(offset, offset + limit);
+}
+
+export function getTotalPostCount(): number {
+  return getAll().filter(p => p.course_id === 'general').length;
+}
+
 export function createForumPost(data: Omit<ForumPost, 'id' | 'date' | 'replies' | 'pinned'>): ForumPost {
-  const post: ForumPost = { ...data, id: crypto.randomUUID(), date: new Date().toISOString(), replies: [], pinned: false };
+  const post: ForumPost = { ...data, course_id: data.course_id || 'general', id: crypto.randomUUID(), date: new Date().toISOString(), replies: [], pinned: false };
   saveAll([...getAll(), post]);
   return post;
 }
@@ -43,6 +54,22 @@ export function addReply(postId: string, data: Omit<ForumReply, 'id' | 'date'>):
   const reply: ForumReply = { ...data, id: crypto.randomUUID(), date: new Date().toISOString() };
   saveAll(getAll().map(p => p.id === postId ? { ...p, replies: [...p.replies, reply] } : p));
   return reply;
+}
+
+/** Répondre à une réponse existante (thread imbriqué, 1 niveau). */
+export function addNestedReply(postId: string, parentReplyId: string, data: Omit<ForumReply, 'id' | 'date'>): void {
+  const reply: ForumReply = { ...data, id: crypto.randomUUID(), date: new Date().toISOString() };
+  saveAll(getAll().map(p => {
+    if (p.id !== postId) return p;
+    return {
+      ...p,
+      replies: p.replies.map(r =>
+        r.id === parentReplyId
+          ? { ...r, replies: [...(r.replies ?? []), reply] }
+          : r
+      ),
+    };
+  }));
 }
 
 export function deleteForumPost(id: string) { saveAll(getAll().filter(p => p.id !== id)); }
@@ -55,24 +82,25 @@ export function initializeForum() {
   if (getAll().length > 0) return;
   const seeds: Omit<ForumPost, 'id' | 'date' | 'pinned'>[] = [
     {
-      course_id: "lic-l2-1", author_id: "system", author_name: "Prof. Mbarga",
-      title: "Consignes pour le TD noté", content: "Le TD noté portera sur les arbres binaires et les graphes. Préparez les exercices des chapitres 3 et 4.",
+      course_id: 'general', author_id: 'system', author_name: 'Jean Kamga',
+      title: 'Bienvenue sur le forum CFI-LINK !',
+      content: 'Bonjour à tous ! Ce forum est réservé aux étudiants. Posez vos questions, partagez vos expériences et entraidez-vous.',
       replies: [
-        { id: crypto.randomUUID(), author_id: "s1", author_name: "Jean Kamga", content: "Merci professeur ! Est-ce que les algorithmes de Dijkstra seront inclus ?", date: new Date(Date.now() - 3600000).toISOString() },
-        { id: crypto.randomUUID(), author_id: "system", author_name: "Prof. Mbarga", content: "Oui, Dijkstra et Bellman-Ford sont au programme.", date: new Date(Date.now() - 1800000).toISOString() },
+        { id: crypto.randomUUID(), author_id: 's2', author_name: 'Paul Essomba', content: 'Merci pour l\'initiative ! Je suis prêt à aider mes camarades.', date: new Date(Date.now() - 3600000).toISOString() },
+        { id: crypto.randomUUID(), author_id: 's3', author_name: 'Sophie Ateba', content: 'Super ! Hâte d\'échanger avec vous tous.', date: new Date(Date.now() - 1800000).toISOString() },
       ],
     },
     {
-      course_id: "lic-l2-2", author_id: "system", author_name: "Dr. Nkoulou",
-      title: "Projet Base de données - Groupes", content: "Formez des groupes de 3 pour le projet. Thème : système de gestion de bibliothèque. Rendu le 15 du mois prochain.",
+      course_id: 'general', author_id: 's2', author_name: 'Paul Essomba',
+      title: 'Conseils pour les révisions d\'algorithmique',
+      content: 'Quelqu\'un a des ressources sur les arbres binaires et les graphes ? Le TD noté approche et je cherche des exercices corrigés.',
       replies: [
-        { id: crypto.randomUUID(), author_id: "s2", author_name: "Paul Essomba", content: "On peut choisir un autre sujet ?", date: new Date(Date.now() - 7200000).toISOString() },
+        { id: crypto.randomUUID(), author_id: 's3', author_name: 'Sophie Ateba', content: 'Regarde sur le site du MIT OpenCourseWare, ils ont de super exercices sur les structures de données.', date: new Date(Date.now() - 7200000).toISOString() },
       ],
     },
   ];
   seeds.forEach(s => {
     const post = createForumPost({ course_id: s.course_id, author_id: s.author_id, author_name: s.author_name, title: s.title, content: s.content });
-    // Add replies manually
     const all = getAll();
     const target = all.find(p => p.id === post.id);
     if (target) { target.replies = s.replies; saveAll(all); }

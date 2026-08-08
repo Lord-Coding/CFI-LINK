@@ -1,5 +1,6 @@
 // ===== Types =====
 export type Role = 'super_admin' | 'admin' | 'professeur' | 'membre_administratif' | 'etudiant_concours' | 'etudiant_externe';
+export type StaffRole = 'secretariat' | 'comptable' | 'responsable_scolarite';
 export type Filiere = 'LIC' | 'LAP';
 export type Annee = 'L1' | 'L2' | 'L3';
 export type OptionLIC = 'GL' | 'SR';
@@ -18,6 +19,7 @@ export interface User {
   specialite?: string;
   grade?: string;
   service?: string;
+  staff_role?: StaffRole;
   payment_blocked?: boolean;
 }
 
@@ -66,6 +68,46 @@ export interface Payment {
 const generateId = () => crypto.randomUUID();
 const generateCode = (prefix: string) => `${prefix}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
+// ===== Password hashing (SHA-256 via crypto.subtle) =====
+
+/** Returns true if the string looks like a SHA-256 hex digest (64 lowercase hex chars). */
+function isHashed(value: string): boolean {
+  return /^[0-9a-f]{64}$/.test(value);
+}
+
+/** Hashes a plaintext password with SHA-256, returns lowercase hex string. */
+export async function hashPassword(plain: string): Promise<string> {
+  const encoded = new TextEncoder().encode(plain);
+  const buffer  = await crypto.subtle.digest('SHA-256', encoded);
+  return Array.from(new Uint8Array(buffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/**
+ * Migrates users who still have plaintext passwords (not 64-char hex)
+ * by hashing them and saving back to localStorage.
+ * Called once during initializeStore.
+ */
+async function migratePasswords() {
+  const users = getItem<User[]>(KEYS.users, []);
+  const needsMigration = users.some(u => !isHashed(u.password));
+  if (!needsMigration) return;
+  const migrated = await Promise.all(
+    users.map(async u => {
+      if (isHashed(u.password)) return u;
+      return { ...u, password: await hashPassword(u.password) };
+    })
+  );
+  setItem(KEYS.users, migrated);
+  // Also update currentUser if stored
+  const current = getItem<User | null>(KEYS.currentUser, null);
+  if (current && !isHashed(current.password)) {
+    const fresh = migrated.find(u => u.id === current.id);
+    if (fresh) setItem(KEYS.currentUser, fresh);
+  }
+}
+
 // ===== localStorage CRUD =====
 function getItem<T>(key: string, fallback: T): T {
   try {
@@ -90,13 +132,16 @@ const KEYS = {
 };
 
 // ===== Seed =====
-export function initializeStore() {
+export async function initializeStore() {
+  // Always migrate existing plaintext passwords first (idempotent)
+  await migratePasswords();
+
   if (getItem(KEYS.initialized, false)) return;
 
   const superAdmin: User = {
     id: generateId(),
     email: 'admin@cfi-ciras.org',
-    password: 'Lord@123@admin',
+    password: await hashPassword('Lord@123@admin'),
     nom_complet: 'Super Administrateur',
     role: 'super_admin',
     is_active: true,
@@ -106,7 +151,7 @@ export function initializeStore() {
   const adminUser: User = {
     id: generateId(),
     email: 'directeur@cfi-ciras.org',
-    password: 'Dir@2024',
+    password: await hashPassword('Dir@2024'),
     nom_complet: 'Dr. Michel Fouda',
     role: 'admin',
     is_active: true,
@@ -116,7 +161,7 @@ export function initializeStore() {
   const prof1: User = {
     id: generateId(),
     email: 'owona@cfi-ciras.org',
-    password: 'Prof@2024',
+    password: await hashPassword('Prof@2024'),
     nom_complet: 'Dr. Owona',
     role: 'professeur',
     is_active: true,
@@ -128,7 +173,7 @@ export function initializeStore() {
   const prof2: User = {
     id: generateId(),
     email: 'mbarga@cfi-ciras.org',
-    password: 'Prof@2024',
+    password: await hashPassword('Prof@2024'),
     nom_complet: 'Prof. Mbarga',
     role: 'professeur',
     is_active: true,
@@ -140,18 +185,19 @@ export function initializeStore() {
   const staff1: User = {
     id: generateId(),
     email: 'secretariat@cfi-ciras.org',
-    password: 'Staff@2024',
+    password: await hashPassword('Staff@2024'),
     nom_complet: 'Mme. Ngo Bassa',
     role: 'membre_administratif',
     is_active: true,
     created_at: new Date().toISOString(),
     service: 'Scolarité',
+    staff_role: 'responsable_scolarite',
   };
 
   const etudiantConcours1: User = {
     id: generateId(),
     email: 'jean.kamga@etud.cfi-ciras.org',
-    password: 'Etud@2024',
+    password: await hashPassword('Etud@2024'),
     nom_complet: 'Jean Kamga',
     role: 'etudiant_concours',
     is_active: true,
@@ -163,7 +209,7 @@ export function initializeStore() {
   const etudiantConcours2: User = {
     id: generateId(),
     email: 'paul.essomba@etud.cfi-ciras.org',
-    password: 'Etud@2024',
+    password: await hashPassword('Etud@2024'),
     nom_complet: 'Paul Essomba',
     role: 'etudiant_concours',
     is_active: true,
@@ -176,7 +222,7 @@ export function initializeStore() {
   const etudiantExterne1: User = {
     id: generateId(),
     email: 'sophie.ateba@gmail.com',
-    password: 'Etud@2024',
+    password: await hashPassword('Etud@2024'),
     nom_complet: 'Sophie Ateba',
     role: 'etudiant_externe',
     is_active: true,
@@ -188,7 +234,7 @@ export function initializeStore() {
   const etudiantExterne2: User = {
     id: generateId(),
     email: 'boris.ndongo@gmail.com',
-    password: 'Etud@2024',
+    password: await hashPassword('Etud@2024'),
     nom_complet: 'Boris Ndongo',
     role: 'etudiant_externe',
     is_active: false,
@@ -222,8 +268,9 @@ export function setUsers(users: User[]) { setItem(KEYS.users, users); }
 export function getUserById(id: string) { return getUsers().find(u => u.id === id); }
 export function getUserByEmail(email: string) { return getUsers().find(u => u.email.toLowerCase() === email.toLowerCase()); }
 
-export function createUser(data: Omit<User, 'id' | 'created_at'>): User {
-  const user: User = { ...data, id: generateId(), created_at: new Date().toISOString() };
+export async function createUser(data: Omit<User, 'id' | 'created_at'>): Promise<User> {
+  const hashed = isHashed(data.password) ? data.password : await hashPassword(data.password);
+  const user: User = { ...data, password: hashed, id: generateId(), created_at: new Date().toISOString() };
   setUsers([...getUsers(), user]);
   return user;
 }
@@ -240,16 +287,23 @@ export function deleteUser(id: string) {
 export function getCurrentUser(): User | null { return getItem<User | null>(KEYS.currentUser, null); }
 export function setCurrentUser(user: User | null) { setItem(KEYS.currentUser, user); }
 
-export function login(email: string, password: string): { success: boolean; user?: User; error?: string } {
+export async function login(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
   const user = getUserByEmail(email);
   if (!user) return { success: false, error: 'Email ou mot de passe incorrect.' };
-  if (user.password !== password) return { success: false, error: 'Email ou mot de passe incorrect.' };
+  // Hash the input and compare — also handles legacy plaintext (migration may not have run yet)
+  const inputHash = await hashPassword(password);
+  const matches = user.password === inputHash ||
+                  (!isHashed(user.password) && user.password === password); // fallback for unmigrated
+  if (!matches) return { success: false, error: 'Email ou mot de passe incorrect.' };
+  // Migrate on-the-fly if password was still plaintext
+  if (!isHashed(user.password)) {
+    updateUser(user.id, { password: inputHash });
+  }
   if (!user.is_active) return { success: false, error: 'Votre compte n\'est pas encore activé. Contactez l\'administration.' };
   if (user.payment_blocked) {
     setCurrentUser(user);
     return { success: false, user, error: 'PAYMENT_BLOCKED' };
   }
-  // Refresh user data from store
   const freshUser = getUserById(user.id);
   setCurrentUser(freshUser || user);
   return { success: true, user: freshUser || user };
@@ -338,6 +392,15 @@ export function validatePaymentCode(code: string, studentId: string): { valid: b
   // Mark used and unblock
   setPaymentCodes(getPaymentCodes().map(c => c.id === found.id ? { ...c, used: true } : c));
   updateUser(studentId, { payment_blocked: false });
+  // Notif de confirmation à l'étudiant (import inline pour éviter la dépendance circulaire au niveau module)
+  import('./notifications').then(({ addNotification }) => {
+    addNotification({
+      type: 'paiement',
+      title: 'Paiement confirmé',
+      message: `Votre paiement de scolarité pour le mois de "${found.month}" a été validé. Votre accès est rétabli.`,
+      target_user_id: studentId,
+    });
+  });
   return { valid: true };
 }
 
@@ -358,6 +421,18 @@ export const ROLE_LABELS: Record<Role, string> = {
   membre_administratif: 'Membre Administratif',
   etudiant_concours: 'Étudiant (Concours)',
   etudiant_externe: 'Étudiant (Externe)',
+};
+
+export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
+  secretariat:          'Secrétariat',
+  comptable:            'Comptabilité',
+  responsable_scolarite: 'Responsable Scolarité',
+};
+
+export const STAFF_ROLE_DESCRIPTIONS: Record<StaffRole, string> = {
+  secretariat:          'Documents & emploi du temps',
+  comptable:            'Paiements & finances uniquement',
+  responsable_scolarite: 'Scolarité, documents & emploi du temps',
 };
 
 export const FILIERE_LABELS: Record<Filiere, string> = {

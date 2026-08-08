@@ -20,7 +20,7 @@ const Login: React.FC = () => {
 
         setLoading(true);
         try {
-            const result = login(email, password);
+            const result = await login(email, password);
             if (result.success) {
                 history.replace("/dashboard");
             } else if (result.error === "PAYMENT_BLOCKED") {

@@ -55,7 +55,7 @@
 
 /* ── Card ── */
 .st-card {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 18px;
     padding:       1.5rem;
@@ -181,7 +181,7 @@
 .st-preview-line--short { width:50%; }
 .st-preview-line--dark  { background:#334155; }
 
-.st-preview-label { font-size:0.72rem; font-weight:600; color:var(--ion-color-medium); text-align:center; padding:0.375rem; display:block; border-top:1px solid var(--ion-color-light-shade); background:var(--ion-background-color, #fff); }
+.st-preview-label { font-size:0.72rem; font-weight:600; color:var(--ion-color-medium); text-align:center; padding:0.375rem; display:block; border-top:1px solid var(--ion-color-light-shade); background:var(--ion-background-color); }
 .st-theme-preview--active .st-preview-label { color:var(--ion-color-primary); }
 
 /* ── Couleur avatar ── */

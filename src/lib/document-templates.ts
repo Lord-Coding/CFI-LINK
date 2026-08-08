@@ -1,4 +1,5 @@
 import { User, FILIERE_LABELS } from './store';
+import { getGradesForStudent, calcMoyenne, calcMoyenneGenerale, GradeEntry } from './grades-store';
 
 export type DocTemplateType =
     | 'attestation_inscription'
@@ -240,55 +241,39 @@ function certificatScolarite(user: User): string {
 function releveNotes(user: User): string {
     const filiere = user.filiere ? FILIERE_LABELS[user.filiere] : '—';
 
-    /* Données fictives de notes — à remplacer par le store grades quand T-07 sera fait */
-    const mockGrades = [
-        { matiere: "Algorithmique avancée",   cc: 14, tp: 15, exam: 13, coef: 3 },
-        { matiere: "Base de données",          cc: 12, tp: 14, exam: 11, coef: 3 },
-        { matiere: "Réseaux informatiques",   cc: 11, tp: 12, exam: 10, coef: 2 },
-        { matiere: "POO (Java)",              cc: 15, tp: 16, exam: 14, coef: 3 },
-        { matiere: "Systèmes d'exploitation", cc: 10, tp: 11, exam: 9,  coef: 2 },
-    ];
+    // Récupère les notes publiées depuis grades-store
+    const grades: GradeEntry[] = getGradesForStudent(user.id);
 
-    const rows = mockGrades.map(g => {
-        const moy = ((g.cc * 0.3) + (g.tp * 0.3) + (g.exam * 0.4)).toFixed(2);
-        const pass = parseFloat(moy) >= 10;
+    // Groupe par semestre pour affichage
+    const semesters = [...new Set(grades.map(g => g.semestre))].sort();
+
+    const buildSemesterTable = (sem: string) => {
+        const entries = grades.filter(g => g.semestre === sem);
+        if (entries.length === 0) return '';
+
+        const rows = entries.map(g => {
+            const moy = calcMoyenne(g.cc, g.tp, g.exam);
+            const pass = moy !== null && moy >= 10;
+            return `
+                <tr>
+                    <td>${g.course_name}</td>
+                    <td class="td-num">${g.cc !== null ? g.cc + '/20' : '—'}</td>
+                    <td class="td-num">${g.tp !== null ? g.tp + '/20' : '—'}</td>
+                    <td class="td-num">${g.exam !== null ? g.exam + '/20' : '—'}</td>
+                    <td class="td-num">${g.coef}</td>
+                    <td class="td-num ${pass ? 'td-pass' : 'td-fail'}">${moy !== null ? moy.toFixed(2) + '/20' : '—'}</td>
+                    <td class="td-num">${moy !== null ? (pass ? '✓' : '✗') : '—'}</td>
+                </tr>`;
+        }).join('');
+
+        const moyGen = calcMoyenneGenerale(entries);
+        const totalCoef = entries.reduce((a, g) => a + g.coef, 0);
+        const semPass = moyGen >= 10;
+
         return `
-            <tr>
-                <td>${g.matiere}</td>
-                <td class="td-num">${g.cc}/20</td>
-                <td class="td-num">${g.tp}/20</td>
-                <td class="td-num">${g.exam}/20</td>
-                <td class="td-num">${g.coef}</td>
-                <td class="td-num ${pass ? 'td-pass' : 'td-fail'}">${moy}/20</td>
-                <td class="td-num">${pass ? '✓' : '✗'}</td>
-            </tr>
-        `;
-    }).join('');
-
-    const totalCoef = mockGrades.reduce((a, g) => a + g.coef, 0);
-    const moyGene   = (mockGrades.reduce((a, g) => {
-        const m = (g.cc * 0.3 + g.tp * 0.3 + g.exam * 0.4);
-        return a + m * g.coef;
-    }, 0) / totalCoef).toFixed(2);
-
-    const body = `
-        ${fillHeader(user)}
-        <div class="doc-doc-title">
-            <h1>Relevé de Notes</h1>
-            <p>Année académique ${year()} — Semestre en cours</p>
-        </div>
-        <div class="doc-body">
-            <div class="doc-info-box" style="margin-bottom:24px">
-                <div class="doc-info-row">
-                    <span class="doc-info-label">Étudiant(e)</span>
-                    <span class="doc-info-value">${user.nom_complet}</span>
-                </div>
-                <div class="doc-info-row">
-                    <span class="doc-info-label">Filière</span>
-                    <span class="doc-info-value">${filiere} — ${user.annee ?? '—'}</span>
-                </div>
-            </div>
-
+            <h3 style="font-size:1rem;color:#1d4ed8;margin:20px 0 8px;border-bottom:1px solid #e2e8f0;padding-bottom:4px">
+                Semestre ${sem}
+            </h3>
             <table class="doc-table">
                 <thead>
                     <tr>
@@ -304,14 +289,64 @@ function releveNotes(user: User): string {
                 <tbody>${rows}</tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="4"><strong>Moyenne générale</strong></td>
+                        <td colspan="4"><strong>Moyenne générale ${sem}</strong></td>
                         <td class="td-num">${totalCoef}</td>
-                        <td class="td-num ${parseFloat(moyGene) >= 10 ? 'td-pass' : 'td-fail'}">${moyGene}/20</td>
-                        <td class="td-num">${parseFloat(moyGene) >= 10 ? '✓ ADMIS' : '✗ AJOURNÉ'}</td>
+                        <td class="td-num ${semPass ? 'td-pass' : 'td-fail'}">${moyGen.toFixed(2)}/20</td>
+                        <td class="td-num">${semPass ? '✓ ADMIS' : '✗ AJOURNÉ'}</td>
                     </tr>
                 </tfoot>
-            </table>
-            <p style="font-size:0.75rem;color:#888;margin-top:8px">CC = Contrôle Continu (30%) · TP = Travaux Pratiques (30%) · Exam = Examen Final (40%)</p>
+            </table>`;
+    };
+
+    // Si aucune note publiée, on affiche un message
+    const noGrades = grades.length === 0;
+    const tablesHtml = noGrades
+        ? `<p style="color:#888;font-style:italic;text-align:center;padding:2rem 0">
+               Aucune note publiée pour cet étudiant pour le moment.
+           </p>`
+        : semesters.map(buildSemesterTable).join('');
+
+    const moyGlobale = grades.length > 0 ? calcMoyenneGenerale(grades) : null;
+
+    const body = `
+        ${fillHeader(user)}
+        <div class="doc-doc-title">
+            <h1>Relevé de Notes</h1>
+            <p>Année académique ${year()}</p>
+        </div>
+        <div class="doc-body">
+            <div class="doc-info-box" style="margin-bottom:24px">
+                <div class="doc-info-row">
+                    <span class="doc-info-label">Étudiant(e)</span>
+                    <span class="doc-info-value">${user.nom_complet}</span>
+                </div>
+                <div class="doc-info-row">
+                    <span class="doc-info-label">Filière</span>
+                    <span class="doc-info-value">${filiere} — ${user.annee ?? '—'}${user.option ? ` (${user.option})` : ''}</span>
+                </div>
+                <div class="doc-info-row">
+                    <span class="doc-info-label">Email</span>
+                    <span class="doc-info-value">${user.email}</span>
+                </div>
+                <div class="doc-info-row">
+                    <span class="doc-info-label">Année académique</span>
+                    <span class="doc-info-value">${year()}</span>
+                </div>
+            </div>
+
+            ${tablesHtml}
+
+            ${moyGlobale !== null ? `
+            <div style="margin-top:20px;padding:12px 18px;border-radius:8px;background:${moyGlobale >= 10 ? '#f0fdf4' : '#fef2f2'};border:1.5px solid ${moyGlobale >= 10 ? '#86efac' : '#fca5a5'}">
+                <strong style="color:${moyGlobale >= 10 ? '#16a34a' : '#dc2626'}">
+                    Moyenne générale toutes matières : ${moyGlobale.toFixed(2)}/20
+                    — ${moyGlobale >= 10 ? 'ADMIS(E)' : 'AJOURNÉ(E)'}
+                </strong>
+            </div>` : ''}
+
+            <p style="font-size:0.75rem;color:#888;margin-top:12px">
+                CC = Contrôle Continu · TP = Travaux Pratiques · Exam = Examen Final
+            </p>
         </div>
         ${FOOTER}
     `;

@@ -29,6 +29,8 @@ import {
   libraryOutline,
   mail,
   mailOutline,
+  megaphone,
+  megaphoneOutline,
   people,
   peopleOutline,
   personCircle,
@@ -42,7 +44,7 @@ import {
   statsChart,
   statsChartOutline,
 } from "../lib/ionic";
-import { Role } from "../lib/store";
+import { Role, StaffRole } from "../lib/store";
 
 interface NavItem {
   icon: string;
@@ -58,7 +60,7 @@ interface NavModule {
   items: NavItem[];
 }
 
-export function getNavModules(role: Role): NavModule[] {
+export function getNavModules(role: Role, staffRole?: StaffRole): NavModule[] {
   const moduleDashboard: NavModule = {
     id: "dashboard",
     icon: gridOutline,
@@ -150,6 +152,12 @@ export function getNavModules(role: Role): NavModule[] {
         iconFilled: mail,
         label: "Communication",
         items: [
+          {
+            icon: megaphoneOutline,
+            iconFilled: megaphone,
+            label: "Annonces",
+            path: "/announcements",
+          },
           {
             icon: mailOutline,
             iconFilled: mail,
@@ -286,6 +294,12 @@ export function getNavModules(role: Role): NavModule[] {
         label: "Communication",
         items: [
           {
+            icon: megaphoneOutline,
+            iconFilled: megaphone,
+            label: "Annonces",
+            path: "/announcements",
+          },
+          {
             icon: mailOutline,
             iconFilled: mail,
             label: "Messagerie",
@@ -371,6 +385,12 @@ export function getNavModules(role: Role): NavModule[] {
         label: "Communication",
         items: [
           {
+            icon: megaphoneOutline,
+            iconFilled: megaphone,
+            label: "Annonces",
+            path: "/announcements",
+          },
+          {
             icon: chatbubblesOutline,
             iconFilled: chatbubbles,
             label: "Forum",
@@ -424,37 +444,81 @@ export function getNavModules(role: Role): NavModule[] {
       },
     ];
 
-  if (role === "membre_administratif")
+  if (role === "membre_administratif") {
+    // ── Comptable : paiements uniquement ──
+    if (staffRole === "comptable")
+      return [
+        {
+          id: "gestion",
+          icon: cardOutline,
+          iconFilled: card,
+          label: "Gestion",
+          items: [
+            { icon: gridOutline, iconFilled: grid, label: "Tableau de bord", path: "/dashboard" },
+            { icon: cardOutline, iconFilled: card, label: "Paiements", path: "/payments" },
+          ],
+        },
+        {
+          id: "communication",
+          icon: mailOutline,
+          iconFilled: mail,
+          label: "Communication",
+          items: [
+            { icon: mailOutline, iconFilled: mail, label: "Messagerie", path: "/messages" },
+          ],
+        },
+        {
+          id: "monitoring",
+          icon: statsChartOutline,
+          label: "Paramètres",
+          items: [{ icon: settingsOutline, iconFilled: settings, label: "Paramètres", path: "/settings" }],
+        },
+      ];
+
+    // ── Secrétariat : documents + emploi du temps ──
+    if (staffRole === "secretariat")
+      return [
+        {
+          id: "gestion",
+          icon: documentTextOutline,
+          iconFilled: documentText,
+          label: "Gestion",
+          items: [
+            { icon: gridOutline, iconFilled: grid, label: "Tableau de bord", path: "/dashboard" },
+            { icon: documentTextOutline, iconFilled: documentText, label: "Documents", path: "/documents" },
+            { icon: calendarOutline, iconFilled: calendar, label: "Emploi du temps", path: "/schedule" },
+          ],
+        },
+        {
+          id: "communication",
+          icon: mailOutline,
+          iconFilled: mail,
+          label: "Communication",
+          items: [
+            { icon: mailOutline, iconFilled: mail, label: "Messagerie", path: "/messages" },
+            { icon: calendarNumberOutline, iconFilled: calendarNumber, label: "Calendrier", path: "/calendar" },
+            { icon: libraryOutline, iconFilled: library, label: "Bibliothèque", path: "/library" },
+          ],
+        },
+        {
+          id: "monitoring",
+          icon: statsChartOutline,
+          label: "Paramètres",
+          items: [{ icon: settingsOutline, iconFilled: settings, label: "Paramètres", path: "/settings" }],
+        },
+      ];
+
+    // ── Responsable Scolarité (défaut staff) : accès complet staff ──
     return [
       {
         id: "gestion",
         icon: documentTextOutline,
         label: "Gestion",
         items: [
-          {
-            icon: gridOutline,
-            iconFilled: grid,
-            label: "Tableau de bord",
-            path: "/dashboard",
-          },
-          {
-            icon: documentTextOutline,
-            iconFilled: documentText,
-            label: "Documents",
-            path: "/documents",
-          },
-          {
-            icon: cardOutline,
-            iconFilled: card,
-            label: "Paiements",
-            path: "/payments",
-          },
-          {
-            icon: calendarOutline,
-            iconFilled: calendar,
-            label: "Emploi du temps",
-            path: "/schedule",
-          },
+          { icon: gridOutline, iconFilled: grid, label: "Tableau de bord", path: "/dashboard" },
+          { icon: documentTextOutline, iconFilled: documentText, label: "Documents", path: "/documents" },
+          { icon: cardOutline, iconFilled: card, label: "Paiements", path: "/payments" },
+          { icon: calendarOutline, iconFilled: calendar, label: "Emploi du temps", path: "/schedule" },
         ],
       },
       {
@@ -462,40 +526,19 @@ export function getNavModules(role: Role): NavModule[] {
         icon: mailOutline,
         label: "Communication",
         items: [
-          {
-            icon: mailOutline,
-            iconFilled: mail,
-            label: "Messagerie",
-            path: "/messages",
-          },
-          {
-            icon: calendarNumberOutline,
-            iconFilled: calendarNumber,
-            label: "Calendrier",
-            path: "/calendar",
-          },
-          {
-            icon: libraryOutline,
-            iconFilled: library,
-            label: "Bibliothèque",
-            path: "/library",
-          },
+          { icon: mailOutline, iconFilled: mail, label: "Messagerie", path: "/messages" },
+          { icon: calendarNumberOutline, iconFilled: calendarNumber, label: "Calendrier", path: "/calendar" },
+          { icon: libraryOutline, iconFilled: library, label: "Bibliothèque", path: "/library" },
         ],
       },
       {
         id: "monitoring",
         icon: statsChartOutline,
         label: "Paramètres",
-        items: [
-          {
-            icon: settingsOutline,
-            iconFilled: settings,
-            label: "Paramètres",
-            path: "/settings",
-          },
-        ],
+        items: [{ icon: settingsOutline, iconFilled: settings, label: "Paramètres", path: "/settings" }],
       },
     ];
+  }
 
   // Étudiant (concours & externe)
   return [
@@ -553,6 +596,12 @@ export function getNavModules(role: Role): NavModule[] {
       icon: peopleOutline,
       label: "Communauté",
       items: [
+        {
+          icon: megaphoneOutline,
+          iconFilled: megaphone,
+          label: "Annonces",
+          path: "/announcements",
+        },
         {
           icon: chatbubblesOutline,
           iconFilled: chatbubbles,

@@ -66,7 +66,7 @@
 
 /* ── Carte de cours ── */
 .el-course-card {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 18px;
     padding:       1.25rem;
@@ -248,7 +248,7 @@
     padding:       0.875rem 1rem;
     border-radius: 14px;
     border:        1.5px solid var(--ion-color-light-shade);
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     cursor:        pointer;
     text-align:    left;
     transition:    all 0.18s;
@@ -391,7 +391,7 @@
 .el-quiz-questions { display:flex; flex-direction:column; gap:1rem; }
 
 .el-quiz-question {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 16px;
     padding:       1.25rem;
@@ -406,7 +406,7 @@
     padding:       0.75rem 1rem;
     border-radius: 10px;
     border:        1.5px solid var(--ion-color-light-shade);
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     font-size:     0.85rem;
     color:         var(--ion-color-dark);
     cursor:        pointer;
@@ -460,7 +460,7 @@
 .el-lesson-modal-inner {
     display:flex; flex-direction:column;
     max-height:96vh; overflow-y:auto;
-    background:var(--ion-background-color, #fff);
+    background:var(--ion-background-color);
     border-radius:22px; scrollbar-width:thin;
 }
 
@@ -535,7 +535,7 @@
 .el-quiz-builder-title { font-size:0.85rem; font-weight:700; color:var(--ion-color-dark); }
 
 .el-quiz-builder-q {
-    background:    var(--ion-background-color, #fff);
+    background:    var(--ion-background-color);
     border:        1.5px solid var(--ion-color-light-shade);
     border-radius: 12px;
     padding:       0.875rem;

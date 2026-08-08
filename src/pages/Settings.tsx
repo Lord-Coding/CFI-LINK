@@ -7,7 +7,8 @@ import {
     colorPaletteOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
-import { updateUser, ROLE_LABELS, FILIERE_LABELS } from '../lib/store';
+import { useTheme } from '../hooks/useTheme';
+import { updateUser, ROLE_LABELS, FILIERE_LABELS, hashPassword } from '../lib/store';
 import { Badge } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Settings.css';
@@ -29,6 +30,7 @@ const AVATAR_COLORS = [
 ════════════════════════════════ */
 const Settings: React.FC = () => {
     const { user, refreshUser } = useAuth();
+    const { isDark, toggleTheme } = useTheme();
 
     /* Profile */
     const [fNom,   setFNom]   = useState(user?.nom_complet ?? '');
@@ -40,11 +42,6 @@ const Settings: React.FC = () => {
     const [fNewPass, setFNewPass] = useState('');
     const [passError, setPassError] = useState('');
     const [passSaved, setPassSaved] = useState(false);
-
-    /* Thème */
-    const [isDark, setIsDark] = useState(
-        () => document.documentElement.classList.contains('dark')
-    );
 
     /* Couleur avatar */
     const [avatarColor, setAvatarColor] = useState(
@@ -66,10 +63,12 @@ const Settings: React.FC = () => {
         setTimeout(() => setProfileSaved(false), 2500);
     };
 
-    const handleChangePassword = (e: React.FormEvent) => {
+    const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
         setPassError('');
-        if (fOldPass !== user.password) {
+        // Compare hash de l'ancien mot de passe avec celui stocké
+        const oldHash = await hashPassword(fOldPass);
+        if (oldHash !== user.password) {
             setPassError('Ancien mot de passe incorrect.');
             return;
         }
@@ -77,18 +76,12 @@ const Settings: React.FC = () => {
             setPassError('Le nouveau mot de passe doit contenir au moins 6 caractères.');
             return;
         }
-        updateUser(user.id, { password: fNewPass });
+        const newHash = await hashPassword(fNewPass);
+        updateUser(user.id, { password: newHash });
         refreshUser();
         setFOldPass(''); setFNewPass('');
         setPassSaved(true);
         setTimeout(() => setPassSaved(false), 2500);
-    };
-
-    const toggleTheme = () => {
-        const next = !isDark;
-        setIsDark(next);
-        document.documentElement.classList.toggle('dark', next);
-        localStorage.setItem('cfi_theme', next ? 'dark' : 'light');
     };
 
     const handleAvatarColor = (color: string) => {
