@@ -1,0 +1,55 @@
+
+/* ── Header inline (scroll avec le contenu) ── */
+.dashboard-inline-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         0.5rem 1rem 0.5rem 0.25rem;
+  min-height:      60px;
+  background:      var(--ion-color-light);
+}
+
+.dashboard-inline-start {
+  display:     flex;
+  align-items: center;
+}
+
+.dashboard-inline-end {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+}
+
+
+.dashboard-menu-btn { color: var(--ion-color-dark); }
+
+.dashboard-header-actions {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+}
+
+.dashboard-header-user {
+  display:        flex;
+  flex-direction: column;
+  text-align:     right;
+  line-height:    1.25;
+}
+
+.dashboard-header-name { font-size: 0.88rem; font-weight: 600; color: var(--ion-color-dark); }
+.dashboard-header-role { font-size: 0.72rem; color: var(--ion-color-medium); }
+
+.dashboard-header-avatar {
+  width:           36px;
+  height:          36px;
+  border-radius:   50%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       0.88rem;
+  font-weight:     700;
+  color:           #fff;
+  flex-shrink:     0;
+}
+
+.dashboard-page-body    { padding: 1.25rem; }

@@ -1,0 +1,114 @@
+/* ════════════════════════════════════════════════════
+   CFI-LINK — Variables CSS Ionic
+   Thème clair (défaut) + override dark via .ion-palette-dark
+   ════════════════════════════════════════════════════ */
+
+/* ── Palette principale ── */
+:root {
+  --ion-color-primary:          #3880ff;
+  --ion-color-primary-rgb:      56,128,255;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade:    #3171e0;
+  --ion-color-primary-tint:     #4c8dff;
+
+  --ion-color-secondary:        #5260ff;
+  --ion-color-secondary-rgb:    82,96,255;
+  --ion-color-secondary-tint:   #6370ff;
+
+  --ion-color-success:          #2dd36f;
+  --ion-color-success-rgb:      45,211,111;
+  --ion-color-success-shade:    #28ba62;
+  --ion-color-success-tint:     #42d77d;
+
+  --ion-color-warning:          #ffc409;
+  --ion-color-warning-rgb:      255,196,9;
+  --ion-color-warning-shade:    #e0ac08;
+  --ion-color-warning-tint:     #ffca22;
+
+  --ion-color-danger:           #eb445a;
+  --ion-color-danger-rgb:       235,68,90;
+  --ion-color-danger-shade:     #cf3c4f;
+  --ion-color-danger-tint:      #ed576b;
+
+  --ion-color-medium:           #92949c;
+  --ion-color-medium-rgb:       146,148,156;
+  --ion-color-medium-shade:     #808289;
+  --ion-color-medium-tint:      #9d9fa6;
+
+  --ion-color-light:            #f4f5f8;
+  --ion-color-light-rgb:        244,245,248;
+  --ion-color-light-shade:      #d7d8da;
+  --ion-color-light-tint:       #f5f6f9;
+
+  --ion-color-dark:             #222428;
+  --ion-color-dark-rgb:         34,36,40;
+  --ion-color-dark-shade:       #1e2023;
+  --ion-color-dark-tint:        #383a3e;
+
+  /* Fond et texte */
+  --ion-background-color:         #f4f5f8;
+  --ion-background-color-rgb:     244,245,248;
+  --ion-text-color:               #222428;
+  --ion-text-color-rgb:           34,36,40;
+
+  /* Cards & surfaces */
+  --ion-card-background:          #ffffff;
+  --ion-item-background:          #ffffff;
+
+  /* Borders */
+  --ion-border-color:             #dddfe3;
+}
+
+/* ── Overrides mode sombre ── */
+.ion-palette-dark {
+  --ion-color-primary:          #4d8dff;
+  --ion-color-primary-rgb:      77,141,255;
+  --ion-color-primary-shade:    #4480e6;
+  --ion-color-primary-tint:     #5f99ff;
+
+  --ion-color-light:            #1e1e2e;
+  --ion-color-light-rgb:        30,30,46;
+  --ion-color-light-shade:      #2a2a3e;
+  --ion-color-light-tint:       #252535;
+
+  --ion-color-medium:           #9b9da6;
+  --ion-color-medium-rgb:       155,157,166;
+  --ion-color-medium-shade:     #888a92;
+  --ion-color-medium-tint:      #a5a7af;
+
+  --ion-color-dark:             #e8eaf0;
+  --ion-color-dark-rgb:         232,234,240;
+  --ion-color-dark-shade:       #cccede;
+  --ion-color-dark-tint:        #eaecf2;
+
+  /* Fond et texte */
+  --ion-background-color:         #12121e;
+  --ion-background-color-rgb:     18,18,30;
+  --ion-text-color:               #e8eaf0;
+  --ion-text-color-rgb:           232,234,240;
+
+  /* Cards & surfaces */
+  --ion-card-background:          #1a1a2e;
+  --ion-item-background:          #1a1a2e;
+
+  /* Borders */
+  --ion-border-color:             #2e2e48;
+
+  color-scheme: dark;
+}
+
+/* ── Toolbar dark ── */
+.ion-palette-dark ion-toolbar {
+  --background: #1a1a2e;
+  --color:      #e8eaf0;
+}
+
+/* ── Modal/Popover dark ── */
+.ion-palette-dark ion-modal  { --background: #1a1a2e; }
+.ion-palette-dark ion-popover { --background: #1a1a2e; }
+
+/* ── Scrollbar discrète ── */
+* { scrollbar-width: thin; scrollbar-color: rgba(128,128,128,0.3) transparent; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 3px; }

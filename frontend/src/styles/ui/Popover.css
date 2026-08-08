@@ -1,0 +1,49 @@
+/* Popover.css */
+
+.cfi-popover-trigger-wrap {
+  display: inline-flex;
+}
+
+/* Shell IonPopover */
+.cfi-popover {
+  --border-radius: 14px !important;
+  --box-shadow: 0 10px 36px rgba(0,0,0,0.14) !important;
+  --backdrop-opacity: 0;
+}
+
+/* Contenu interne */
+.cfi-popover-content {
+  background: var(--ion-background-color);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* Items Ionic à l'intérieur */
+.cfi-popover-content ion-item {
+  --min-height: 44px;
+  --padding-start: 0.875rem;
+  --inner-padding-end: 0.875rem;
+  --background-hover: var(--ion-color-light);
+  font-size: 0.9rem;
+}
+
+.cfi-popover-content ion-list {
+  padding: 0.375rem 0;
+  background: transparent;
+}
+
+/* Séparateur entre items */
+.cfi-popover-content ion-item + ion-item {
+  border-top: 1px solid var(--ion-color-light-shade);
+}
+
+/* Titre de section optionnel (via ion-list-header) */
+.cfi-popover-content ion-list-header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ion-color-medium);
+  padding-inline-start: 0.875rem;
+  min-height: 32px;
+}
