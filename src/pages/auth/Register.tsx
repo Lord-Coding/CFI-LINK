@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { Annee, createUser, Filiere, markConcoursCodeUsed, markValidationCodeUsed, OptionLIC, validateConcoursCode, validateExternalCode } from '../../lib/store';
+import { Annee, ConcoursCode, createUser, Filiere, markConcoursCodeUsed, markValidationCodeUsed, OptionLIC, validateConcoursCode, validateExternalCode, ValidationCode } from '../../lib/store';
 import { arrowBackOutline, checkmarkCircleOutline, IonButton, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonInputPasswordToggle, IonItem, IonLabel, IonPage, IonRow, IonSelect, IonSelectOption, IonSpinner, schoolOutline } from '../../lib/ionic';
 import { Card, CardContent, Alert } from '../../components';
 import '../../styles/RegisterPage.css';
@@ -17,8 +17,8 @@ const Register: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     const [code, setCode] = useState("");
-    const [concoursData, setConcoursData] = useState<any>(null);
-    const [validationData, setValidationData] = useState<any>(null);
+    const [concoursData, setConcoursData] = useState<ConcoursCode | null>(null);
+    const [validationData, setValidationData] = useState<ValidationCode | null>(null);
 
     const [nomComplet, setNomComplet] = useState("");
     const [email, setEmail] = useState("");
@@ -33,7 +33,7 @@ const Register: React.FC = () => {
         if (type === "concours") {
             const result = validateConcoursCode(code);
             if (!result.valid) { setError(result.error!); return; }
-            setConcoursData(result.data);
+            setConcoursData(result.data ?? null);
             setNomComplet(result.data!.nom_complet);
             setFiliere(result.data!.filiere);
             setAnnee(result.data!.annee);
@@ -42,12 +42,12 @@ const Register: React.FC = () => {
         } else {
             const result = validateExternalCode(code);
             if (!result.valid) { setError(result.error!); return; }
-            setValidationData(result.data);
+            setValidationData(result.data ?? null);
             setStep("info");
         }
     };
 
-    const handleRegister = (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
         if (!email || !password) {
@@ -61,19 +61,21 @@ const Register: React.FC = () => {
         setLoading(true);
         try {
             const isConcours = type === "concours";
+            if (isConcours && !concoursData) return;
+            if (!isConcours && !validationData) return;
             const user = await createUser({
                 email,
                 password,
-                nom_complet: isConcours ? concoursData.nom_complet : nomComplet,
+                nom_complet: isConcours ? concoursData!.nom_complet : nomComplet,
                 role: isConcours ? "etudiant_concours" : "etudiant_externe",
                 is_active: isConcours,
-                filiere: (isConcours ? concoursData.filiere : filiere) as Filiere,
-                annee: (isConcours ? concoursData.annee : annee) as Annee,
-                option: (isConcours ? concoursData.option : (filiere === "LIC" &&  annee === "L3" ? option : undefined)) as OptionLIC | undefined,
+                filiere: (isConcours ? concoursData!.filiere : filiere) as Filiere,
+                annee: (isConcours ? concoursData!.annee : annee) as Annee,
+                option: (isConcours ? concoursData!.option : (filiere === "LIC" &&  annee === "L3" ? option : undefined)) as OptionLIC | undefined,
                 payment_blocked: false,
             });
-            if (isConcours) markConcoursCodeUsed(concoursData.id, user.id);
-            else markValidationCodeUsed(validationData.id, user.id);
+            if (isConcours) markConcoursCodeUsed(concoursData!.id, user.id);
+            else markValidationCodeUsed(validationData!.id, user.id);
             setStep("success");
         } finally {
             setLoading(false);

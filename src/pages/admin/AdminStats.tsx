@@ -21,7 +21,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/AdminStats.css';
 
 const AdminStats: React.FC = () => {
-    /* ── Données de base ── */
+    /* -- Donn�es de base -- */
     const users           = getUsers();
     const students        = users.filter(u => isStudent(u.role));
     const professors      = users.filter(u => isProfessor(u.role));
@@ -39,13 +39,13 @@ const AdminStats: React.FC = () => {
     const validationCodes = getValidationCodes();
     const auditEntries    = getAuditLog(100);
 
-    /* ── Répartition filière ── */
+    /* -- R�partition fili�re -- */
     const licStudents = students.filter(s => s.filiere === 'LIC');
     const lapStudents = students.filter(s => s.filiere === 'LAP');
     const licPct      = students.length > 0 ? licStudents.length / students.length : 0;
     const lapPct      = students.length > 0 ? lapStudents.length / students.length : 0;
 
-    /* ── Présences par filière ── */
+    /* -- Pr�sences par fili�re -- */
     const attendanceRecords = getAttendanceRecords();
     const attByFiliere = (['LIC', 'LAP'] as const).map(f => {
         const fStudentIds = new Set(students.filter(s => s.filiere === f).map(s => s.id));
@@ -57,7 +57,7 @@ const AdminStats: React.FC = () => {
         return { filiere: f, total, present, absent, rate };
     });
 
-    /* ── E-Learning — taux de complétion par cours ── */
+    /* -- E-Learning � taux de compl�tion par cours -- */
     const allCourses = getAllCourses().slice(0, 5);
     const allGrades  = getAllGrades();
     const coursesWithProgress = allCourses.map(c => {
@@ -67,7 +67,7 @@ const AdminStats: React.FC = () => {
         return { name: c.name, total: lessons.length, done, pct };
     });
 
-    /* ── Inscriptions par niveau ── */
+    /* -- Inscriptions par niveau -- */
     const byAnnee = (['L1', 'L2', 'L3'] as const).map(a => ({
         annee: a,
         count: students.filter(s => s.annee === a).length,
@@ -76,13 +76,13 @@ const AdminStats: React.FC = () => {
             : 0,
     }));
 
-    /* ── Notes publiées ── */
+    /* -- Notes publi�es -- */
     const publishedGrades = allGrades.filter(g => g.status === 'published').length;
     const draftGrades     = allGrades.filter(g => g.status === 'draft').length;
 
-    /* ── Export CSV global ── */
+    /* -- Export CSV global -- */
     const exportStudentsCSV = () => {
-        const header = 'Nom,Email,Rôle,Filière,Année,Option,Actif,Scolarité bloquée\n';
+        const header = 'Nom,Email,R�le,Fili�re,Ann�e,Option,Actif,Scolarit� bloqu�e\n';
         const rows = students.map(s =>
             `"${s.nom_complet}","${s.email}","${s.role}",${s.filiere ?? ''},${s.annee ?? ''},${s.option ?? ''},${s.is_active},${!!s.payment_blocked}`
         ).join('\n');
@@ -93,26 +93,26 @@ const AdminStats: React.FC = () => {
         URL.revokeObjectURL(url);
     };
 
-    /* ── Stat cards ── */
+    /* -- Stat cards -- */
     const statCards = [
         { icon: peopleOutline,       label: 'Total utilisateurs',  value: users.length,             color: 'primary' },
-        { icon: schoolOutline,       label: 'Étudiants',           value: students.length,          color: 'success' },
+        { icon: schoolOutline,       label: '�tudiants',           value: students.length,          color: 'success' },
         { icon: personCircleOutline, label: 'Professeurs',         value: professors.length,        color: 'info'    },
         { icon: pulseOutline,        label: 'Comptes actifs',      value: activeUsers.length,       color: 'warning' },
         { icon: cardOutline,         label: 'Revenus (FCFA)',      value: revenue.toLocaleString(), color: 'success' },
-        { icon: barChartOutline,     label: 'Paiements confirmés', value: confirmed.length,         color: 'primary' },
+        { icon: barChartOutline,     label: 'Paiements confirm�s', value: confirmed.length,         color: 'primary' },
         { icon: trendingUpOutline,   label: 'En attente paiement', value: pending.length,           color: 'warning' },
-        { icon: shieldOutline,       label: 'Bloqués',             value: blocked.length,           color: 'danger'  },
+        { icon: shieldOutline,       label: 'Bloqu�s',             value: blocked.length,           color: 'danger'  },
     ];
 
     return (
         <DashboardLayout>
 
-            {/* ── Hero ── */}
+            {/* -- Hero -- */}
             <div className="as-hero">
                 <div className="as-hero-text">
-                    <h1 className="as-hero-title">Statistiques avancées</h1>
-                    <p className="as-hero-sub">Vue d'ensemble détaillée de la plateforme CFI-LINK.</p>
+                    <h1 className="as-hero-title">Statistiques avanc�es</h1>
+                    <p className="as-hero-sub">Vue d'ensemble d�taill�e de la plateforme CFI-LINK.</p>
                     <div className="as-hero-badges">
                         <span className="as-hero-badge">
                             <IonIcon icon={peopleOutline} />{users.length} comptes
@@ -121,16 +121,16 @@ const AdminStats: React.FC = () => {
                             <IonIcon icon={checkmarkCircleOutline} />{activeUsers.length} actifs
                         </span>
                         <span className="as-hero-badge">
-                            <IonIcon icon={cardOutline} />{revenue.toLocaleString()} FCFA encaissés
+                            <IonIcon icon={cardOutline} />{revenue.toLocaleString()} FCFA encaiss�s
                         </span>
                     </div>
                 </div>
                 <IonButton fill="outline" size="small" className="as-export-btn" onClick={exportStudentsCSV}>
-                    <IonIcon slot="start" icon={downloadOutline} />Export étudiants CSV
+                    <IonIcon slot="start" icon={downloadOutline} />Export �tudiants CSV
                 </IonButton>
             </div>
 
-            {/* ── Stat cards ── */}
+            {/* -- Stat cards -- */}
             <div className="as-section">
                 <p className="as-section-label">Vue d'ensemble</p>
                 <IonGrid className="ion-no-padding as-stats-grid">
@@ -152,25 +152,25 @@ const AdminStats: React.FC = () => {
                 </IonGrid>
             </div>
 
-            {/* ── Grille principale ── */}
+            {/* -- Grille principale -- */}
             <IonGrid className="ion-no-padding as-main-grid">
                 <IonRow>
 
-                    {/* Répartition par filière */}
+                    {/* R�partition par fili�re */}
                     <IonCol size="12" sizeLg="6">
                         <Card variant="default" className="as-card">
                             <CardHeader>
                                 <div className="as-card-header">
                                     <IonIcon icon={bookOutline} className="as-card-header-icon--primary" />
-                                    <CardTitle>Répartition par filière</CardTitle>
+                                    <CardTitle>R�partition par fili�re</CardTitle>
                                 </div>
                             </CardHeader>
                             <CardContent padding="md">
                                 <div className="as-filiere-list">
                                     <div className="as-filiere-item">
                                         <div className="as-filiere-label">
-                                            <span>LIC — Informatique</span>
-                                            <Badge variant="info" size="sm">{licStudents.length} étudiants</Badge>
+                                            <span>LIC � Informatique</span>
+                                            <Badge variant="info" size="sm">{licStudents.length} �tudiants</Badge>
                                         </div>
                                         <div className="as-progress-wrap">
                                             <IonProgressBar value={licPct} className="as-progress as-progress--primary" />
@@ -179,8 +179,8 @@ const AdminStats: React.FC = () => {
                                     </div>
                                     <div className="as-filiere-item">
                                         <div className="as-filiere-label">
-                                            <span>LAP — Administrative</span>
-                                            <Badge variant="success" size="sm">{lapStudents.length} étudiants</Badge>
+                                            <span>LAP � Administrative</span>
+                                            <Badge variant="success" size="sm">{lapStudents.length} �tudiants</Badge>
                                         </div>
                                         <div className="as-progress-wrap">
                                             <IonProgressBar value={lapPct} className="as-progress as-progress--success" />
@@ -218,14 +218,14 @@ const AdminStats: React.FC = () => {
                             <CardContent padding="md">
                                 <div className="as-finance-content">
                                     <div className="as-revenue-box">
-                                        <p className="as-revenue-label">Revenus encaissés</p>
+                                        <p className="as-revenue-label">Revenus encaiss�s</p>
                                         <p className="as-revenue-amount">{revenue.toLocaleString()} FCFA</p>
                                     </div>
                                     <div className="as-finance-grid">
                                         <div className="as-finance-item">
                                             <IonIcon icon={checkmarkCircleOutline} className="as-finance-icon--success" />
                                             <p className="as-finance-value">{confirmed.length}</p>
-                                            <p className="as-finance-label">Confirmés</p>
+                                            <p className="as-finance-label">Confirm�s</p>
                                         </div>
                                         <div className="as-finance-item">
                                             <IonIcon icon={timeOutline} className="as-finance-icon--warning" />
@@ -234,7 +234,7 @@ const AdminStats: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="as-finance-meta">
-                                        <p>Frais mensuels : <strong>{MONTHLY_FEE.toLocaleString()} FCFA</strong> / étudiant</p>
+                                        <p>Frais mensuels : <strong>{MONTHLY_FEE.toLocaleString()} FCFA</strong> / �tudiant</p>
                                         <p>Potentiel mensuel : <strong>{(students.length * MONTHLY_FEE).toLocaleString()} FCFA</strong></p>
                                     </div>
                                 </div>
@@ -248,7 +248,7 @@ const AdminStats: React.FC = () => {
                             <CardHeader>
                                 <div className="as-card-header">
                                     <IonIcon icon={keyOutline} className="as-card-header-icon--info" />
-                                    <CardTitle>Codes d'accès</CardTitle>
+                                    <CardTitle>Codes d'acc�s</CardTitle>
                                 </div>
                             </CardHeader>
                             <CardContent padding="md">
@@ -257,7 +257,7 @@ const AdminStats: React.FC = () => {
                                         <p className="as-code-count">{concoursCodes.length}</p>
                                         <p className="as-code-label">Codes concours</p>
                                         <div className="as-code-meta">
-                                            <Badge variant="success" size="sm">{concoursCodes.filter(c => c.used).length} utilisés</Badge>
+                                            <Badge variant="success" size="sm">{concoursCodes.filter(c => c.used).length} utilis�s</Badge>
                                             <Badge variant="secondary" size="sm">{concoursCodes.filter(c => !c.used).length} disponibles</Badge>
                                         </div>
                                     </div>
@@ -265,7 +265,7 @@ const AdminStats: React.FC = () => {
                                         <p className="as-code-count">{validationCodes.length}</p>
                                         <p className="as-code-label">Codes validation</p>
                                         <div className="as-code-meta">
-                                            <Badge variant="success" size="sm">{validationCodes.filter(c => c.used).length} utilisés</Badge>
+                                            <Badge variant="success" size="sm">{validationCodes.filter(c => c.used).length} utilis�s</Badge>
                                             <Badge variant="secondary" size="sm">{validationCodes.filter(c => !c.used).length} disponibles</Badge>
                                         </div>
                                     </div>
@@ -274,13 +274,13 @@ const AdminStats: React.FC = () => {
                         </Card>
                     </IonCol>
 
-                    {/* Activité récente */}
+                    {/* Activit� r�cente */}
                     <IonCol size="12" sizeLg="6">
                         <Card variant="default" className="as-card">
                             <CardHeader>
                                 <div className="as-card-header">
                                     <IonIcon icon={trendingUpOutline} className="as-card-header-icon--warning" />
-                                    <CardTitle>Activité récente</CardTitle>
+                                    <CardTitle>Activit� r�cente</CardTitle>
                                 </div>
                             </CardHeader>
                             <CardContent padding="md">
@@ -289,16 +289,16 @@ const AdminStats: React.FC = () => {
                                         <div key={e.id} className="as-activity-item">
                                             <div className="as-activity-dot" />
                                             <div className="as-activity-body">
-                                                <p className="as-activity-action">{e.action} — {e.details}</p>
+                                                <p className="as-activity-action">{e.action} � {e.details}</p>
                                                 <p className="as-activity-meta">
-                                                    {e.user_name} •{' '}
+                                                    {e.user_name} �{' '}
                                                     {new Date(e.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
                                         </div>
                                     ))}
                                     {auditEntries.length === 0 && (
-                                        <p className="as-activity-empty">Aucune activité enregistrée.</p>
+                                        <p className="as-activity-empty">Aucune activit� enregistr�e.</p>
                                     )}
                                 </div>
                             </CardContent>
@@ -309,22 +309,22 @@ const AdminStats: React.FC = () => {
             </IonGrid>
 
 
-            {/* ── Seconde grille : présences + E-Learning + inscriptions ── */}
+            {/* -- Seconde grille : pr�sences + E-Learning + inscriptions -- */}
             <IonGrid className="ion-no-padding as-main-grid">
                 <IonRow>
 
-                    {/* Présences par filière */}
+                    {/* Pr�sences par fili�re */}
                     <IonCol size="12" sizeLg="6">
                         <Card variant="default" className="as-card">
                             <CardHeader>
                                 <div className="as-card-header">
                                     <IonIcon icon={clipboardOutline} className="as-card-header-icon--info" />
-                                    <CardTitle>Présences par filière</CardTitle>
+                                    <CardTitle>Pr�sences par fili�re</CardTitle>
                                 </div>
                             </CardHeader>
                             <CardContent padding="md">
                                 {attendanceRecords.length === 0 ? (
-                                    <p className="as-activity-empty">Aucune donnée de présence.</p>
+                                    <p className="as-activity-empty">Aucune donn�e de pr�sence.</p>
                                 ) : (
                                     <div className="as-filiere-list">
                                         {attByFiliere.map(a => (
@@ -332,12 +332,12 @@ const AdminStats: React.FC = () => {
                                                 <div className="as-filiere-label">
                                                     <span>{a.filiere}</span>
                                                     <div style={{ display:'flex', gap:'0.4rem' }}>
-                                                        <Badge variant="success" size="sm">{a.present} présences</Badge>
+                                                        <Badge variant="success" size="sm">{a.present} pr�sences</Badge>
                                                         <Badge variant="danger"  size="sm">{a.absent} absences</Badge>
                                                     </div>
                                                 </div>
                                                 <div className="as-progress-wrap">
-                                                    <IonProgressBar value={a.rate / 100} className={s-progress } />
+                                                    <IonProgressBar value={a.rate / 100} className="as-progress" />
                                                     <span className="as-progress-pct">{a.rate}%</span>
                                                 </div>
                                             </div>
@@ -348,13 +348,13 @@ const AdminStats: React.FC = () => {
                         </Card>
                     </IonCol>
 
-                    {/* Taux de complétion E-Learning */}
+                    {/* Taux de compl�tion E-Learning */}
                     <IonCol size="12" sizeLg="6">
                         <Card variant="default" className="as-card">
                             <CardHeader>
                                 <div className="as-card-header">
                                     <IonIcon icon={desktopOutline} className="as-card-header-icon--primary" />
-                                    <CardTitle>Complétion E-Learning</CardTitle>
+                                    <CardTitle>Compl�tion E-Learning</CardTitle>
                                 </div>
                             </CardHeader>
                             <CardContent padding="md">
@@ -366,7 +366,7 @@ const AdminStats: React.FC = () => {
                                             <div key={i} className="as-filiere-item">
                                                 <div className="as-filiere-label">
                                                     <span style={{ fontSize:'0.82rem' }}>{c.name}</span>
-                                                    <Badge variant="info" size="sm">{c.done}/{c.total} leçons</Badge>
+                                                    <Badge variant="info" size="sm">{c.done}/{c.total} le�ons</Badge>
                                                 </div>
                                                 <div className="as-progress-wrap">
                                                     <IonProgressBar value={c.pct / 100} className="as-progress as-progress--success" />
@@ -404,7 +404,7 @@ const AdminStats: React.FC = () => {
                                         <div key={a.annee} className="as-filiere-item">
                                             <div className="as-filiere-label">
                                                 <span>{a.annee}</span>
-                                                <Badge variant="secondary" size="sm">{a.count} étudiants</Badge>
+                                                <Badge variant="secondary" size="sm">{a.count} �tudiants</Badge>
                                             </div>
                                             <div className="as-progress-wrap">
                                                 <IonProgressBar value={a.pct / 100} className="as-progress as-progress--primary" />
@@ -417,7 +417,7 @@ const AdminStats: React.FC = () => {
                         </Card>
                     </IonCol>
 
-                    {/* Notes publiées */}
+                    {/* Notes publi�es */}
                     <IonCol size="12" sizeLg="6">
                         <Card variant="default" className="as-card">
                             <CardHeader>
@@ -431,7 +431,7 @@ const AdminStats: React.FC = () => {
                                     <div className="as-finance-item">
                                         <IonIcon icon={checkmarkCircleOutline} className="as-finance-icon--success" />
                                         <p className="as-finance-value">{publishedGrades}</p>
-                                        <p className="as-finance-label">Publiées</p>
+                                        <p className="as-finance-label">Publi�es</p>
                                     </div>
                                     <div className="as-finance-item">
                                         <IonIcon icon={alertCircleOutline} className="as-finance-icon--warning" />
@@ -442,7 +442,7 @@ const AdminStats: React.FC = () => {
                                 {(publishedGrades + draftGrades) > 0 && (
                                     <div className="as-progress-wrap" style={{ marginTop:'1rem' }}>
                                         <IonProgressBar value={publishedGrades / (publishedGrades + draftGrades)} className="as-progress as-progress--success" />
-                                        <span className="as-progress-pct">{Math.round(publishedGrades / (publishedGrades + draftGrades) * 100)}% publiées</span>
+                                        <span className="as-progress-pct">{Math.round(publishedGrades / (publishedGrades + draftGrades) * 100)}% publi�es</span>
                                     </div>
                                 )}
                                 {pendingAccounts.length > 0 && (
@@ -462,17 +462,17 @@ const AdminStats: React.FC = () => {
                 <IonRow>
                     <IonCol size="12" sizeLg="6">
                         <Card variant="default" className="as-card">
-                            <CardHeader><div className="as-card-header"><IonIcon icon={clipboardOutline} className="as-card-header-icon--info" /><CardTitle>Présences par filière</CardTitle></div></CardHeader>
+                            <CardHeader><div className="as-card-header"><IonIcon icon={clipboardOutline} className="as-card-header-icon--info" /><CardTitle>Pr�sences par fili�re</CardTitle></div></CardHeader>
                             <CardContent padding="md">
-                                {attendanceRecords.length === 0 ? <p className="as-activity-empty">Aucune donnée de présence.</p> : (
-                                    <div className="as-filiere-list">{attByFiliere.map(a => (<div key={a.filiere} className="as-filiere-item"><div className="as-filiere-label"><span>{a.filiere}</span><div style={{display:'flex',gap:'0.4rem'}}><Badge variant="success" size="sm">{a.present} présents</Badge><Badge variant="danger" size="sm">{a.absent} absences</Badge></div></div><div className="as-progress-wrap"><IonProgressBar value={a.rate/100} className={s-progress } /><span className="as-progress-pct">{a.rate}%</span></div></div>))}</div>
+                                {attendanceRecords.length === 0 ? <p className="as-activity-empty">Aucune donn�e de pr�sence.</p> : (
+                                    <div className="as-filiere-list">{attByFiliere.map(a => (<div key={a.filiere} className="as-filiere-item"><div className="as-filiere-label"><span>{a.filiere}</span><div style={{display:'flex',gap:'0.4rem'}}><Badge variant="success" size="sm">{a.present} pr�sents</Badge><Badge variant="danger" size="sm">{a.absent} absences</Badge></div></div><div className="as-progress-wrap"><IonProgressBar value={a.rate/100} className="as-progress" /><span className="as-progress-pct">{a.rate}%</span></div></div>))}</div>
                                 )}
                             </CardContent>
                         </Card>
                     </IonCol>
                     <IonCol size="12" sizeLg="6">
                         <Card variant="default" className="as-card">
-                            <CardHeader><div className="as-card-header"><IonIcon icon={desktopOutline} className="as-card-header-icon--primary" /><CardTitle>Complétion E-Learning</CardTitle></div></CardHeader>
+                            <CardHeader><div className="as-card-header"><IonIcon icon={desktopOutline} className="as-card-header-icon--primary" /><CardTitle>Compl�tion E-Learning</CardTitle></div></CardHeader>
                             <CardContent padding="md">
                                 {coursesWithProgress.length === 0 ? <p className="as-activity-empty">Aucun cours.</p> : (
                                     <div className="as-filiere-list">{coursesWithProgress.map((c,i) => (<div key={i} className="as-filiere-item"><div className="as-filiere-label"><span style={{fontSize:'0.82rem'}}>{c.name}</span><Badge variant="info" size="sm">{c.done}/{c.total}</Badge></div><div className="as-progress-wrap"><IonProgressBar value={c.pct/100} className="as-progress as-progress--success" /><span className="as-progress-pct">{c.pct}%</span></div></div>))}</div>
@@ -485,7 +485,7 @@ const AdminStats: React.FC = () => {
                             <CardHeader><div className="as-card-header"><IonIcon icon={calendarOutline} className="as-card-header-icon--warning" /><CardTitle>Inscriptions par niveau</CardTitle></div></CardHeader>
                             <CardContent padding="md">
                                 <div className="as-annee-grid" style={{marginBottom:'1rem'}}>{byAnnee.map(a => (<div key={a.annee} className="as-annee-item"><p className="as-annee-value">{a.count}</p><p className="as-annee-label">{a.annee}</p><p className="as-annee-pct">{a.pct}%</p></div>))}</div>
-                                <div className="as-filiere-list">{byAnnee.map(a => (<div key={a.annee} className="as-filiere-item"><div className="as-filiere-label"><span>{a.annee}</span><Badge variant="secondary" size="sm">{a.count} étudiants</Badge></div><div className="as-progress-wrap"><IonProgressBar value={a.pct/100} className="as-progress as-progress--primary" /><span className="as-progress-pct">{a.pct}%</span></div></div>))}</div>
+                                <div className="as-filiere-list">{byAnnee.map(a => (<div key={a.annee} className="as-filiere-item"><div className="as-filiere-label"><span>{a.annee}</span><Badge variant="secondary" size="sm">{a.count} �tudiants</Badge></div><div className="as-progress-wrap"><IonProgressBar value={a.pct/100} className="as-progress as-progress--primary" /><span className="as-progress-pct">{a.pct}%</span></div></div>))}</div>
                             </CardContent>
                         </Card>
                     </IonCol>
@@ -493,8 +493,8 @@ const AdminStats: React.FC = () => {
                         <Card variant="default" className="as-card">
                             <CardHeader><div className="as-card-header"><IonIcon icon={checkmarkCircleOutline} className="as-card-header-icon--success" /><CardTitle>Notes saisies</CardTitle></div></CardHeader>
                             <CardContent padding="md">
-                                <div className="as-finance-grid"><div className="as-finance-item"><IonIcon icon={checkmarkCircleOutline} className="as-finance-icon--success" /><p className="as-finance-value">{publishedGrades}</p><p className="as-finance-label">Publiées</p></div><div className="as-finance-item"><IonIcon icon={alertCircleOutline} className="as-finance-icon--warning" /><p className="as-finance-value as-finance-value--warning">{draftGrades}</p><p className="as-finance-label">Brouillons</p></div></div>
-                                {(publishedGrades+draftGrades)>0&&(<div className="as-progress-wrap" style={{marginTop:'1rem'}}><IonProgressBar value={publishedGrades/(publishedGrades+draftGrades)} className="as-progress as-progress--success" /><span className="as-progress-pct">{Math.round(publishedGrades/(publishedGrades+draftGrades)*100)}% publiées</span></div>)}
+                                <div className="as-finance-grid"><div className="as-finance-item"><IonIcon icon={checkmarkCircleOutline} className="as-finance-icon--success" /><p className="as-finance-value">{publishedGrades}</p><p className="as-finance-label">Publi�es</p></div><div className="as-finance-item"><IonIcon icon={alertCircleOutline} className="as-finance-icon--warning" /><p className="as-finance-value as-finance-value--warning">{draftGrades}</p><p className="as-finance-label">Brouillons</p></div></div>
+                                {(publishedGrades+draftGrades)>0&&(<div className="as-progress-wrap" style={{marginTop:'1rem'}}><IonProgressBar value={publishedGrades/(publishedGrades+draftGrades)} className="as-progress as-progress--success" /><span className="as-progress-pct">{Math.round(publishedGrades/(publishedGrades+draftGrades)*100)}% publi�es</span></div>)}
                                 {pendingAccounts.length>0&&(<div className="as-finance-meta" style={{marginTop:'1rem'}}><p>{pendingAccounts.length} compte{pendingAccounts.length>1?'s':''} en attente d'activation</p></div>)}
                             </CardContent>
                         </Card>
