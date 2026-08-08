@@ -337,7 +337,7 @@ const AdminStats: React.FC = () => {
                                                     </div>
                                                 </div>
                                                 <div className="as-progress-wrap">
-                                                    <IonProgressBar value={a.rate / 100} className={s-progress } />
+                                                    <IonProgressBar value={a.rate / 100} className="as-progress" />
                                                     <span className="as-progress-pct">{a.rate}%</span>
                                                 </div>
                                             </div>
@@ -465,7 +465,7 @@ const AdminStats: React.FC = () => {
                             <CardHeader><div className="as-card-header"><IonIcon icon={clipboardOutline} className="as-card-header-icon--info" /><CardTitle>Présences par filière</CardTitle></div></CardHeader>
                             <CardContent padding="md">
                                 {attendanceRecords.length === 0 ? <p className="as-activity-empty">Aucune donnée de présence.</p> : (
-                                    <div className="as-filiere-list">{attByFiliere.map(a => (<div key={a.filiere} className="as-filiere-item"><div className="as-filiere-label"><span>{a.filiere}</span><div style={{display:'flex',gap:'0.4rem'}}><Badge variant="success" size="sm">{a.present} présents</Badge><Badge variant="danger" size="sm">{a.absent} absences</Badge></div></div><div className="as-progress-wrap"><IonProgressBar value={a.rate/100} className={s-progress } /><span className="as-progress-pct">{a.rate}%</span></div></div>))}</div>
+                                    <div className="as-filiere-list">{attByFiliere.map(a => (<div key={a.filiere} className="as-filiere-item"><div className="as-filiere-label"><span>{a.filiere}</span><div style={{display:'flex',gap:'0.4rem'}}><Badge variant="success" size="sm">{a.present} présents</Badge><Badge variant="danger" size="sm">{a.absent} absences</Badge></div></div><div className="as-progress-wrap"><IonProgressBar value={a.rate/100} className="as-progress" /><span className="as-progress-pct">{a.rate}%</span></div></div>))}</div>
                                 )}
                             </CardContent>
                         </Card>
