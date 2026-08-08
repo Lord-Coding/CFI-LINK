@@ -74,6 +74,7 @@ function printReleve(userName: string, filiere: string, annee: string, option: s
 const StudentGradesView: React.FC = () => {
     const { user } = useAuth();
     const [sem, setSem] = useState('S1');
+
     if (!user) return null;
 
     const allEntries  = getGradesForStudent(user.id);
@@ -232,7 +233,7 @@ interface NoteInputProps {
 const NoteInput: React.FC<NoteInputProps> = ({ value, onChange, placeholder = '—' }) => (
     <IonInput
         type="number"
-        min={0} max={20} step={0.5}
+        min="0" max="20" step="0.5"
         value={value ?? ''}
         placeholder={placeholder}
         className="gr-note-input"
@@ -255,17 +256,15 @@ const CourseGradeView: React.FC<CourseGradeViewProps> = ({ course, onBack }) => 
     const [refreshKey, setRefreshKey] = useState(0);
     const [savingId,   setSavingId]   = useState<string | null>(null);
 
-    if (!user) return null;
-
     // Étudiants de ce cours
-    const students = getUsers().filter(u =>
+    const students = user ? getUsers().filter(u =>
         isStudent(u.role) && u.is_active &&
         u.filiere === course.filiere && u.annee === course.annee &&
         (!course.option || !u.option || u.option === course.option)
-    );
+    ) : [];
 
-    const entries     = getGradesForCourse(course.id);
-    const courseStats = getCourseGradeStatus(course.id);
+    const entries      = getGradesForCourse(course.id);
+    const courseStats  = getCourseGradeStatus(course.id);
     const allPublished = courseStats.total > 0 && courseStats.draft === 0;
 
     // Map studentId -> entry courant
@@ -274,7 +273,11 @@ const CourseGradeView: React.FC<CourseGradeViewProps> = ({ course, onBack }) => 
     // State local des notes en cours d'édition
     const [drafts, setDrafts] = useState<Record<string, { cc: number|null; tp: number|null; exam: number|null; coef: number }>>(() => {
         const init: Record<string, { cc: number|null; tp: number|null; exam: number|null; coef: number }> = {};
-        students.forEach(s => {
+        (user ? getUsers().filter(u =>
+            isStudent(u.role) && u.is_active &&
+            u.filiere === course.filiere && u.annee === course.annee &&
+            (!course.option || !u.option || u.option === course.option)
+        ) : []).forEach(s => {
             const e = entryMap[s.id];
             init[s.id] = { cc: e?.cc ?? null, tp: e?.tp ?? null, exam: e?.exam ?? null, coef: e?.coef ?? 2 };
         });
@@ -286,6 +289,7 @@ const CourseGradeView: React.FC<CourseGradeViewProps> = ({ course, onBack }) => 
     };
 
     const handleSave = useCallback((studentId: string, studentName: string) => {
+        if (!user) return;
         const d = drafts[studentId];
         if (!d) return;
         setSavingId(studentId);
@@ -306,7 +310,9 @@ const CourseGradeView: React.FC<CourseGradeViewProps> = ({ course, onBack }) => 
         });
         setRefreshKey(k => k + 1);
         setSavingId(null);
-    }, [drafts, course, user.id]);
+    }, [drafts, course, user]);
+
+    if (!user) return null;
 
     const handlePublish = () => {
         publishGradesForCourse(course.id);
@@ -427,6 +433,7 @@ const CourseGradeView: React.FC<CourseGradeViewProps> = ({ course, onBack }) => 
 const ProfessorGradesView: React.FC = () => {
     const { user } = useAuth();
     const [selected, setSelected] = useState<CourseData | null>(null);
+
     if (!user) return null;
 
     const courses = getCoursesForProfessor(user.nom_complet);
