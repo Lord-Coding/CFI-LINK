@@ -4,12 +4,32 @@
 
 /* ════════════════ NAVBAR ════════════════ */
 .landing-nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(var(--ion-background-color-rgb, 255,255,255), 0.88);
+  /* Flottante par-dessus le hero */
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  box-shadow: none;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Une fois scrollé : redevient sticky et opaque */
+.landing-nav--scrolled {
+  position: sticky;
+  background: rgba(var(--ion-background-color-rgb, 255,255,255), 0.92);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--ion-color-light-shade);
   box-shadow: 0 1px 8px rgba(0,0,0,0.06);
 }
+
+/* Texte blanc sur le hero */
+.landing-nav:not(.landing-nav--scrolled) .landing-nav-name,
+.landing-nav:not(.landing-nav--scrolled) .landing-nav-link {
+  color: rgba(255,255,255,0.92);
+}
+.landing-nav:not(.landing-nav--scrolled) .landing-nav-link:hover { color: #fff; }
+.landing-nav:not(.landing-nav--scrolled) .action-btn { --color: rgba(255,255,255,0.92); }
 
 .landing-nav-inner {
   max-width: 1200px; margin: 0 auto;
@@ -54,17 +74,64 @@
 /* ════════════════ HERO ════════════════ */
 .landing-hero {
   position: relative;
-  min-height: 88vh;
+  min-height: 100vh;
   background: linear-gradient(180deg, transparent 0%, var(--ion-color-primary) 100%);
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center; overflow: hidden;
+  align-items: center; justify-content: center;
+  /* PAS de overflow:hidden — laisse la wave dépasser */
+  overflow: visible;
 }
 
 .landing-hero-bg {
   position: absolute; inset: 0;
   background-image: url('../assets/hero-campus.jpg');
-  background-size: cover; background-position: center; 
+  background-size: cover; background-position: center;
   opacity: 0.45;
+  /* clippe l'image sans toucher aux enfants */
+  clip-path: inset(0);
+}
+
+/* ── Wave animée ── */
+.landing-hero-wave {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 130px;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.landing-wave-svg {
+  position: absolute;
+  bottom: 0;
+  width: 200%;       /* 2× la largeur pour permettre le défilement */
+  height: 100%;
+}
+
+/* Couche arrière : plus lente, plus transparente */
+.landing-wave-svg--back {
+  animation: waveMove 9s linear infinite;
+  opacity: 0.45;
+}
+
+/* Couche avant : plus rapide, pleine opacité */
+.landing-wave-svg--front {
+  animation: waveMove 6s linear infinite reverse;
+  opacity: 0.85;
+}
+
+.landing-wave-path {
+  fill: var(--ion-background-color, #ffffff);
+}
+
+@keyframes waveMove {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* défile de la moitié = 1× la largeur réelle */
+}
+
+/* Combler le pixel de jointure entre hero et section suivante */
+.landing-hero + .landing-section {
+  margin-top: -2px;
 }
 
 .landing-hero-body {
@@ -115,9 +182,6 @@
   font-weight: 800;
   text-transform: none;
 }
-
-.landing-hero-wave { position: absolute; bottom: -1px; left: 0; right: 0; }
-.landing-hero-wave svg { display: block; width: 100%; height: 80px; }
 
 /* ════════════════ SECTIONS ════════════════ */
 .landing-section { padding: 5rem 0; background: var(--ion-background-color, #fff); }

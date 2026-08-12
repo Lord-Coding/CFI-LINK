@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, IonSplitPane, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
@@ -199,13 +199,93 @@ const ProtectedApp: React.FC = () => {
 };
 
 
+/* ─────────────────────────────────────────────
+   Bannière données de test (première visite)
+───────────────────────────────────────────── */
+const DEMO_NOTICE_KEY = 'cfi_demo_notice_seen';
+
+const DemoNoticeBanner: React.FC = () => {
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        if (!localStorage.getItem(DEMO_NOTICE_KEY)) {
+            setVisible(true);
+        }
+    }, []);
+
+    const dismiss = () => {
+        localStorage.setItem(DEMO_NOTICE_KEY, '1');
+        setVisible(false);
+    };
+
+    if (!visible) return null;
+
+    return (
+        <div style={{
+            position: 'fixed', bottom: '1.25rem', left: '50%',
+            transform: 'translateX(-50%)', zIndex: 99999,
+            width: 'calc(100% - 2rem)', maxWidth: '560px',
+            background: '#1e1b4b',
+            border: '1px solid rgba(139,92,246,0.45)',
+            borderRadius: '14px',
+            padding: '0.875rem 1rem',
+            display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+            animation: 'demoSlideUp 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+        }}>
+            <span style={{
+                fontSize: '1.35rem', lineHeight: 1, flexShrink: 0, marginTop: '1px',
+            }}>🧪</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{
+                    margin: '0 0 0.2rem',
+                    fontSize: '0.82rem', fontWeight: 700,
+                    color: '#c4b5fd', textTransform: 'uppercase', letterSpacing: '0.05em',
+                }}>
+                    Environnement de démonstration
+                </p>
+                <p style={{
+                    margin: 0, fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5,
+                }}>
+                    Toutes les données affichées sur cette plateforme sont des <strong style={{ color: '#fff' }}>données simulées</strong> stockées localement dans votre navigateur (localStorage) à des fins de test.
+                </p>
+            </div>
+            <button
+                onClick={dismiss}
+                aria-label="Fermer"
+                style={{
+                    flexShrink: 0, background: 'rgba(255,255,255,0.1)',
+                    border: 'none', borderRadius: '8px',
+                    color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                    width: '28px', height: '28px', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1rem', lineHeight: 1, transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+            >
+                ✕
+            </button>
+            <style>{`
+                @keyframes demoSlideUp {
+                    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+                    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+                }
+            `}</style>
+        </div>
+    );
+};
+
+
 const AppRoutes: React.FC = () => {
     const { user, loading } = useAuth();
 
     if (loading) return null;
 
     return (
-        <IonRouterOutlet>
+        <>
+            <DemoNoticeBanner />
+            <IonRouterOutlet>
             {/* Pages publiques */}
             <Route exact path="/landing" component={Landing} />
             <Route exact path="/login">
@@ -251,6 +331,7 @@ const AppRoutes: React.FC = () => {
             {/* 404 */}
             <Route component={NotFound} />
         </IonRouterOutlet>
+        </>
     );
 };
 

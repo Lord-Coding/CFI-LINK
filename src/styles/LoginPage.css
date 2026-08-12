@@ -1,242 +1,282 @@
-/* Login.css */
+/* ══════════════════════════════════
+   LoginPage.css
+══════════════════════════════════ */
 
-/* ── Layout général ── */
-.login-content {
-  --background: var(--ion-background-color, #ffffff);
-  --overflow: hidden;
-}
+/* ── Layout ── */
+.login-content { --background: var(--ion-background-color, #ffffff); }
 
 .login-grid,
-.login-row {
-  height: 100%;
-  min-height: 100vh;
-}
+.login-row { min-height: 100%; }
 
-/* ── Colonne héro (desktop) ── */
-.login-hero-col {
-  display: none;
-}
+/* ── Hero col (desktop only) ── */
+.login-hero-col { display: none; }
 
-@media (min-width: 992px) {
-  .login-hero-col {
-    display: block;
-  }
-}
+@media (min-width: 992px) { .login-hero-col { display: block; } }
 
 .login-hero {
   position: relative;
-  height: 100%;
-  min-height: 100vh;
+  height: 100%; min-height: 100vh;
   background: linear-gradient(135deg, #2700fd85 0%, #0054e9 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
 }
 
 .login-hero-overlay {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   background-image: url('../assets/login-illustration.jpg');
-  background-size: cover;
-  background-position: center;
+  background-size: cover; background-position: center;
   opacity: 0.2;
 }
 
 .login-hero-body {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: 3rem;
-  max-width: 500px;
+  position: relative; z-index: 1;
+  text-align: center; padding: 3rem; max-width: 500px;
 }
 
 .login-hero-logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 2rem;
+  width: 72px; height: 72px; border-radius: 18px;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.5rem;
 }
+.login-hero-logo ion-icon { font-size: 2.5rem; color: #fff; }
 
-.login-hero-logo ion-icon {
-  font-size: 3rem;
-  color: #ffffff;
-}
+.login-hero-title { font-size: 1.75rem; font-weight: 700; color: #fff; margin: 0 0 0.75rem; line-height: 1.2; }
+.login-hero-sub   { font-size: 1rem; color: rgba(255,255,255,0.75); line-height: 1.6; margin: 0; }
 
-.login-hero-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 1rem;
-  line-height: 1.2;
-}
-
-.login-hero-sub {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.75);
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* ── Colonne formulaire ── */
+/* ── Form col ── */
 .login-form-col {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1.25rem;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem 1.25rem;
 }
 
-.login-form-wrapper {
-  width: 100%;
-  max-width: 420px;
-}
+.login-form-wrapper { width: 100%; max-width: 400px; }
 
-/* Logo mobile */
+/* Mobile logo */
 .login-mobile-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  text-decoration: none;
-  margin-bottom: 2.5rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  text-decoration: none; margin-bottom: 1.5rem;
 }
-
 .login-mobile-logo-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 34px; height: 34px; border-radius: 10px;
   background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-mobile-logo-icon ion-icon { font-size: 1.1rem; color: #fff; }
+.login-mobile-logo-text { font-size: 1.1rem; font-weight: 700; color: var(--ion-color-dark); }
+
+@media (min-width: 992px) { .login-mobile-logo { display: none; } }
+
+/* Back button */
+.login-back-btn {
+  margin-bottom: 0.5rem;
+  --color: var(--ion-color-medium);
+  font-size: 0.82rem;
 }
 
-.login-mobile-logo-icon ion-icon {
-  font-size: 1.3rem;
-  color: #ffffff;
-}
-
-.login-mobile-logo-text {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--ion-color-dark);
-}
-
-@media (min-width: 992px) {
-  .login-mobile-logo {
-    display: none;
-  }
-}
-
-/* Titres */
+/* Headings */
 .login-title {
-  font-size: 2rem !important;
-  font-weight: 700;
-  color: var(--ion-color-dark);
-  margin: 0 0 0.35rem;
+  font-size: 1.6rem !important; font-weight: 700;
+  color: var(--ion-color-dark); margin: 0 0 0.2rem;
 }
-
 .login-subtitle {
-  font-size: 1.15rem;
-  color: var(--ion-color-medium);
-  margin: 0 0 2rem;
+  font-size: 0.9rem; color: var(--ion-color-medium); margin: 0 0 1.25rem;
 }
 
-/* Champs */
-.login-form {
-  display: flex;
-  flex-direction: column;
-  /* gap: 1rem; */
-}
+/* Form */
+.login-form { display: flex; flex-direction: column; }
 
 ion-label {
-  font-size: 1.25rem;
-  padding-inline-start: 0.7rem;;
+  font-size: 0.9rem !important;
+  padding-inline-start: 0.25rem;
+  font-weight: 500;
 }
 
 ion-input {
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  min-height: 3.5rem !important;
+  border: 1px solid rgba(0,0,0,0.18);
+  min-height: 2.75rem !important;
   --padding-start: 0.5rem !important;
   --padding-end: 0.5rem !important;
-  border-radius: 0.7rem;
-  font-size: 1.2rem !important;
-  margin-bottom: 1.5rem;
-  margin-top: 0.5rem;
-
-  ion-icon {
-    font-size: 1.5rem;
-  }
+  border-radius: 0.6rem;
+  font-size: 0.95rem !important;
+  margin-bottom: 0.9rem;
+  margin-top: 0.25rem;
 }
+ion-input ion-icon { font-size: 1.15rem; }
 
-/* Erreur */
-.login-error {
-  font-size: 0.83rem;
-  margin: 0;
-  padding-left: 0.25rem;
-}
+/* Alert */
+.login-form .cfi-alert { margin: 0 0 0.75rem; border-radius: 10px; animation: alertIn 0.2s ease; }
+.login-error { font-size: 0.8rem; margin: 0; padding-left: 0.25rem; }
 
-/* Bouton principal */
+/* Submit button */
 .login-submit-btn {
-  --border-radius: 12px;
-  --padding-top: 15px;
-  --padding-bottom: 15px;
-  font-weight: 600;
-  font-size: 1.25rem;
-  font-size: bold;
-  text-transform: none;
-  margin-top: 0.5rem;
+  --border-radius: 10px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  font-weight: 600; font-size: 0.95rem;
+  text-transform: none; margin-top: 0.25rem;
 }
 
-/* Lien inscription */
+/* Register link */
 .login-register-link {
-  text-align: center;
-  font-size: 1.2rem;
-  color: var(--ion-color-medium);
-  margin: 1.5rem 0 0;
+  text-align: center; font-size: 0.85rem;
+  color: var(--ion-color-medium); margin: 0.75rem 0 0;
 }
+.login-link { color: var(--ion-color-primary); font-weight: 600; text-decoration: none; }
+.login-link:hover { text-decoration: underline; }
 
-.login-link {
-  color: var(--ion-color-primary);
-  font-weight: 600;
-  text-decoration: none;
-}
+/* ══════════════════════════════════
+   Connexion rapide — panel de test
+══════════════════════════════════ */
 
-.login-link:hover {
-  text-decoration: underline;
-}
-
-/* Bloc démo */
 .login-demo-box {
-  margin-top: 1.25rem;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  background: var(--ion-color-light);
-  font-size: 1rem;
+  margin-top: 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--ion-color-light-shade);
+  background: var(--ion-color-light, #f4f5f8);
+  overflow: hidden;
+}
+
+/* En-tête du panel */
+.login-demo-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.875rem 0.5rem;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+}
+
+.login-demo-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.login-demo-title {
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--ion-color-medium);
-  line-height: 1.5;
-}
-
-/* ════════════════════════════════════════════
-   Extensions pour composants UI maison
-   ════════════════════════════════════════════ */
-
-/* Alert inline dans le formulaire */
-.login-form .cfi-alert {
   margin: 0;
-  border-radius: 10px;
+  letter-spacing: 0.01em;
 }
 
-/* Animation d'entrée de l'alert */
-.login-form .cfi-alert {
-  animation: alertIn 0.2s ease;
+/* Grille verticale : une carte par rôle */
+.login-demo-grid {
+  display: flex;
+  flex-direction: column;
 }
 
-/* ── Bouton retour à l'accueil ── */
-.login-back-btn {
-  margin-bottom: 0.75rem;
-  --color: var(--ion-color-medium);
-  font-size: 0.875rem;
+/* Carte de rôle */
+.login-demo-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.55rem 0.875rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.14s;
+  position: relative;
 }
+.login-demo-card:last-child { border-bottom: none; }
+
+.login-demo-card:hover:not(:disabled) {
+  background: var(--ql-bg, rgba(0,0,0,0.04));
+}
+.login-demo-card:active:not(:disabled) {
+  background: var(--ql-bg, rgba(0,0,0,0.07));
+}
+.login-demo-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icône emoji */
+.login-demo-card-icon {
+  flex-shrink: 0;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--ql-bg, rgba(0,0,0,0.06));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* Colonne texte */
+.login-demo-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.login-demo-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.login-demo-card-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ql-color, var(--ion-color-dark));
+  white-space: nowrap;
+}
+
+.login-demo-card-badge {
+  display: inline-block;
+  padding: 0.05rem 0.4rem;
+  border-radius: 20px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  background: var(--ql-bg, rgba(0,0,0,0.06));
+  color: var(--ql-color, var(--ion-color-medium));
+  border: 1px solid rgba(0,0,0,0.08);
+  white-space: nowrap;
+}
+
+.login-demo-card-desc {
+  font-size: 0.72rem;
+  color: var(--ion-color-medium);
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Flèche à droite */
+.login-demo-card-arrow {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: var(--ql-color, var(--ion-color-medium));
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.14s, transform 0.14s;
+}
+.login-demo-card:hover:not(:disabled) .login-demo-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Spinner de chargement */
+.login-demo-spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(0,0,0,0.15);
+  border-top-color: var(--ql-color, #888);
+  border-radius: 50%;
+  animation: ql-spin 0.65s linear infinite;
+  margin: auto;
+}
+
+@keyframes ql-spin { to { transform: rotate(360deg); } }
