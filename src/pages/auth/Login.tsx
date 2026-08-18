@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { Link, useHistory } from 'react-router-dom';
 import { IonButton, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonInputPasswordToggle, IonLabel, IonPage, IonRow, IonSpinner, lockClosedOutline, mailOutline, schoolOutline, arrowBackOutline } from '../../lib/ionic';
 import { Alert } from '../../components';
-import LogoUrl from "../../public/favicon.png";
+import LogoUrl from "../../../public/favicon.png";
 import '../../styles/LoginPage.css';
 
 const QUICK_LOGINS = [
