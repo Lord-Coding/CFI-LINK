@@ -11,10 +11,12 @@ import {
     getUsers, isStudent, isProfessor, isStaff,
     getConcoursCodes, getValidationCodes, ROLE_LABELS, FILIERE_LABELS,
 } from '../lib/store';
-import { getNotifications } from '../lib/notifications';
-import { getAnnouncements } from '../lib/announcements-store';
-import { useAuth } from '../hooks/useAuth';
-import { getCoursesForProfessor, getCoursesForStudent } from '../lib/courses-data';
+import { useQuery } from '@tanstack/react-query';
+import { userService } from '../lib/services/userService';
+import { notificationService } from '../lib/services/notificationService';
+import { announcementService } from '../lib/services/announcementService';
+import { courseService } from '../lib/services/courseService';
+import { codesService } from '../lib/services/codesService';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/DashboardPage.css';
 import '../styles/Announcements.css';
@@ -284,11 +286,23 @@ function StudentDashboard() {
     const { user } = useAuth();
     if (!user) return null;
 
-    const courses    = getCoursesForStudent(user.filiere, user.annee, user.option);
-    const notifs     = getNotifications(user.id, user.role).filter(n => !n.read);
-    const announcements = getAnnouncements(user.role).slice(0, 3);
+    const { data: courses = [] } = useQuery({
+        queryKey: ['courses', 'student'],
+        queryFn: courseService.list,
+    });
+    const { data: notifs = [] } = useQuery({
+        queryKey: ['notifications'],
+        queryFn: notificationService.list,
+    });
+    const { data: announcements = [] } = useQuery({
+        queryKey: ['announcements'],
+        queryFn: announcementService.list,
+    });
+
+    const unreadNotifs = notifs.filter((n: {read: boolean}) => !n.read);
+    const topAnnouncements = announcements.slice(0, 3);
     const avProgress = courses.length > 0
-        ? Math.round(courses.reduce((acc, c) => acc + c.progress, 0) / courses.length)
+        ? Math.round(courses.reduce((acc: number, c: {progress?: number}) => acc + (c.progress ?? 0), 0) / courses.length)
         : 0;
 
     const initials = user.nom_complet.charAt(0).toUpperCase();

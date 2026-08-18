@@ -12,16 +12,17 @@ import {
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
 import { isAdmin, isStaff } from '../lib/store';
-import {
-    getLibraryItems, searchLibrary, addLibraryItem,
-    incrementDownload, deleteLibraryItem,
-    LibraryItem, CATEGORY_LABELS,
-} from '../lib/library-store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { libraryService, type ApiLibraryItem } from '../lib/services/libraryService';
 import { Badge, Card, CardContent, CardHeader, CardTitle, AlertDialog } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Library.css';
 
+type LibraryItem = ApiLibraryItem;
 type CategoryFilter = 'all' | LibraryItem['category'];
+const CATEGORY_LABELS: Record<string, string> = {
+    book: 'Livre', article: 'Article', thesis: 'Mémoire', guide: 'Guide', manual: 'Manuel',
+};
 
 /* ── Icône par type de fichier ── */
 function FileIcon({ type }: { type: string }) {
@@ -50,65 +51,61 @@ const CAT_BADGE: Record<string, BadgeVar> = {
 const Library: React.FC = () => {
     const { user } = useAuth();
 
+    const qc = useQueryClient();
     const [search,       setSearch]       = useState('');
     const [filter,       setFilter]       = useState<CategoryFilter>('all');
     const [modalOpen,    setModalOpen]    = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<LibraryItem | null>(null);
-    const [refreshKey,   setRefreshKey]   = useState(0);
-
-    /* Form */
     const [fTitle,    setFTitle]    = useState('');
     const [fAuthor,   setFAuthor]   = useState('');
     const [fDesc,     setFDesc]     = useState('');
     const [fCategory, setFCategory] = useState<LibraryItem['category']>('book');
     const [fFiliere,  setFFiliere]  = useState('');
 
-    if (!user) return null;
+    const params: Record<string, string> = {};
+    if (search.trim()) params.search = search.trim();
+    if (filter !== 'all') params.category = filter;
 
-    const canManage = isAdmin(user.role) || isStaff(user.role) || user.role === 'professeur';
+    const { data: items = [] } = useQuery({
+        queryKey: ['library', search, filter],
+        queryFn: () => libraryService.list(params),
+    });
 
-    /* Items avec recherche + filtre */
-    const baseItems = search.trim() ? searchLibrary(search) : getLibraryItems();
-    const items     = filter === 'all' ? baseItems : baseItems.filter(i => i.category === filter);
+    const addMutation = useMutation({
+        mutationFn: libraryService.create,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['library'] }); closeModal(); },
+    });
+    const downloadMutation = useMutation({
+        mutationFn: libraryService.incrementDownload,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['library'] }),
+    });
+    const deleteMutation = useMutation({
+        mutationFn: libraryService.delete,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['library'] }); setDeleteTarget(null); },
+    });
 
-    /* Compteurs par catégorie */
-    const allItems = getLibraryItems();
-    const countCat = (cat: string) => allItems.filter(i => i.category === cat).length;
+    const allItems   = items;
+    const countCat   = (cat: string) => allItems.filter(i => i.category === cat).length;
 
     const handleAdd = (e: React.FormEvent) => {
         e.preventDefault();
         if (!fTitle || !fAuthor) return;
-        addLibraryItem({
-            title:       fTitle,
-            author:      fAuthor,
-            category:    fCategory,
-            filiere:     fFiliere || undefined,
-            description: fDesc,
-            file_type:   'pdf',
-            size:        '— MB',
-            added_by:    user.nom_complet,
+        addMutation.mutate({
+            title: fTitle, author: fAuthor, category: fCategory,
+            filiere: fFiliere || undefined, description: fDesc, file_type: 'pdf', size: '— MB',
         });
-        setRefreshKey(k => k + 1);
-        closeModal();
     };
 
     const closeModal = () => {
         setModalOpen(false);
-        setFTitle(''); setFAuthor(''); setFDesc('');
-        setFCategory('book'); setFFiliere('');
+        setFTitle(''); setFAuthor(''); setFDesc(''); setFCategory('book'); setFFiliere('');
     };
 
-    const handleDownload = (id: string) => {
-        incrementDownload(id);
-        setRefreshKey(k => k + 1);
-    };
+    const handleDownload = (id: number) => downloadMutation.mutate(id);
+    const confirmDelete  = () => { if (deleteTarget) deleteMutation.mutate(deleteTarget.id); };
 
-    const confirmDelete = () => {
-        if (!deleteTarget) return;
-        deleteLibraryItem(deleteTarget.id);
-        setRefreshKey(k => k + 1);
-        setDeleteTarget(null);
-    };
+    if (!user) return null;
+    const canManage = isAdmin(user.role) || isStaff(user.role) || user.role === 'professeur';
 
     const TABS = [
         { value: 'all',     label: 'Tout',          count: allItems.length },

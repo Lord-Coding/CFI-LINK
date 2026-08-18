@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     IonButton, IonIcon, IonModal, IonInput, IonSelect,
-    IonSelectOption, IonItem, IonChip,
+    IonSelectOption, IonItem, IonChip, IonSpinner,
 } from '../lib/ionic';
 import {
     cardOutline, phonePortraitOutline, cashOutline,
@@ -10,16 +10,26 @@ import {
     informationCircleOutline, peopleOutline, sendOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
-import { isAdmin, isStaff, isStudent, getUsers } from '../lib/store';
-import {
-    createPaymentRecord, getStudentPayments, getPaymentRecords,
-    confirmPayment, rejectPayment,
-    PaymentMethod, METHOD_LABELS, MONTHLY_FEE,
-} from '../lib/payment-store';
-import { validatePaymentCode } from '../lib/store';
+import { isAdmin, isStaff, isStudent } from '../lib/store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { paymentService } from '../lib/services/paymentService';
 import { Avatar, Badge, Card, CardContent, CardHeader, CardTitle } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Payments.css';
+
+const MONTHLY_FEE = 25000;
+type PaymentMethod = 'cash' | 'mobile_money' | 'card';
+const METHOD_LABELS: Record<PaymentMethod, string> = { cash: 'Espèces', mobile_money: 'Mobile Money', card: 'Carte bancaire' };
+const METHOD_ICON: Record<PaymentMethod, string>   = { cash: cashOutline, mobile_money: phonePortraitOutline, card: cardOutline };
+
+const MONTHS = [
+    'Octobre 2024', 'Novembre 2024', 'Décembre 2024',
+    'Janvier 2025', 'Février 2025', 'Mars 2025',
+    'Avril 2025',   'Mai 2025',     'Juin 2025',
+];
+type PayBadge = 'success' | 'warning' | 'danger' | 'secondary';
+const STATUS_BADGE: Record<string, PayBadge> = { confirmed: 'success', pending: 'warning', rejected: 'danger' };
+const STATUS_LABEL: Record<string, string> = { confirmed: 'Confirmé', pending: 'En attente', rejected: 'Rejeté' };
 
 const MONTHS = [
     'Octobre 2024', 'Novembre 2024', 'Décembre 2024',
@@ -47,52 +57,49 @@ const METHOD_ICON: Record<PaymentMethod, string> = {
 ════════════════════════════════ */
 const StudentPaymentView: React.FC = () => {
     const { user, refreshUser } = useAuth();
-    const [payModalOpen,  setPayModalOpen]  = useState(false);
-    const [fMonth,        setFMonth]        = useState('');
-    const [fMethod,       setFMethod]       = useState<PaymentMethod | ''>('');
-    const [fReference,    setFReference]    = useState('');
-    const [codeInput,     setCodeInput]     = useState('');
-    const [codeError,     setCodeError]     = useState('');
-    const [codeSuccess,   setCodeSuccess]   = useState(false);
-    const [refreshKey,    setRefreshKey]    = useState(0);
+    const qc = useQueryClient();
+    const [payModalOpen, setPayModalOpen] = useState(false);
+    const [fMonth,       setFMonth]       = useState('');
+    const [fMethod,      setFMethod]      = useState<PaymentMethod | ''>('');
+    const [fReference,   setFReference]   = useState('');
+    const [codeInput,    setCodeInput]    = useState('');
+    const [codeError,    setCodeError]    = useState('');
+    const [codeSuccess,  setCodeSuccess]  = useState(false);
 
     if (!user) return null;
 
-    const payments = getStudentPayments(user.id);
+    const { data: payments = [], isLoading } = useQuery({
+        queryKey: ['payments', 'student', user.id],
+        queryFn: paymentService.list,
+    });
 
-    const getMonthStatus = (month: string) => {
-        const p = payments.find(p => p.month === month);
-        return p ? p.status : 'unpaid';
-    };
+    const createMutation = useMutation({
+        mutationFn: paymentService.create,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['payments'] }); setPayModalOpen(false); setFMonth(''); setFMethod(''); setFReference(''); },
+    });
+
+    const validateCodeMutation = useMutation({
+        mutationFn: paymentService.validateCode,
+        onSuccess: () => { refreshUser(); setCodeSuccess(true); setCodeInput(''); setCodeError(''); },
+        onError: (e: unknown) => {
+            const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+            setCodeError(msg ?? 'Code invalide.');
+        },
+    });
+
+    const getMonthStatus = (month: string) => payments.find(p => p.month === month)?.status ?? 'unpaid';
+    const confirmedCount = MONTHS.filter(m => getMonthStatus(m) === 'confirmed').length;
 
     const handleSubmit = () => {
         if (!fMonth || !fMethod) return;
-        createPaymentRecord({
-            student_id: user.id,
-            month:      fMonth,
-            amount:     MONTHLY_FEE,
-            method:     fMethod as PaymentMethod,
-            reference:  fReference || undefined,
-        });
-        setRefreshKey(k => k + 1);
-        setPayModalOpen(false);
-        setFMonth(''); setFMethod(''); setFReference('');
+        createMutation.mutate({ month: fMonth, amount: MONTHLY_FEE, method: fMethod, reference: fReference || undefined });
     };
 
     const handleValidateCode = (e: React.FormEvent) => {
         e.preventDefault();
         setCodeError('');
-        const result = validatePaymentCode(codeInput.trim(), user.id);
-        if (result.valid) {
-            refreshUser();
-            setCodeSuccess(true);
-            setCodeInput('');
-        } else {
-            setCodeError(result.error ?? 'Code invalide.');
-        }
+        validateCodeMutation.mutate(codeInput.trim());
     };
-
-    const confirmedCount = MONTHS.filter(m => getMonthStatus(m) === 'confirmed').length;
 
     return (
         <>
@@ -335,36 +342,40 @@ const StudentPaymentView: React.FC = () => {
    Vue Admin / Staff
 ════════════════════════════════ */
 const AdminPaymentView: React.FC = () => {
-    const [records,    setRecords]    = useState(getPaymentRecords());
-    const students = getUsers().filter(u => isStudent(u.role));
+    const qc = useQueryClient();
+    const { data: records = [], isLoading } = useQuery({
+        queryKey: ['payments', 'admin'],
+        queryFn: paymentService.list,
+    });
 
-    const refresh = () => setRecords(getPaymentRecords());
+    const confirmMutation = useMutation({
+        mutationFn: paymentService.confirm,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['payments'] }),
+    });
+    const rejectMutation = useMutation({
+        mutationFn: paymentService.reject,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['payments'] }),
+    });
+
     const pending   = records.filter(r => r.status === 'pending');
     const confirmed = records.filter(r => r.status === 'confirmed');
 
     return (
         <>
-            {/* Hero */}
             <div className="py-hero">
                 <div className="py-hero-text">
                     <h1 className="py-hero-title">Suivi des paiements</h1>
                     <p className="py-hero-sub">Confirmez ou rejetez les paiements soumis par les étudiants.</p>
                     <div className="py-hero-badges">
-                        <span className="py-hero-badge py-hero-badge--warning">
-                            <IonIcon icon={timeOutline} />{pending.length} en attente
-                        </span>
-                        <span className="py-hero-badge py-hero-badge--success">
-                            <IonIcon icon={checkmarkCircleOutline} />{confirmed.length} confirmés
-                        </span>
-                        <span className="py-hero-badge">
-                            <IonIcon icon={peopleOutline} />{students.length} étudiants
-                        </span>
+                        <span className="py-hero-badge py-hero-badge--warning"><IonIcon icon={timeOutline} />{pending.length} en attente</span>
+                        <span className="py-hero-badge py-hero-badge--success"><IonIcon icon={checkmarkCircleOutline} />{confirmed.length} confirmés</span>
                     </div>
                 </div>
             </div>
 
-            {/* Paiements en attente */}
-            {pending.length > 0 && (
+            {isLoading && <div style={{ textAlign: 'center', padding: '2rem' }}><IonSpinner name="crescent" /></div>}
+
+            {!isLoading && pending.length > 0 && (
                 <Card variant="default" className="py-table-card">
                     <CardHeader className="py-table-header py-table-header--warning">
                         <CardTitle>En attente de confirmation</CardTitle>
@@ -373,51 +384,42 @@ const AdminPaymentView: React.FC = () => {
                     <CardContent padding="sm">
                         <div className="py-table-scroll">
                             <table className="py-table">
-                                <thead>
-                                    <tr className="py-thead-tr">
-                                        <th className="py-th">Étudiant</th>
-                                        <th className="py-th">Mois</th>
-                                        <th className="py-th">Montant</th>
-                                        <th className="py-th py-th--hide-mobile">Mode</th>
-                                        <th className="py-th py-th--hide-mobile">Référence</th>
-                                        <th className="py-th py-th--actions">Actions</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr className="py-thead-tr">
+                                    <th className="py-th">Étudiant</th><th className="py-th">Mois</th>
+                                    <th className="py-th">Montant</th><th className="py-th py-th--hide-mobile">Mode</th>
+                                    <th className="py-th py-th--hide-mobile">Référence</th><th className="py-th py-th--actions">Actions</th>
+                                </tr></thead>
                                 <tbody>
-                                    {pending.map(r => {
-                                        const s = students.find(u => u.id === r.student_id);
-                                        return (
-                                            <tr key={r.id} className="py-tr">
-                                                <td className="py-td py-td--student">
-                                                    <div className="py-student-cell">
-                                                        <Avatar fallback={(s?.nom_complet ?? '?').charAt(0).toUpperCase()} size="sm" color="var(--ion-color-primary)" />
-                                                        <span>{s?.nom_complet ?? '—'}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-td py-td--month">{r.month}</td>
-                                                <td className="py-td py-td--amount">{r.amount.toLocaleString()} FCFA</td>
-                                                <td className="py-td py-th--hide-mobile">
-                                                    <div className="py-method-cell">
-                                                        <IonIcon icon={METHOD_ICON[r.method]} className="py-method-icon" />
-                                                        {METHOD_LABELS[r.method]}
-                                                    </div>
-                                                </td>
-                                                <td className="py-td py-th--hide-mobile py-td--ref">{r.reference ?? '—'}</td>
-                                                <td className="py-td py-td--actions">
-                                                    <div className="py-action-btns">
-                                                        <IonButton fill="outline" size="small" color="success" className="py-action-btn"
-                                                            onClick={() => { confirmPayment(r.id); refresh(); }}>
-                                                            <IonIcon slot="start" icon={checkmarkCircleOutline} />Confirmer
-                                                        </IonButton>
-                                                        <IonButton fill="clear" size="small" color="danger" className="py-action-btn"
-                                                            onClick={() => { rejectPayment(r.id); refresh(); }}>
-                                                            <IonIcon slot="start" icon={closeCircleOutline} />Rejeter
-                                                        </IonButton>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {pending.map(r => (
+                                        <tr key={r.id} className="py-tr">
+                                            <td className="py-td py-td--student">
+                                                <div className="py-student-cell">
+                                                    <Avatar fallback={(r.student?.nom_complet ?? '?').charAt(0).toUpperCase()} size="sm" color="var(--ion-color-primary)" />
+                                                    <span>{r.student?.nom_complet ?? `Étudiant #${r.student_id}`}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-td py-td--month">{r.month}</td>
+                                            <td className="py-td py-td--amount">{r.amount.toLocaleString()} FCFA</td>
+                                            <td className="py-td py-th--hide-mobile">
+                                                <div className="py-method-cell">
+                                                    <IonIcon icon={METHOD_ICON[r.method as PaymentMethod]} className="py-method-icon" />{METHOD_LABELS[r.method as PaymentMethod]}
+                                                </div>
+                                            </td>
+                                            <td className="py-td py-th--hide-mobile py-td--ref">{r.reference ?? '—'}</td>
+                                            <td className="py-td py-td--actions">
+                                                <div className="py-action-btns">
+                                                    <IonButton fill="outline" size="small" color="success" className="py-action-btn"
+                                                        disabled={confirmMutation.isPending} onClick={() => confirmMutation.mutate(r.id)}>
+                                                        <IonIcon slot="start" icon={checkmarkCircleOutline} />Confirmer
+                                                    </IonButton>
+                                                    <IonButton fill="clear" size="small" color="danger" className="py-action-btn"
+                                                        disabled={rejectMutation.isPending} onClick={() => rejectMutation.mutate(r.id)}>
+                                                        <IonIcon slot="start" icon={closeCircleOutline} />Rejeter
+                                                    </IonButton>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
@@ -425,50 +427,35 @@ const AdminPaymentView: React.FC = () => {
                 </Card>
             )}
 
-            {/* Paiements confirmés */}
-            {confirmed.length > 0 && (
+            {!isLoading && confirmed.length > 0 && (
                 <Card variant="default" className="py-table-card">
-                    <CardHeader className="py-table-header">
-                        <CardTitle>Paiements confirmés</CardTitle>
-                        <IonChip className="py-count-chip">{confirmed.length}</IonChip>
-                    </CardHeader>
+                    <CardHeader className="py-table-header"><CardTitle>Paiements confirmés</CardTitle><IonChip className="py-count-chip">{confirmed.length}</IonChip></CardHeader>
                     <CardContent padding="sm">
                         <div className="py-table-scroll">
                             <table className="py-table">
-                                <thead>
-                                    <tr className="py-thead-tr">
-                                        <th className="py-th">Étudiant</th>
-                                        <th className="py-th">Mois</th>
-                                        <th className="py-th">Montant</th>
-                                        <th className="py-th py-th--hide-mobile">Mode</th>
-                                        <th className="py-th">Date confirmation</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr className="py-thead-tr">
+                                    <th className="py-th">Étudiant</th><th className="py-th">Mois</th><th className="py-th">Montant</th>
+                                    <th className="py-th py-th--hide-mobile">Mode</th><th className="py-th">Date confirmation</th>
+                                </tr></thead>
                                 <tbody>
-                                    {confirmed.map(r => {
-                                        const s = students.find(u => u.id === r.student_id);
-                                        return (
-                                            <tr key={r.id} className="py-tr">
-                                                <td className="py-td py-td--student">
-                                                    <div className="py-student-cell">
-                                                        <Avatar fallback={(s?.nom_complet ?? '?').charAt(0).toUpperCase()} size="sm" color="var(--ion-color-success)" />
-                                                        <span>{s?.nom_complet ?? '—'}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-td py-td--month">{r.month}</td>
-                                                <td className="py-td py-td--amount">{r.amount.toLocaleString()} FCFA</td>
-                                                <td className="py-td py-th--hide-mobile">
-                                                    <div className="py-method-cell">
-                                                        <IonIcon icon={METHOD_ICON[r.method]} className="py-method-icon" />
-                                                        {METHOD_LABELS[r.method]}
-                                                    </div>
-                                                </td>
-                                                <td className="py-td py-td--date">
-                                                    {r.confirmed_at ? new Date(r.confirmed_at).toLocaleDateString('fr-FR') : '—'}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {confirmed.map(r => (
+                                        <tr key={r.id} className="py-tr">
+                                            <td className="py-td py-td--student">
+                                                <div className="py-student-cell">
+                                                    <Avatar fallback={(r.student?.nom_complet ?? '?').charAt(0).toUpperCase()} size="sm" color="var(--ion-color-success)" />
+                                                    <span>{r.student?.nom_complet ?? `Étudiant #${r.student_id}`}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-td py-td--month">{r.month}</td>
+                                            <td className="py-td py-td--amount">{r.amount.toLocaleString()} FCFA</td>
+                                            <td className="py-td py-th--hide-mobile">
+                                                <div className="py-method-cell">
+                                                    <IonIcon icon={METHOD_ICON[r.method as PaymentMethod]} className="py-method-icon" />{METHOD_LABELS[r.method as PaymentMethod]}
+                                                </div>
+                                            </td>
+                                            <td className="py-td py-td--date">{r.confirmed_at ? new Date(r.confirmed_at).toLocaleDateString('fr-FR') : '—'}</td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
@@ -476,11 +463,8 @@ const AdminPaymentView: React.FC = () => {
                 </Card>
             )}
 
-            {records.length === 0 && (
-                <div className="py-empty">
-                    <IonIcon icon={walletOutline} className="py-empty-icon" />
-                    <p>Aucun paiement enregistré.</p>
-                </div>
+            {!isLoading && records.length === 0 && (
+                <div className="py-empty"><IonIcon icon={walletOutline} className="py-empty-icon" /><p>Aucun paiement enregistré.</p></div>
             )}
         </>
     );

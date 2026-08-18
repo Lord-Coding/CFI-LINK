@@ -6,17 +6,30 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('nom_complet');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->enum('role', [
+                'super_admin', 'admin', 'professeur',
+                'membre_administratif', 'etudiant_concours', 'etudiant_externe',
+            ])->default('etudiant_externe');
+            $table->boolean('is_active')->default(true);
+            $table->boolean('payment_blocked')->default(false);
+            // Champs étudiants
+            $table->enum('filiere', ['LIC', 'LAP'])->nullable();
+            $table->enum('annee', ['L1', 'L2', 'L3'])->nullable();
+            $table->enum('option_lic', ['GL', 'SR'])->nullable();
+            // Champs professeurs
+            $table->string('specialite')->nullable();
+            $table->string('grade')->nullable();
+            // Champs staff
+            $table->string('service')->nullable();
+            $table->enum('staff_role', ['secretariat', 'comptable', 'responsable_scolarite'])->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -37,13 +50,10 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
     }
 };

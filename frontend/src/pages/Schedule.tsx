@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { IonButton, IonIcon } from '../lib/ionic';
 import {
     addOutline,
@@ -15,18 +15,21 @@ import {
     trashOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
-import { isAdmin, isStudent, isProfessor, getUsers, isProfessor as isProfRole, Filiere, Annee, OptionLIC } from '../lib/store';
-import {
-    getScheduleForStudent, getScheduleForProfessor, getAllSchedules,
-    addScheduleEntry, updateScheduleEntry, deleteScheduleEntry,
-    DAYS, HOURS, ScheduleEntry,
-} from '../lib/schedule-store';
+import { isAdmin, isStudent, isProfessor, FILIERE_LABELS } from '../lib/store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { scheduleService } from '../lib/services/scheduleService';
+import { userService } from '../lib/services/userService';
+import type { ApiScheduleEntry } from '../lib/services/scheduleService';
 import { Badge } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Schedule.css';
 
-/* ─── Helpers ─── */
-function resolveColor(color: string): string {
+const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+const HOURS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+type ScheduleEntry = ApiScheduleEntry;
+type Filiere = 'LIC' | 'LAP';
+type Annee = 'L1' | 'L2' | 'L3';
+type OptionLIC = 'GL' | 'SR';
     if (color.includes('primary'))     return 'primary';
     if (color.includes('success'))     return 'success';
     if (color.includes('warning'))     return 'warning';
@@ -299,18 +302,9 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteProps> = ({ entry, onConfirm, on
 ════════════════════════════════ */
 const Schedule: React.FC = () => {
     const { user } = useAuth();
+    const qc = useQueryClient();
 
-    const [weekOffset,  setWeekOffset]  = useState(0);
-    const [entries,     setEntries]     = useState<ScheduleEntry[]>(() => {
-        if (!user) return [];
-        return isStudent(user.role)
-            ? getScheduleForStudent(user.filiere, user.annee, user.option)
-            : isProfessor(user.role)
-                ? getScheduleForProfessor(user.nom_complet)
-                : getAllSchedules();
-    });
-
-    /* Modals */
+    const [weekOffset, setWeekOffset] = useState(0);
     const [showAdd,    setShowAdd]    = useState(false);
     const [editEntry,  setEditEntry]  = useState<ScheduleEntry | null>(null);
     const [deleteEntry,setDeleteEntry]= useState<ScheduleEntry | null>(null);
@@ -319,60 +313,68 @@ const Schedule: React.FC = () => {
 
     const canEdit = isAdmin(user.role);
 
-    /* Liste des profs depuis le store */
-    const professors = getUsers()
-        .filter(u => isProfRole(u.role))
-        .map(u => u.nom_complet);
+    const { data: entries = [] } = useQuery({
+        queryKey: ['schedule', user.id, user.role],
+        queryFn: () => {
+            if (isStudent(user.role)) {
+                return scheduleService.list({ filiere: user.filiere ?? '', annee: user.annee ?? '' });
+            } else if (isProfessor(user.role)) {
+                return scheduleService.list({ teacher_id: String(user.id) });
+            }
+            return scheduleService.list();
+        },
+    });
 
-    /* Refresh local state */
-    const refresh = useCallback(() => {
-        const fresh = isStudent(user.role)
-            ? getScheduleForStudent(user.filiere, user.annee, user.option)
-            : isProfessor(user.role)
-                ? getScheduleForProfessor(user.nom_complet)
-                : getAllSchedules();
-        setEntries(fresh);
-    }, [user]);
+    const { data: professors = [] } = useQuery({
+        queryKey: ['users', 'professors'],
+        queryFn: () => userService.list({ role: 'professeur' }),
+        enabled: canEdit,
+    });
 
-    /* Handlers CRUD */
+    const addMutation = useMutation({
+        mutationFn: scheduleService.create,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['schedule'] }); setShowAdd(false); },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<ScheduleEntry> }) => scheduleService.update(id, data),
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['schedule'] }); setEditEntry(null); },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: scheduleService.delete,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['schedule'] }); setDeleteEntry(null); },
+    });
+
     const handleAdd = (form: FormState) => {
-        addScheduleEntry({
-            day:     form.day,
-            hour:    form.hour,
-            subject: form.subject.trim(),
-            room:    form.room.trim(),
-            teacher: form.teacher.trim(),
-            filiere: form.filiere,
-            annee:   form.annee,
-            option:  (form.option || undefined) as OptionLIC | undefined,
-            color:   form.color,
+        addMutation.mutate({
+            day: form.day, hour: form.hour, subject: form.subject.trim(),
+            room: form.room.trim(), teacher: form.teacher.trim(),
+            filiere: form.filiere, annee: form.annee,
+            option_lic: (form.option || undefined) as OptionLIC | undefined,
+            color: form.color,
         });
-        setShowAdd(false);
-        refresh();
     };
 
     const handleEdit = (form: FormState) => {
         if (!editEntry) return;
-        updateScheduleEntry(editEntry.id, {
-            day:     form.day,
-            hour:    form.hour,
-            subject: form.subject.trim(),
-            room:    form.room.trim(),
-            teacher: form.teacher.trim(),
-            filiere: form.filiere,
-            annee:   form.annee,
-            option:  (form.option || undefined) as OptionLIC | undefined,
-            color:   form.color,
-        });
-        setEditEntry(null);
-        refresh();
+        updateMutation.mutate({ id: editEntry.id as number, data: {
+            day: form.day, hour: form.hour, subject: form.subject.trim(),
+            room: form.room.trim(), teacher: form.teacher.trim(), color: form.color,
+        }});
     };
 
     const handleDelete = () => {
         if (!deleteEntry) return;
-        deleteScheduleEntry(deleteEntry.id);
-        setDeleteEntry(null);
-        refresh();
+        deleteMutation.mutate(deleteEntry.id as number);
+    };
+
+    const exportCSV = (entries: ScheduleEntry[]) => {
+        const header = 'Jour,Heure,Matière,Salle,Enseignant,Filière,Année\n';
+        const rows   = entries.map(e => `${e.day},${e.hour},"${e.subject}","${e.room ?? ''}","${e.teacher ?? ''}",${e.filiere},${e.annee}`).join('\n');
+        const blob = new Blob([header + rows], { type: 'text/csv' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a'); a.href = url; a.download = 'emploi_du_temps.csv'; a.click(); URL.revokeObjectURL(url);
     };
 
     /* Construire la map jour-heure */
@@ -575,7 +577,7 @@ const Schedule: React.FC = () => {
                 <ScheduleFormModal
                     title="Ajouter un créneau"
                     initial={EMPTY_FORM}
-                    professors={professors}
+                    professors={professors.map(p => p.nom_complet)}
                     onSave={handleAdd}
                     onClose={() => setShowAdd(false)}
                 />
@@ -585,7 +587,7 @@ const Schedule: React.FC = () => {
                 <ScheduleFormModal
                     title="Modifier le créneau"
                     initial={editInitial}
-                    professors={professors}
+                    professors={professors.map(p => p.nom_complet)}
                     onSave={handleEdit}
                     onClose={() => setEditEntry(null)}
                 />

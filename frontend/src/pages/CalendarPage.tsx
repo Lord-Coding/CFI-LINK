@@ -10,16 +10,17 @@ import {
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
 import { isAdmin } from '../lib/store';
-import {
-    getEvents, getUpcomingEvents, addEvent, deleteEvent,
-    CalendarEvent, EVENT_TYPE_LABELS,
-} from '../lib/events-store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { calendarService, type ApiCalendarEvent } from '../lib/services/calendarService';
 import { Badge, AlertDialog } from '../components';
 import Calendar from '../components/ui/Calendar';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/CalendarPage.css';
 
-/* ── Couleurs par type → variante Badge ── */
+type CalendarEvent = ApiCalendarEvent;
+const EVENT_TYPE_LABELS: Record<string, string> = {
+    exam: 'Examen', deadline: 'Deadline', event: 'Événement', holiday: 'Congé', meeting: 'Réunion',
+};
 type BadgeVar = 'danger' | 'warning' | 'default' | 'success' | 'info';
 const TYPE_BADGE: Record<string, BadgeVar> = {
     exam:     'danger',
@@ -73,61 +74,52 @@ type TabKey = 'upcoming' | 'all';
 ════════════════════════════════ */
 const CalendarPage: React.FC = () => {
     const { user } = useAuth();
+    const qc = useQueryClient();
 
     const [tab,          setTab]          = useState<TabKey>('upcoming');
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [modalOpen,    setModalOpen]    = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<CalendarEvent | null>(null);
-    const [refreshKey,   setRefreshKey]   = useState(0);
 
-    /* Form */
-    const [fTitle,   setFTitle]   = useState('');
-    const [fDesc,    setFDesc]    = useState('');
-    const [fDate,    setFDate]    = useState('');
-    const [fTime,    setFTime]    = useState('');
-    const [fType,    setFType]    = useState<CalendarEvent['type']>('event');
+    const [fTitle, setFTitle] = useState('');
+    const [fDesc,  setFDesc]  = useState('');
+    const [fDate,  setFDate]  = useState('');
+    const [fTime,  setFTime]  = useState('');
+    const [fType,  setFType]  = useState<CalendarEvent['type']>('event');
 
     if (!user) return null;
 
     const canManage = isAdmin(user.role);
 
-    const allEvents      = getEvents();
-    const upcomingEvents = getUpcomingEvents(30);
+    const { data: allEvents = [] } = useQuery({
+        queryKey: ['events'],
+        queryFn: calendarService.list,
+    });
 
-    /* Événements du jour sélectionné */
-    const dayEvents = allEvents.filter(e => isSameDay(e.date, selectedDate));
+    const now            = new Date().toISOString().slice(0, 10);
+    const in30Days       = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+    const upcomingEvents = allEvents.filter(e => e.date >= now && e.date <= in30Days);
+    const dayEvents      = allEvents.filter(e => isSameDay(e.date, selectedDate));
+    const displayed      = tab === 'upcoming' ? upcomingEvents : allEvents;
 
-    /* Liste affichée selon l'onglet */
-    const displayed = tab === 'upcoming' ? upcomingEvents : allEvents;
-
-    /* Jours ayant des événements (pour dot sur calendrier) */
-    const eventDays = allEvents.map(e => new Date(e.date));
+    const addMutation = useMutation({
+        mutationFn: calendarService.create,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['events'] }); closeModal(); },
+    });
+    const deleteMutation = useMutation({
+        mutationFn: calendarService.delete,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['events'] }); setDeleteTarget(null); },
+    });
 
     const handleAdd = (ev: React.FormEvent) => {
         ev.preventDefault();
         if (!fTitle || !fDate) return;
-        addEvent({
-            title:       fTitle,
-            description: fDesc,
-            date:        new Date(fDate).toISOString(),
-            time:        fTime || undefined,
-            type:        fType,
-            created_by:  user.nom_complet,
-        });
-        setRefreshKey(k => k + 1);
-        closeModal();
+        addMutation.mutate({ title: fTitle, description: fDesc, date: fDate, time: fTime || undefined, type: fType });
     };
 
     const closeModal = () => {
         setModalOpen(false);
         setFTitle(''); setFDesc(''); setFDate(''); setFTime(''); setFType('event');
-    };
-
-    const confirmDelete = () => {
-        if (!deleteTarget) return;
-        deleteEvent(deleteTarget.id);
-        setRefreshKey(k => k + 1);
-        setDeleteTarget(null);
     };
 
     return (
@@ -383,7 +375,7 @@ const CalendarPage: React.FC = () => {
                 title="Supprimer l'événement"
                 description={`Supprimer "${deleteTarget?.title}" ? Cette action est irréversible.`}
                 confirmText="Supprimer"
-                onConfirm={confirmDelete}
+                onConfirm={() => { if (deleteTarget) deleteMutation.mutate(deleteTarget.id as number); }}
             />
 
         </DashboardLayout>

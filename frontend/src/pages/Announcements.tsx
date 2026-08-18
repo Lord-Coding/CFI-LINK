@@ -11,16 +11,15 @@ import {
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
 import { isAdmin } from '../lib/store';
-import {
-    getAnnouncements, addAnnouncement, deleteAnnouncement, togglePin,
-    Announcement,
-} from '../lib/announcements-store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { announcementService, type ApiAnnouncement } from '../lib/services/announcementService';
 import { Badge, Card, CardContent } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Announcements.css';
 
+type Announcement = ApiAnnouncement;
 /* ── Helpers ── */
-const PRIORITY_CONFIG: Record<Announcement['priority'], { label: string; icon: string; variant: 'default'|'warning'|'danger' }> = {
+const PRIORITY_CONFIG: Record<string, { label: string; icon: string; variant: 'default'|'warning'|'danger' }> = {
     normal:    { label: 'Normal',    icon: informationCircleOutline, variant: 'default'  },
     important: { label: 'Important', icon: alertCircleOutline,       variant: 'warning'  },
     urgent:    { label: 'Urgent',    icon: warningOutline,           variant: 'danger'   },
@@ -56,27 +55,24 @@ const EMPTY_FORM: FormState = {
     title: '', content: '', priority: 'normal', target_role: 'all', pinned: false,
 };
 
-interface AddFormProps { author: string; onSave: () => void; onCancel: () => void; }
+interface AddFormProps { author: string; onSave: (data: { title: string; content: string; priority: 'normal'|'important'|'urgent'; target_role: string; pinned: boolean }) => void; onCancel: () => void; }
 
 const AddForm: React.FC<AddFormProps> = ({ author, onSave, onCancel }) => {
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [error, setError] = useState('');
-    const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
-        setForm(f => ({ ...f, [k]: v }));
+    const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm(f => ({ ...f, [k]: v }));
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!form.title.trim())   { setError('Le titre est requis.'); return; }
         if (!form.content.trim()) { setError('Le contenu est requis.'); return; }
-        addAnnouncement({
+        onSave({
             title:       form.title.trim(),
             content:     form.content.trim(),
-            author,
             priority:    form.priority,
             target_role: form.target_role,
             pinned:      form.pinned,
         });
-        onSave();
     };
 
     return (
@@ -172,12 +168,12 @@ const AddForm: React.FC<AddFormProps> = ({ author, onSave, onCancel }) => {
 interface AnnouncementCardProps {
     announcement: Announcement;
     canAdmin:     boolean;
-    onDelete:     (id: string) => void;
-    onTogglePin:  (id: string) => void;
+    onDelete:     (id: number) => void;
+    onTogglePin:  (id: number, current: boolean) => void;
 }
 
 const AnnouncementCard: React.FC<AnnouncementCardProps> = ({ announcement: a, canAdmin, onDelete, onTogglePin }) => {
-    const cfg = PRIORITY_CONFIG[a.priority];
+    const cfg = PRIORITY_CONFIG[a.priority ?? 'normal'] ?? PRIORITY_CONFIG.normal;
     return (
         <div className={`an-card an-card--${a.priority} ${a.pinned ? 'an-card--pinned' : ''}`}>
             <div className="an-card-header">
@@ -203,7 +199,7 @@ const AnnouncementCard: React.FC<AnnouncementCardProps> = ({ announcement: a, ca
                             fill="clear" size="small"
                             color={a.pinned ? 'warning' : 'medium'}
                             title={a.pinned ? 'Désépingler' : 'Épingler'}
-                            onClick={() => onTogglePin(a.id)}
+                            onClick={() => onTogglePin(a.id, !!a.pinned)}
                         >
                             <IonIcon slot="icon-only" icon={pinOutline} />
                         </IonButton>
@@ -233,82 +229,82 @@ const AnnouncementCard: React.FC<AnnouncementCardProps> = ({ announcement: a, ca
    Page principale
 ════════════════════════════════ */
 const Announcements: React.FC = () => {
-    const { user }           = useAuth();
+    const { user } = useAuth();
+    const qc = useQueryClient();
     const [showForm, setShowForm] = useState(false);
-    const [refresh,  setRefresh]  = useState(0);
 
     if (!user) return null;
 
-    const canAdmin    = isAdmin(user.role);
-    const announcements = getAnnouncements(user.role);
-    const total       = announcements.length;
-    const pinned      = announcements.filter(a => a.pinned).length;
+    const canAdmin = isAdmin(user.role);
 
-    const handleSave = () => { setShowForm(false); setRefresh(r => r + 1); };
-    const handleDelete = (id: string) => { deleteAnnouncement(id); setRefresh(r => r + 1); };
-    const handlePin = (id: string) => { togglePin(id); setRefresh(r => r + 1); };
+    const { data: announcements = [], isLoading } = useQuery({
+        queryKey: ['announcements'],
+        queryFn: announcementService.list,
+    });
+
+    const addMutation = useMutation({
+        mutationFn: announcementService.create,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['announcements'] }); setShowForm(false); },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: announcementService.delete,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['announcements'] }),
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<Announcement> }) => announcementService.update(id, data),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['announcements'] }),
+    });
+
+    const total  = announcements.length;
+    const pinned = announcements.filter(a => a.pinned).length;
+
+    const handleSave = (data: { title: string; content: string; priority: Announcement['priority']; target_role: string; pinned: boolean }) => {
+        addMutation.mutate({ ...data, author_id: user.id });
+    };
+
+    const handleDelete = (id: number) => deleteMutation.mutate(id);
+    const handlePin = (id: number, current: boolean) => updateMutation.mutate({ id, data: { pinned: !current } });
 
     return (
         <DashboardLayout>
             <div className="an-page" key={refresh}>
 
-                {/* ── Hero ── */}
-                <div className="an-hero">
-                    <div className="an-hero-text">
-                        <h1 className="an-hero-title">Annonces officielles</h1>
-                        <p className="an-hero-sub">Informations et communications de l'établissement.</p>
-                        <div className="an-hero-badges">
-                            <span className="an-hero-badge">
-                                <IonIcon icon={megaphoneOutline} />{total} annonce{total !== 1 ? 's' : ''}
-                            </span>
-                            {pinned > 0 && (
-                                <span className="an-hero-badge">
-                                    <IonIcon icon={pinOutline} />{pinned} épinglée{pinned !== 1 ? 's' : ''}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                    {canAdmin && (
-                        <IonButton
-                            fill="outline"
-                            size="small"
-                            className="an-hero-btn"
-                            onClick={() => setShowForm(v => !v)}
-                        >
-                            <IonIcon slot="start" icon={showForm ? closeOutline : addCircleOutline} />
-                            {showForm ? 'Annuler' : 'Nouvelle annonce'}
-                        </IonButton>
-                    )}
+        {/* ── Hero ── */}
+        <div className="an-hero">
+            <div className="an-hero-text">
+                <h1 className="an-hero-title">Annonces officielles</h1>
+                <p className="an-hero-sub">Informations et communications de l'établissement.</p>
+                <div className="an-hero-badges">
+                    <span className="an-hero-badge"><IonIcon icon={megaphoneOutline} />{total} annonce{total !== 1 ? 's' : ''}</span>
+                    {pinned > 0 && <span className="an-hero-badge"><IonIcon icon={pinOutline} />{pinned} épinglée{pinned !== 1 ? 's' : ''}</span>}
                 </div>
+            </div>
+            {canAdmin && (
+                <IonButton fill="outline" size="small" className="an-hero-btn" onClick={() => setShowForm(v => !v)}>
+                    <IonIcon slot="start" icon={showForm ? closeOutline : addCircleOutline} />
+                    {showForm ? 'Annuler' : 'Nouvelle annonce'}
+                </IonButton>
+            )}
+        </div>
 
-                {/* ── Formulaire ajout ── */}
-                {showForm && canAdmin && (
-                    <AddForm
-                        author={user.nom_complet}
-                        onSave={handleSave}
-                        onCancel={() => setShowForm(false)}
-                    />
-                )}
+        {showForm && canAdmin && (
+            <AddForm author={user.nom_complet} onSave={handleSave} onCancel={() => setShowForm(false)} />
+        )}
 
-                {/* ── Liste ── */}
-                {announcements.length === 0 ? (
-                    <div className="an-empty">
-                        <IonIcon icon={megaphoneOutline} className="an-empty-icon" />
-                        <p>Aucune annonce pour le moment.</p>
-                    </div>
-                ) : (
-                    <div className="an-list">
-                        {announcements.map(a => (
-                            <AnnouncementCard
-                                key={a.id}
-                                announcement={a}
-                                canAdmin={canAdmin}
-                                onDelete={handleDelete}
-                                onTogglePin={handlePin}
-                            />
-                        ))}
-                    </div>
-                )}
+        {isLoading ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}><IonSpinner name="crescent" /></div>
+        ) : announcements.length === 0 ? (
+            <div className="an-empty"><IonIcon icon={megaphoneOutline} className="an-empty-icon" /><p>Aucune annonce pour le moment.</p></div>
+        ) : (
+            <div className="an-list">
+                {announcements.map(a => (
+                    <AnnouncementCard key={a.id} announcement={a} canAdmin={canAdmin}
+                        onDelete={handleDelete} onTogglePin={handlePin} />
+                ))}
+            </div>
+        )}
 
             </div>
         </DashboardLayout>

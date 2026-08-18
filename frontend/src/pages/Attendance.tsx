@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
     IonButton, IonIcon, IonProgressBar, IonChip,
 } from '../lib/ionic';
@@ -9,14 +9,10 @@ import {
     shieldCheckmarkOutline, calendarOutline, barChartOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
-import { getUsers, isStudent } from '../lib/store';
-import { getCoursesForProfessor, CourseData } from '../lib/courses-data';
-import { getAllSchedules, ScheduleEntry } from '../lib/schedule-store';
-import {
-    getStudentAttendance, upsertAttendance, getTodayStatus,
-    getAttendanceStats, getAttendanceStatsByCourse,
-    getCourseAttendance, STATUS_LABELS, AttendanceRecord,
-} from '../lib/attendance-store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { attendanceService } from '../lib/services/attendanceService';
+import { courseService } from '../lib/services/courseService';
+import { isStudent } from '../lib/store';
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Attendance.css';
@@ -26,15 +22,17 @@ type BadgeVar = 'success' | 'danger' | 'warning' | 'info';
 const STATUS_BADGE: Record<string, BadgeVar> = {
     present: 'success', absent: 'danger', late: 'warning', excused: 'info',
 };
-const MARK_ACTIONS: { status: AttendanceRecord['status']; label: string; icon: string; color: string }[] = [
-    { status: 'present', label: 'Présent',   icon: checkmarkCircleOutline, color: 'success' },
-    { status: 'absent',  label: 'Absent',    icon: closeCircleOutline,     color: 'danger'  },
-    { status: 'late',    label: 'En retard', icon: timeOutline,            color: 'warning' },
-    { status: 'excused', label: 'Excusé',    icon: documentTextOutline,    color: 'medium'  },
+const STATUS_LABELS: Record<string, string> = {
+    present: 'Présent', absent: 'Absent', late: 'En retard', excused: 'Excusé',
+};
+const MARK_ACTIONS = [
+    { status: 'present' as const, label: 'Présent',   icon: checkmarkCircleOutline, color: 'success' },
+    { status: 'absent'  as const, label: 'Absent',    icon: closeCircleOutline,     color: 'danger'  },
+    { status: 'late'    as const, label: 'En retard', icon: timeOutline,            color: 'warning' },
+    { status: 'excused' as const, label: 'Excusé',    icon: documentTextOutline,    color: 'medium'  },
 ];
-
 const TODAY_DAY = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'][new Date().getDay()];
-const TODAY_ISO = new Date().toISOString();
+const TODAY_ISO = new Date().toISOString().slice(0, 10);
 
 /* ════════════════════════════════
    Vue Étudiant
@@ -43,12 +41,29 @@ const StudentAttendanceView: React.FC = () => {
     const { user } = useAuth();
     if (!user) return null;
 
-    const stats      = getAttendanceStats(user.id);
-    const byCourse   = getAttendanceStatsByCourse(user.id);
-    const records    = getStudentAttendance(user.id);
-    const ALERT_THRESHOLD = 75;
+    const { data: records = [], isLoading } = useQuery({
+        queryKey: ['attendance', 'student', user.id],
+        queryFn: () => attendanceService.list({ student_id: String(user.id) }),
+    });
 
-    // Cours sous le seuil
+    const { data: stats = { total: 0, present: 0, absent: 0, late: 0, excused: 0, rate: 100 } } = useQuery({
+        queryKey: ['attendance', 'stats', user.id],
+        queryFn: () => attendanceService.stats(user.id),
+    });
+
+    // Regrouper par cours
+    const byCourse: Record<string, { course_name: string; present: number; absent: number; late: number; excused: number; rate: number }> = {};
+    records.forEach(r => {
+        const name = r.course?.name ?? String(r.course_id);
+        if (!byCourse[String(r.course_id)]) byCourse[String(r.course_id)] = { course_name: name, present: 0, absent: 0, late: 0, excused: 0, rate: 0 };
+        byCourse[String(r.course_id)][r.status as 'present'|'absent'|'late'|'excused']++;
+    });
+    Object.values(byCourse).forEach(c => {
+        const total = c.present + c.absent + c.late + c.excused;
+        c.rate = total > 0 ? Math.round((c.present + c.late) / total * 100) : 100;
+    });
+
+    const ALERT_THRESHOLD = 75;
     const coursesBelow = Object.values(byCourse).filter(c => c.rate < ALERT_THRESHOLD);
 
     const statCards = [
@@ -188,89 +203,75 @@ const StudentAttendanceView: React.FC = () => {
 
 /* ════════════════════════════════
    Vue Professeur — Appel par créneau
+   (Utilise l'API pour upsert présence)
 ════════════════════════════════ */
 interface SessionCallProps {
-    slot:     ScheduleEntry;
-    course:   CourseData;
-    students: ReturnType<typeof getUsers>;
-    onBack:   () => void;
+    slot: { id: number | string; day: string; hour: string; subject: string; room?: string; filiere: string; annee: string; option_lic?: string };
+    course: { id: number; name: string; filiere: string; annee: string; option_lic?: string };
+    students: { id: number; nom_complet: string; filiere?: string; annee?: string; option_lic?: string }[];
+    onBack: () => void;
 }
 
 const SessionCall: React.FC<SessionCallProps> = ({ slot, course, students, onBack }) => {
     const { user } = useAuth();
-    const [refreshKey, setRefreshKey] = useState(0);
+    const qc = useQueryClient();
+    const [localStatus, setLocalStatus] = useState<Record<number, string>>({});
+
     if (!user) return null;
 
     const courseStudents = students.filter(s =>
         s.filiere === slot.filiere && s.annee === slot.annee &&
-        (!slot.option || !s.option || s.option === slot.option)
+        (!slot.option_lic || !s.option_lic || s.option_lic === slot.option_lic)
     );
 
-    const handleMark = (studentId: string, studentName: string, status: AttendanceRecord['status']) => {
-        upsertAttendance({
-            student_id:   studentId,
-            student_name: studentName,
-            course_id:    course.id,
-            course_name:  course.name,
-            date:         TODAY_ISO,
-            status,
-            marked_by:    user.id,
-        });
-        setRefreshKey(k => k + 1);
+    const upsertMutation = useMutation({
+        mutationFn: attendanceService.upsert,
+        onSuccess: (_, vars) => setLocalStatus(prev => ({ ...prev, [vars.student_id]: vars.status })),
+    });
+
+    const { data: existingRecords = [] } = useQuery({
+        queryKey: ['attendance', 'course', course.id, TODAY_ISO],
+        queryFn: () => attendanceService.list({ course_id: String(course.id) }),
+    });
+
+    const getTodayStatus = (studentId: number) =>
+        localStatus[studentId] ?? existingRecords.find(r => r.student_id === studentId && r.date?.startsWith(TODAY_ISO))?.status;
+
+    const handleMark = (studentId: number, status: string) => {
+        upsertMutation.mutate({ student_id: studentId, course_id: course.id, date: TODAY_ISO, status });
     };
 
-    // Compteur marked aujourd'hui
-    const markedToday = courseStudents.filter(s => !!getTodayStatus(s.id, course.id)).length;
-
-    // Stats globales pour ce cours
-    const courseRecords = getCourseAttendance(course.id);
-    const totalSessions = [...new Set(courseRecords.map(r => r.date.slice(0, 10)))].length;
+    const markedToday = courseStudents.filter(s => !!getTodayStatus(s.id)).length;
 
     return (
-        <div key={refreshKey}>
+        <div>
             <div className="at-marking-header">
                 <IonButton fill="clear" size="small" onClick={onBack} className="at-back-btn">
                     <IonIcon slot="start" icon={arrowBackOutline} />Retour
                 </IonButton>
                 <div className="at-marking-info">
                     <h2 className="at-marking-title">{course.name}</h2>
-                    <p className="at-marking-date">
-                        <IonIcon icon={calendarOutline} /> {slot.day} {slot.hour} — Salle {slot.room}
-                    </p>
+                    <p className="at-marking-date"><IonIcon icon={calendarOutline} /> {slot.day} {slot.hour}{slot.room ? ` — Salle ${slot.room}` : ''}</p>
                 </div>
                 <IonChip className="at-count-chip">{markedToday}/{courseStudents.length} marqués</IonChip>
             </div>
-
-            {/* Stats du cours */}
-            {totalSessions > 0 && (
-                <div className="at-course-session-stats">
-                    <span className="at-session-stat"><IonIcon icon={calendarOutline} />{totalSessions} séances tenues</span>
-                    <span className="at-session-stat"><IonIcon icon={peopleOutline} />{courseRecords.filter(r => r.status === 'present').length} présences totales</span>
-                    <span className="at-session-stat danger"><IonIcon icon={closeCircleOutline} />{courseRecords.filter(r => r.status === 'absent').length} absences</span>
-                </div>
-            )}
 
             <Card variant="default" className="at-table-card">
                 <CardContent padding="sm">
                     <div className="at-table-scroll">
                         {courseStudents.length === 0 ? (
-                            <div className="at-empty">
-                                <IonIcon icon={peopleOutline} className="at-empty-icon" />
-                                <p>Aucun étudiant dans cette classe.</p>
-                            </div>
+                            <div className="at-empty"><IonIcon icon={peopleOutline} className="at-empty-icon" /><p>Aucun étudiant dans cette classe.</p></div>
                         ) : (
                             <table className="at-table">
-                                <thead>
-                                    <tr className="at-thead-tr">
-                                        <th className="at-th">Étudiant</th>
-                                        <th className="at-th at-th--hide-mobile">Filière</th>
-                                        <th className="at-th">Statut</th>
-                                        <th className="at-th at-th--actions">Marquer / Modifier</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr className="at-thead-tr">
+                                    <th className="at-th">Étudiant</th>
+                                    <th className="at-th at-th--hide-mobile">Filière</th>
+                                    <th className="at-th">Statut</th>
+                                    <th className="at-th at-th--actions">Marquer</th>
+                                </tr></thead>
                                 <tbody>
                                     {courseStudents.map(s => {
-                                        const existing = getTodayStatus(s.id, course.id);
+                                        const existing = getTodayStatus(s.id);
                                         return (
                                             <tr key={s.id} className={`at-tr ${existing ? 'at-tr--marked' : ''}`}>
                                                 <td className="at-td at-td--student">
@@ -281,24 +282,17 @@ const SessionCall: React.FC<SessionCallProps> = ({ slot, course, students, onBac
                                                 </td>
                                                 <td className="at-td at-td--hide-mobile at-td--meta">{s.filiere} {s.annee}</td>
                                                 <td className="at-td">
-                                                    {existing ? (
-                                                        <Badge variant={STATUS_BADGE[existing.status]} size="sm" dot>
-                                                            {STATUS_LABELS[existing.status]}
-                                                        </Badge>
-                                                    ) : <span className="at-unmarked">—</span>}
+                                                    {existing
+                                                        ? <Badge variant={STATUS_BADGE[existing] ?? 'secondary'} size="sm" dot>{STATUS_LABELS[existing] ?? existing}</Badge>
+                                                        : <span className="at-unmarked">—</span>
+                                                    }
                                                 </td>
                                                 <td className="at-td at-td--actions">
                                                     <div className="at-mark-btns">
                                                         {MARK_ACTIONS.map(a => (
-                                                            <IonButton
-                                                                key={a.status}
-                                                                fill={existing?.status === a.status ? 'solid' : 'outline'}
-                                                                size="small"
-                                                                color={a.color}
-                                                                className="at-mark-btn"
-                                                                title={a.label}
-                                                                onClick={() => handleMark(s.id, s.nom_complet, a.status)}
-                                                            >
+                                                            <IonButton key={a.status} fill={existing === a.status ? 'solid' : 'outline'} size="small" color={a.color}
+                                                                className="at-mark-btn" title={a.label}
+                                                                onClick={() => handleMark(s.id, a.status)}>
                                                                 <IonIcon slot="icon-only" icon={a.icon} />
                                                             </IonButton>
                                                         ))}
@@ -322,39 +316,22 @@ const SessionCall: React.FC<SessionCallProps> = ({ slot, course, students, onBac
 ════════════════════════════════ */
 const ProfessorAttendanceView: React.FC = () => {
     const { user } = useAuth();
-    const [activeSlot, setActiveSlot] = useState<{ slot: ScheduleEntry; course: CourseData } | null>(null);
-
+    const [activeSlot, setActiveSlot] = useState<{ slot: SessionCallProps['slot']; course: SessionCallProps['course'] } | null>(null);
     if (!user) return null;
 
-    const myCourses  = getCoursesForProfessor(user.nom_complet);
-    const allSlots   = getAllSchedules();
-    const students   = getUsers().filter(u => isStudent(u.role) && u.is_active);
+    const { data: courses = [] } = useQuery({ queryKey: ['courses', 'professor'], queryFn: courseService.list });
+    const { data: schedule = [] } = useQuery({ queryKey: ['schedule'], queryFn: () => import('../lib/services/scheduleService').then(m => m.scheduleService.list()) });
+    const { data: allStudents = [] } = useQuery({ queryKey: ['users', 'all-students'], queryFn: () => import('../lib/services/userService').then(m => m.userService.list({ role: 'etudiant_concours' })) });
 
-    // Créneaux du jour liés aux cours de ce prof
-    const todaySlots = useMemo(() => {
-        return allSlots
-            .filter(s => s.day === TODAY_DAY &&
-                myCourses.some(c =>
-                    c.filiere === s.filiere && c.annee === s.annee &&
-                    c.teacher.toLowerCase().includes(user.nom_complet.split(' ')[0].toLowerCase())
-                )
-            )
-            .map(s => {
-                const course = myCourses.find(c => c.filiere === s.filiere && c.annee === s.annee);
-                return course ? { slot: s, course } : null;
-            })
-            .filter((x): x is { slot: ScheduleEntry; course: CourseData } => !!x);
-    }, [allSlots, myCourses, user.nom_complet]);
+    const todaySlots = schedule.filter(s => s.day === TODAY_DAY).map(s => {
+        const course = courses.find(c => c.filiere === s.filiere && c.annee === s.annee);
+        return course ? { slot: { ...s, option_lic: s.option_lic }, course } : null;
+    }).filter((x): x is NonNullable<typeof x> => !!x);
+
+    const students = allStudents.map(u => ({ ...u, option_lic: u.option_lic ?? undefined }));
 
     if (activeSlot) {
-        return (
-            <SessionCall
-                slot={activeSlot.slot}
-                course={activeSlot.course}
-                students={students}
-                onBack={() => setActiveSlot(null)}
-            />
-        );
+        return <SessionCall slot={activeSlot.slot} course={activeSlot.course} students={students} onBack={() => setActiveSlot(null)} />;
     }
 
     return (
@@ -365,7 +342,7 @@ const ProfessorAttendanceView: React.FC = () => {
                     <p className="at-hero-sub">Créneaux du jour — {TODAY_DAY}</p>
                     <div className="at-hero-badges">
                         <span className="at-hero-badge"><IonIcon icon={calendarOutline} />{todaySlots.length} créneau{todaySlots.length !== 1 ? 'x' : ''} aujourd'hui</span>
-                        <span className="at-hero-badge"><IonIcon icon={schoolOutline} />{myCourses.length} cours</span>
+                        <span className="at-hero-badge"><IonIcon icon={schoolOutline} />{courses.length} cours</span>
                     </div>
                 </div>
             </div>
@@ -374,29 +351,23 @@ const ProfessorAttendanceView: React.FC = () => {
                 <div className="at-empty-day">
                     <IonIcon icon={calendarOutline} className="at-empty-icon" />
                     <p>Aucun créneau dans l'emploi du temps pour aujourd'hui ({TODAY_DAY}).</p>
-                    <p className="at-empty-day-sub">Pour faire l'appel manuellement, utilisez la liste des cours ci-dessous.</p>
                 </div>
             ) : (
                 <div className="at-slots-list">
                     <h3 className="at-slots-title">Créneaux à appeler aujourd'hui</h3>
                     {todaySlots.map(({ slot, course }) => {
                         const courseStudents = students.filter(s => s.filiere === slot.filiere && s.annee === slot.annee);
-                        const markedCount    = courseStudents.filter(s => !!getTodayStatus(s.id, course.id)).length;
-                        const allMarked      = courseStudents.length > 0 && markedCount === courseStudents.length;
                         return (
-                            <button key={slot.id} className={`at-slot-card ${allMarked ? 'at-slot-card--done' : ''}`} onClick={() => setActiveSlot({ slot, course })}>
+                            <button key={String(slot.id)} className="at-slot-card" onClick={() => setActiveSlot({ slot, course })}>
                                 <div className="at-slot-card-left">
                                     <div className="at-slot-icon"><IonIcon icon={clipboardOutline} /></div>
                                     <div>
                                         <p className="at-slot-course">{course.name}</p>
-                                        <p className="at-slot-meta">{slot.hour} — Salle {slot.room} — {slot.filiere} {slot.annee}</p>
+                                        <p className="at-slot-meta">{slot.hour} — {slot.filiere} {slot.annee}</p>
                                     </div>
                                 </div>
                                 <div className="at-slot-card-right">
-                                    <IonChip className={`at-slot-chip ${allMarked ? 'at-slot-chip--done' : markedCount > 0 ? 'at-slot-chip--partial' : ''}`}>
-                                        {markedCount}/{courseStudents.length}
-                                    </IonChip>
-                                    {allMarked && <IonIcon icon={checkmarkCircleOutline} className="at-slot-done-icon" />}
+                                    <IonChip>{courseStudents.length} étudiants</IonChip>
                                 </div>
                             </button>
                         );
@@ -404,25 +375,20 @@ const ProfessorAttendanceView: React.FC = () => {
                 </div>
             )}
 
-            {/* Accès manuel à tous les cours */}
             <div className="at-all-courses-section">
                 <h3 className="at-slots-title">Tous mes cours</h3>
                 <div className="at-courses-grid">
-                    {myCourses.length === 0 ? (
+                    {courses.length === 0 ? (
                         <div className="at-empty"><IonIcon icon={clipboardOutline} className="at-empty-icon" /><p>Aucun cours assigné.</p></div>
-                    ) : myCourses.map(c => {
-                        // Trouver un créneau représentatif pour ce cours
-                        const slot = allSlots.find(s => s.filiere === c.filiere && s.annee === c.annee) ?? {
-                            id: c.id, day: TODAY_DAY, hour: '08:00', subject: c.name,
-                            room: '—', teacher: c.teacher, filiere: c.filiere, annee: c.annee, color: '',
-                        } as ScheduleEntry;
+                    ) : courses.map(c => {
+                        const slot = { id: c.id, day: TODAY_DAY, hour: '08:00', filiere: c.filiere, annee: c.annee, option_lic: c.option_lic };
                         const courseStudents = students.filter(s => s.filiere === c.filiere && s.annee === c.annee);
                         return (
                             <button key={c.id} className="at-course-card" onClick={() => setActiveSlot({ slot, course: c })}>
                                 <div className="at-course-card-icon"><IonIcon icon={clipboardOutline} /></div>
                                 <div className="at-course-card-body">
                                     <h3 className="at-course-card-name">{c.name}</h3>
-                                    <p className="at-course-card-meta">{c.filiere} {c.annee}{c.option ? ` (${c.option})` : ''} • {courseStudents.length} étudiants</p>
+                                    <p className="at-course-card-meta">{c.filiere} {c.annee}{c.option_lic ? ` (${c.option_lic})` : ''} • {courseStudents.length} étudiants</p>
                                 </div>
                                 <IonIcon icon={arrowBackOutline} className="at-course-card-arrow" style={{ transform: 'rotate(180deg)' }} />
                             </button>

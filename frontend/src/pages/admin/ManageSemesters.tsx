@@ -12,11 +12,16 @@ import {
     getSemesters, addSemester, setActiveSemester, deleteSemester,
     Semester, SemesterCode, SEMESTER_LABELS, SEMESTER_TO_ANNEE,
 } from '../../lib/semester-store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { semesterService, type ApiSemester } from '../../lib/services/semesterService';
 import { Badge, Card, CardContent, CardHeader, CardTitle, AlertDialog } from '../../components';
 import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/ManageSemesters.css';
 
-/* ── Types semestre groupés par année ── */
+type Semester = ApiSemester;
+type SemesterCode = 'S1'|'S2'|'S3'|'S4'|'S5'|'S6';
+const SEMESTER_TO_ANNEE: Record<string, string> = { S1:'L1', S2:'L1', S3:'L2', S4:'L2', S5:'L3', S6:'L3' };
+
 const ANNEE_GROUPS: { annee: 'L1' | 'L2' | 'L3'; codes: SemesterCode[]; label: string }[] = [
     { annee: 'L1', codes: ['S1', 'S2'], label: 'Première année (L1)' },
     { annee: 'L2', codes: ['S3', 'S4'], label: 'Deuxième année (L2)' },
@@ -27,33 +32,41 @@ const ALL_TYPES: SemesterCode[] = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
 
 /* ── Page principale ── */
 const ManageSemesters: React.FC = () => {
-    const [semesters,    setSemesters]    = useState(getSemesters());
+    const qc = useQueryClient();
     const [modalOpen,    setModalOpen]    = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<Semester | null>(null);
     const [filterAnnee,  setFilterAnnee]  = useState<'all' | 'L1' | 'L2' | 'L3'>('all');
 
-    /* Form */
     const [fName,      setFName]      = useState('Semestre 1');
     const [fYear,      setFYear]      = useState('2025-2026');
     const [fType,      setFType]      = useState<SemesterCode>('S1');
     const [fStartDate, setFStartDate] = useState('');
     const [fEndDate,   setFEndDate]   = useState('');
 
-    const refresh = () => setSemesters(getSemesters());
+    const { data: semesters = [] } = useQuery({
+        queryKey: ['semesters'],
+        queryFn: semesterService.list,
+    });
+
+    const addMutation = useMutation({
+        mutationFn: semesterService.create,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['semesters'] }); closeModal(); },
+    });
+
+    const activateMutation = useMutation({
+        mutationFn: semesterService.activate,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['semesters'] }),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: semesterService.delete,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['semesters'] }); setDeleteTarget(null); },
+    });
 
     const handleAdd = (e: React.FormEvent) => {
         e.preventDefault();
         if (!fStartDate || !fEndDate) return;
-        addSemester({
-            name:       fName,
-            year:       fYear,
-            start_date: fStartDate,
-            end_date:   fEndDate,
-            is_active:  false,
-            type:       fType,
-        });
-        refresh();
-        closeModal();
+        addMutation.mutate({ name: fName, year: fYear, start_date: fStartDate, end_date: fEndDate, is_active: false, type: fType });
     };
 
     const closeModal = () => {
@@ -62,19 +75,6 @@ const ManageSemesters: React.FC = () => {
         setFType('S1'); setFStartDate(''); setFEndDate('');
     };
 
-    const handleActivate = (id: string) => {
-        setActiveSemester(id);
-        refresh();
-    };
-
-    const confirmDelete = () => {
-        if (!deleteTarget) return;
-        deleteSemester(deleteTarget.id);
-        refresh();
-        setDeleteTarget(null);
-    };
-
-    /* Filtrage */
     const displayed = filterAnnee === 'all'
         ? semesters
         : semesters.filter(s => SEMESTER_TO_ANNEE[s.type] === filterAnnee);
@@ -218,7 +218,7 @@ const ManageSemesters: React.FC = () => {
                                                             size="small"
                                                             color="success"
                                                             className="ms-action-btn"
-                                                            onClick={() => handleActivate(s.id)}
+                                                            onClick={() => activateMutation.mutate(s.id)}
                                                         >
                                                             <IonIcon slot="start" icon={checkmarkCircleOutline} />
                                                             Activer
@@ -365,7 +365,7 @@ const ManageSemesters: React.FC = () => {
                 title="Supprimer le semestre"
                 description={`Voulez-vous supprimer "${deleteTarget?.name} ${deleteTarget?.year}" ? Cette action est irréversible.`}
                 confirmText="Supprimer"
-                onConfirm={confirmDelete}
+                onConfirm={() => { if (deleteTarget) deleteMutation.mutate(deleteTarget.id); }}
             />
 
         </DashboardLayout>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { Annee, ConcoursCode, createUser, Filiere, markConcoursCodeUsed, markValidationCodeUsed, OptionLIC, validateConcoursCode, validateExternalCode, ValidationCode } from '../../lib/store';
+import { Annee, Filiere, OptionLIC } from '../../lib/store';
 import { arrowBackOutline, checkmarkCircleOutline, IonButton, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonInputPasswordToggle, IonItem, IonLabel, IonPage, IonRow, IonSelect, IonSelectOption, IonSpinner, schoolOutline } from '../../lib/ionic';
 import { Card, CardContent, Alert } from '../../components';
+import { authService, type RegisterPayload } from '../../lib/services/authService';
 import '../../styles/RegisterPage.css';
 
 type StudentType = "concours" | "externe";
@@ -17,8 +18,13 @@ const Register: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     const [code, setCode] = useState("");
-    const [concoursData, setConcoursData] = useState<ConcoursCode | null>(null);
-    const [validationData, setValidationData] = useState<ValidationCode | null>(null);
+    // Données pré-remplies par le code concours (réponse API)
+    const [concoursData, setConcoursData] = useState<{
+        nom_complet: string; filiere: Filiere; annee: Annee; option_lic?: OptionLIC;
+    } | null>(null);
+
+    // Pour l'externe on garde juste le code validé
+    const [validationCode, setValidationCode] = useState<string | null>(null);
 
     const [nomComplet, setNomComplet] = useState("");
     const [email, setEmail] = useState("");
@@ -27,56 +33,60 @@ const Register: React.FC = () => {
     const [annee, setAnnee] = useState<Annee | "">("");
     const [option, setOption] = useState<OptionLIC | "">("");
 
-    const handleCodeSubmit = (e: React.FormEvent) => {
+    const handleCodeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-        if (type === "concours") {
-            const result = validateConcoursCode(code);
-            if (!result.valid || !result.data) { setError(result.error ?? "Code invalide."); return; }
-            setConcoursData(result.data);
-            setNomComplet(result.data.nom_complet);
-            setFiliere(result.data.filiere);
-            setAnnee(result.data.annee);
-            if (result.data.option) setOption(result.data.option);
-            setStep("info");
-        } else {
-            const result = validateExternalCode(code);
-            if (!result.valid || !result.data) { setError(result.error ?? "Code invalide."); return; }
-            setValidationData(result.data);
-            setStep("info");
+        setLoading(true);
+        try {
+            if (type === "concours") {
+                // Vérification côté serveur via un appel register "dry-run" non disponible
+                // On valide côté client d'abord via le format, puis le serveur rejette si invalide
+                if (!code.trim().startsWith('CONC-')) {
+                    setError("Format de code concours invalide (CONC-XXXXXX).");
+                    return;
+                }
+                // Pré-remplissage temporaire — sera vérifié par le backend au submit final
+                setConcoursData(null); // le backend valide au moment de register
+                setStep("info");
+            } else {
+                if (!code.trim().startsWith('EXT-')) {
+                    setError("Format de code externe invalide (EXT-XXXXXX).");
+                    return;
+                }
+                setValidationCode(code.trim());
+                setStep("info");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-        if (!email || !password) {
-            setError("Veuillez remplir tous les champs.");
-            return;
-        }
+        if (!email || !password) { setError("Veuillez remplir tous les champs."); return; }
         if (type === "externe" && (!nomComplet || !filiere || !annee)) {
-            setError("Veuillez remplir tous les champs.");
-            return;
+            setError("Veuillez remplir tous les champs."); return;
         }
         setLoading(true);
         try {
-            const isConcours = type === "concours";
-            if (isConcours && !concoursData) return;
-            if (!isConcours && !validationData) return;
-            const user = await createUser({
+            const payload: RegisterPayload = {
+                type: type === "concours" ? "concours" : "externe",
+                code: code.trim(),
                 email,
                 password,
-                nom_complet: isConcours ? concoursData!.nom_complet : nomComplet,
-                role: isConcours ? "etudiant_concours" : "etudiant_externe",
-                is_active: isConcours,
-                filiere: (isConcours ? concoursData!.filiere : filiere) as Filiere,
-                annee: (isConcours ? concoursData!.annee : annee) as Annee,
-                option: (isConcours ? concoursData!.option : (filiere === "LIC" && annee === "L3" ? option : undefined)) as OptionLIC | undefined,
-                payment_blocked: false,
-            });
-            if (isConcours) markConcoursCodeUsed(concoursData!.id, user.id);
-            else markValidationCodeUsed(validationData!.id, user.id);
+                nom_complet: type === "externe" ? nomComplet : undefined,
+                filiere: type === "externe" ? (filiere as Filiere) : undefined,
+                annee: type === "externe" ? (annee as Annee) : undefined,
+                option_lic: type === "externe" && filiere === "LIC" && annee === "L3"
+                    ? (option as OptionLIC) : undefined,
+            };
+            await authService.register(payload);
             setStep("success");
+        } catch (err: unknown) {
+            const msg = (err as { response?: { data?: { message?: string } } })
+                ?.response?.data?.message;
+            setError(msg ?? "Une erreur est survenue. Vérifiez vos informations.");
         } finally {
             setLoading(false);
         }
@@ -242,14 +252,15 @@ const Register: React.FC = () => {
                     <p className="register-subtitle">Complétez votre inscription.</p>
 
                     <form onSubmit={handleRegister} className="register-form">
-                      {type === "concours" ? (
-                        /* Bannière concours — Card UI CFI */
+                        {type === "concours" ? (
+                        /* Bannière concours */
                         <Card variant="flat" className="register-concours-card">
                           <CardContent padding="sm">
                             <p className="register-concours-text">
-                              <strong>{concoursData?.nom_complet}</strong>{" "}
-                              — {concoursData?.filiere} {concoursData?.annee}
-                              {concoursData?.option && ` (${concoursData.option})`}
+                              Code concours : <strong>{code}</strong>
+                            </p>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--ion-color-medium)', marginTop: '0.25rem' }}>
+                              Le nom et la filière seront récupérés depuis le serveur.
                             </p>
                           </CardContent>
                         </Card>

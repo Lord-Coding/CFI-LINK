@@ -7,84 +7,77 @@ import {
     checkmarkCircleOutline, alertCircleOutline, clipboardOutline,
     desktopOutline, calendarOutline,
 } from 'ionicons/icons';
-import {
-    getUsers, isStudent, isProfessor, isStaff,
-    getConcoursCodes, getValidationCodes,
-} from '../../lib/store';
-import { getPaymentRecords, MONTHLY_FEE } from '../../lib/payment-store';
-import { getAuditLog } from '../../lib/audit-store';
-import { getAttendanceRecords } from '../../lib/attendance-store';
-import { getAllCourses, getLessonsForCourse } from '../../lib/courses-data';
-import { getAllGrades } from '../../lib/grades-store';
+import { useQuery } from '@tanstack/react-query';
+import { userService } from '../../lib/services/userService';
+import { paymentService } from '../../lib/services/paymentService';
+import { gradeService } from '../../lib/services/gradeService';
+import { attendanceService } from '../../lib/services/attendanceService';
+import { courseService } from '../../lib/services/courseService';
+import { codesService } from '../../lib/services/codesService';
+import { auditService } from '../../lib/services/auditService';
 import { Card, CardContent, CardHeader, CardTitle, Badge } from '../../components';
 import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/AdminStats.css';
 
+const MONTHLY_FEE = 25000;
+
 const AdminStats: React.FC = () => {
-    /* ── Données de base ── */
-    const users           = getUsers();
-    const students        = users.filter(u => isStudent(u.role));
-    const professors      = users.filter(u => isProfessor(u.role));
-    const staff           = users.filter(u => isStaff(u.role));
-    const activeUsers     = users.filter(u => u.is_active);
-    const blocked         = students.filter(u => u.payment_blocked);
-    const pendingAccounts = users.filter(u => !u.is_active);
+    const { data: users           = [] } = useQuery({ queryKey: ['users'],            queryFn: userService.list });
+    const { data: payments        = [] } = useQuery({ queryKey: ['payments', 'admin'], queryFn: paymentService.list });
+    const { data: concoursCodes   = [] } = useQuery({ queryKey: ['codes', 'concours'], queryFn: codesService.listConcours });
+    const { data: validationCodes = [] } = useQuery({ queryKey: ['codes', 'validation'], queryFn: codesService.listValidation });
+    const { data: allGrades       = [] } = useQuery({ queryKey: ['grades'],            queryFn: () => gradeService.list() });
+    const { data: attendanceRecs  = [] } = useQuery({ queryKey: ['attendance', 'all'], queryFn: () => attendanceService.list() });
+    const { data: allCourses      = [] } = useQuery({ queryKey: ['courses'],           queryFn: courseService.list });
+    const { data: auditEntries    = [] } = useQuery({ queryKey: ['audit-logs', 'recent'], queryFn: () => auditService.list() });
 
-    const payments        = getPaymentRecords();
-    const confirmed       = payments.filter(p => p.status === 'confirmed');
-    const pending         = payments.filter(p => p.status === 'pending');
-    const revenue         = confirmed.reduce((a, p) => a + p.amount, 0);
+    const students        = users.filter((u: {role: string}) => u.role === 'etudiant_concours' || u.role === 'etudiant_externe');
+    const professors      = users.filter((u: {role: string}) => u.role === 'professeur');
+    const activeUsers     = users.filter((u: {is_active: boolean}) => u.is_active);
+    const blocked         = students.filter((u: {payment_blocked: boolean}) => u.payment_blocked);
+    const pendingAccounts = users.filter((u: {is_active: boolean}) => !u.is_active);
 
-    const concoursCodes   = getConcoursCodes();
-    const validationCodes = getValidationCodes();
-    const auditEntries    = getAuditLog(100);
+    const confirmed       = payments.filter((p: {status: string}) => p.status === 'confirmed');
+    const pending         = payments.filter((p: {status: string}) => p.status === 'pending');
+    const revenue         = confirmed.reduce((a: number, p: {amount: number}) => a + p.amount, 0);
 
-    /* ── Répartition filière ── */
-    const licStudents = students.filter(s => s.filiere === 'LIC');
-    const lapStudents = students.filter(s => s.filiere === 'LAP');
+    const licStudents = students.filter((s: {filiere?: string}) => s.filiere === 'LIC');
+    const lapStudents = students.filter((s: {filiere?: string}) => s.filiere === 'LAP');
     const licPct      = students.length > 0 ? licStudents.length / students.length : 0;
     const lapPct      = students.length > 0 ? lapStudents.length / students.length : 0;
 
-    /* ── Présences par filière ── */
-    const attendanceRecords = getAttendanceRecords();
     const attByFiliere = (['LIC', 'LAP'] as const).map(f => {
-        const fStudentIds = new Set(students.filter(s => s.filiere === f).map(s => s.id));
-        const fRecords = attendanceRecords.filter(r => fStudentIds.has(r.student_id));
+        const fStudentIds = new Set(students.filter((s: {filiere?: string}) => s.filiere === f).map((s: {id: number}) => s.id));
+        const fRecords = attendanceRecs.filter((r: {student_id: number}) => fStudentIds.has(r.student_id));
         const total   = fRecords.length;
-        const present = fRecords.filter(r => r.status === 'present' || r.status === 'late').length;
-        const absent  = fRecords.filter(r => r.status === 'absent').length;
+        const present = fRecords.filter((r: {status: string}) => r.status === 'present' || r.status === 'late').length;
+        const absent  = fRecords.filter((r: {status: string}) => r.status === 'absent').length;
         const rate    = total > 0 ? Math.round((present / total) * 100) : 0;
         return { filiere: f, total, present, absent, rate };
     });
 
-    /* ── E-Learning — taux de complétion par cours ── */
-    const allCourses = getAllCourses().slice(0, 5);
-    const allGrades  = getAllGrades();
-    const coursesWithProgress = allCourses.map(c => {
-        const lessons = getLessonsForCourse(c.id);
-        const done    = lessons.filter(l => l.completed).length;
+    const coursesWithProgress = allCourses.slice(0, 5).map((c: {id: number; name: string; lessons?: {id: number}[]}) => {
+        const lessons = c.lessons ?? [];
+        const done    = 0; // progression réelle nécessite des données per-student
         const pct     = lessons.length > 0 ? Math.round((done / lessons.length) * 100) : 0;
         return { name: c.name, total: lessons.length, done, pct };
     });
 
-    /* ── Inscriptions par niveau ── */
     const byAnnee = (['L1', 'L2', 'L3'] as const).map(a => ({
         annee: a,
-        count: students.filter(s => s.annee === a).length,
-        pct:   students.length > 0
-            ? Math.round((students.filter(s => s.annee === a).length / students.length) * 100)
+        count: students.filter((s: {annee?: string}) => s.annee === a).length,
+        pct: students.length > 0
+            ? Math.round((students.filter((s: {annee?: string}) => s.annee === a).length / students.length) * 100)
             : 0,
     }));
 
-    /* ── Notes publiées ── */
-    const publishedGrades = allGrades.filter(g => g.status === 'published').length;
-    const draftGrades     = allGrades.filter(g => g.status === 'draft').length;
+    const publishedGrades = allGrades.filter((g: {status: string}) => g.status === 'published').length;
+    const draftGrades     = allGrades.filter((g: {status: string}) => g.status === 'draft').length;
 
-    /* ── Export CSV global ── */
     const exportStudentsCSV = () => {
         const header = 'Nom,Email,Rôle,Filière,Année,Option,Actif,Scolarité bloquée\n';
-        const rows = students.map(s =>
-            `"${s.nom_complet}","${s.email}","${s.role}",${s.filiere ?? ''},${s.annee ?? ''},${s.option ?? ''},${s.is_active},${!!s.payment_blocked}`
+        const rows = students.map((s: {nom_complet: string; email: string; role: string; filiere?: string; annee?: string; option_lic?: string; is_active: boolean; payment_blocked: boolean}) =>
+            `"${s.nom_complet}","${s.email}","${s.role}",${s.filiere ?? ''},${s.annee ?? ''},${s.option_lic ?? ''},${s.is_active},${!!s.payment_blocked}`
         ).join('\n');
         const blob = new Blob([header + rows], { type: 'text/csv' });
         const url  = URL.createObjectURL(blob);
@@ -93,7 +86,6 @@ const AdminStats: React.FC = () => {
         URL.revokeObjectURL(url);
     };
 
-    /* ── Stat cards ── */
     const statCards = [
         { icon: peopleOutline,       label: 'Total utilisateurs',  value: users.length,             color: 'primary' },
         { icon: schoolOutline,       label: 'Étudiants',           value: students.length,          color: 'success' },
@@ -285,14 +277,14 @@ const AdminStats: React.FC = () => {
                             </CardHeader>
                             <CardContent padding="md">
                                 <div className="as-activity-list">
-                                    {auditEntries.slice(0, 10).map(e => (
+                                    {auditEntries.slice(0, 10).map((e: {id: number; action: string; details?: string; user?: {nom_complet: string}; created_at: string}) => (
                                         <div key={e.id} className="as-activity-item">
                                             <div className="as-activity-dot" />
                                             <div className="as-activity-body">
                                                 <p className="as-activity-action">{e.action} — {e.details}</p>
                                                 <p className="as-activity-meta">
-                                                    {e.user_name} •{' '}
-                                                    {new Date(e.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                    {e.user?.nom_complet ?? '—'} •{' '}
+                                                    {new Date(e.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
                                         </div>

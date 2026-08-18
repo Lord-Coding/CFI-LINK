@@ -7,14 +7,19 @@ import {
     checkmarkOutline, addCircleOutline, peopleOutline, statsChartOutline,
     alertCircleOutline, checkmarkCircleOutline, timeOutline,
 } from 'ionicons/icons';
-import {
-    getUsers, updateUser, isStudent,
-    getPaymentCodes, createPaymentCode,
-    User, PaymentCode,
-} from '../../lib/store';
+import { useAuth } from '../../hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { userService } from '../../lib/services/userService';
+import { paymentService } from '../../lib/services/paymentService';
 import { Avatar, Badge, Card, CardContent, CardHeader, CardTitle } from '../../components';
 import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/ManagePayment.css';
+
+const CopyButton: React.FC<{ code: string; copied: string | null; onCopy: (c: string) => void }> = ({ code, copied, onCopy }) => (
+    <IonButton fill="clear" size="small" color={copied === code ? 'success' : 'medium'} className="mp-copy-btn" onClick={() => onCopy(code)} title="Copier">
+        <IonIcon slot="icon-only" icon={copied === code ? checkmarkOutline : copyOutline} />
+    </IonButton>
+);
 
 /* ── Bouton copier ── */
 const CopyButton: React.FC<{ code: string; copied: string | null; onCopy: (c: string) => void }> = ({ code, copied, onCopy }) => (
@@ -32,26 +37,23 @@ const CopyButton: React.FC<{ code: string; copied: string | null; onCopy: (c: st
 
 /* ── Page principale ── */
 const ManagePayments: React.FC = () => {
-    const [students,     setStudents]     = useState<User[]>(getUsers().filter(u => isStudent(u.role)));
-    const [paymentCodes, setPaymentCodes] = useState<PaymentCode[]>(getPaymentCodes());
-    const [copied,       setCopied]       = useState<string | null>(null);
-    const [search,       setSearch]       = useState('');
+    const qc = useQueryClient();
+    const [copied, setCopied] = useState<string | null>(null);
+    const [search, setSearch] = useState('');
 
-    const refresh = () => {
-        setStudents(getUsers().filter(u => isStudent(u.role)));
-        setPaymentCodes(getPaymentCodes());
-    };
+    const { data: students = [] }    = useQuery({ queryKey: ['users', 'students'],  queryFn: () => userService.list({ role: 'etudiant_concours' }) });
+    const { data: paymentCodes = [] } = useQuery({ queryKey: ['payment-codes'],      queryFn: paymentService.listCodes });
 
-    const toggleBlock = (id: string, blocked: boolean) => {
-        updateUser(id, { payment_blocked: !blocked });
-        refresh();
-    };
+    const toggleBlockMutation = useMutation({
+        mutationFn: userService.togglePaymentBlock,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    });
 
-    const generateCode = (studentId: string, studentName: string) => {
-        const month = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-        createPaymentCode(studentId, studentName, month);
-        refresh();
-    };
+    const generateCodeMutation = useMutation({
+        mutationFn: ({ student_id, month }: { student_id: number; month: string }) =>
+            paymentService.generateCode(student_id, month),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['payment-codes'] }),
+    });
 
     const copyCode = (code: string) => {
         navigator.clipboard.writeText(code);
@@ -59,13 +61,16 @@ const ManagePayments: React.FC = () => {
         setTimeout(() => setCopied(null), 2000);
     };
 
-    const q = search.toLowerCase().trim();
-    const displayedStudents = students.filter(u =>
-        !q || u.nom_complet.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    );
+    const generateCode = (studentId: number) => {
+        const month = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+        generateCodeMutation.mutate({ student_id: studentId, month });
+    };
 
-    const blocked   = students.filter(u => u.payment_blocked).length;
-    const ok        = students.length - blocked;
+    const q = search.toLowerCase().trim();
+    const displayedStudents = students.filter(u => !q || u.nom_complet.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+
+    const blocked      = students.filter(u => u.payment_blocked).length;
+    const ok           = students.length - blocked;
     const codesWaiting = paymentCodes.filter(c => !c.used).length;
 
     return (
@@ -184,7 +189,7 @@ const ManagePayments: React.FC = () => {
                                                         size="small"
                                                         color={u.payment_blocked ? 'success' : 'danger'}
                                                         className="mp-block-btn"
-                                                        onClick={() => toggleBlock(u.id, !!u.payment_blocked)}
+                                                        onClick={() => toggleBlockMutation.mutate(u.id)}
                                                     >
                                                         <IonIcon
                                                             slot="start"
@@ -198,7 +203,7 @@ const ManagePayments: React.FC = () => {
                                                             size="small"
                                                             color="primary"
                                                             className="mp-gencode-btn"
-                                                            onClick={() => generateCode(u.id, u.nom_complet)}
+                                                            onClick={() => generateCode(u.id)}
                                                             title="Générer un code de paiement"
                                                         >
                                                             <IonIcon slot="start" icon={addCircleOutline} />

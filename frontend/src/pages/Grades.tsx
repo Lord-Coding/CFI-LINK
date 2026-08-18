@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
     IonButton, IonIcon, IonProgressBar,
-    IonSegment, IonSegmentButton, IonLabel, IonInput, IonChip,
+    IonSegment, IonSegmentButton, IonLabel, IonInput, IonChip, IonSpinner,
 } from '../lib/ionic';
 import {
     trendingUpOutline, ribbonOutline, downloadOutline,
@@ -10,16 +10,27 @@ import {
     eyeOutline, createOutline, arrowBackOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
-import { getUsers, isStudent, isProfessor, FILIERE_LABELS } from '../lib/store';
-import { getCoursesForProfessor, CourseData } from '../lib/courses-data';
-import {
-    getGradesForStudent, getGradesForCourse, upsertGrade, publishGradesForCourse,
-    unpublishGradesForCourse, getCourseGradeStatus, calcMoyenne, calcMoyenneGenerale,
-    GradeEntry,
-} from '../lib/grades-store';
+import { isStudent, isProfessor, FILIERE_LABELS } from '../lib/store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { gradeService, type ApiGrade } from '../lib/services/gradeService';
+import { courseService, type ApiCourse } from '../lib/services/courseService';
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Grades.css';
+
+// Alias for backward-compat
+type GradeEntry = ApiGrade;
+function calcMoyenne(cc: number|null, tp: number|null, exam: number|null): number|null {
+    const notes = [cc, tp, exam].filter(n => n !== null) as number[];
+    return notes.length > 0 ? Math.round(notes.reduce((a,b) => a+b, 0) / notes.length * 100) / 100 : null;
+}
+function calcMoyenneGenerale(entries: GradeEntry[]): number {
+    const valid = entries.filter(g => { const m = calcMoyenne(g.cc, g.tp, g.exam); return m !== null; });
+    if (valid.length === 0) return 0;
+    const totalCoef = valid.reduce((a, g) => a + g.coef, 0);
+    if (totalCoef === 0) return 0;
+    return Math.round(valid.reduce((a, g) => { const m = calcMoyenne(g.cc, g.tp, g.exam)!; return a + m * g.coef; }, 0) / totalCoef * 100) / 100;
+}
 
 /* ── Helpers couleurs ── */
 function noteColor(val: number | null): string {
@@ -76,19 +87,32 @@ const StudentGradesView: React.FC = () => {
     const [sem, setSem] = useState('S1');
     if (!user) return null;
 
-    const allEntries  = getGradesForStudent(user.id);
-    const entries     = allEntries.filter(g => g.semestre === sem);
-    const moyenne     = calcMoyenneGenerale(entries);
-    const valide      = moyenne >= 10;
-    const filiere     = user.filiere ? FILIERE_LABELS[user.filiere] : '—';
+    const { data: allEntries = [], isLoading } = useQuery({
+        queryKey: ['grades', 'student', user.id],
+        queryFn: () => gradeService.list({ student_id: String(user.id) }),
+    });
+
+    const entries = allEntries.filter(g => g.semestre === sem);
+    const moyenne = calcMoyenneGenerale(entries);
+    const valide  = moyenne >= 10;
+    const filiere = user.filiere ? FILIERE_LABELS[user.filiere as keyof typeof FILIERE_LABELS] ?? user.filiere : '—';
 
     const excellent   = entries.filter(g => { const m = calcMoyenne(g.cc, g.tp, g.exam); return m !== null && m >= 16; }).length;
     const bon         = entries.filter(g => { const m = calcMoyenne(g.cc, g.tp, g.exam); return m !== null && m >= 12 && m < 16; }).length;
     const passable    = entries.filter(g => { const m = calcMoyenne(g.cc, g.tp, g.exam); return m !== null && m >= 10 && m < 12; }).length;
     const insuffisant = entries.filter(g => { const m = calcMoyenne(g.cc, g.tp, g.exam); return m !== null && m < 10; }).length;
 
-    // Semestres disponibles selon l'année de l'étudiant
     const SEMS = user.annee === 'L1' ? ['S1','S2'] : user.annee === 'L2' ? ['S3','S4'] : ['S5','S6'];
+
+    const exportCSV = (entries: GradeEntry[], label: string) => {
+        const header = 'Étudiant,Matière,CC,TP,Examen,Coefficient,Moyenne,Statut\n';
+        const rows = entries.map(g => {
+            const m = calcMoyenne(g.cc, g.tp, g.exam);
+            return `"${g.student?.nom_complet ?? ''}","${g.course?.name ?? ''}",${g.cc ?? ''},${g.tp ?? ''},${g.exam ?? ''},${g.coef},${m !== null ? m.toFixed(2) : ''},${g.status}`;
+        }).join('\n');
+        const blob = new Blob([header + rows], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `notes_${label}.csv`; a.click(); URL.revokeObjectURL(url);
+    };
 
     return (
         <>
@@ -96,6 +120,124 @@ const StudentGradesView: React.FC = () => {
                 <div className="gr-hero-text">
                     <h1 className="gr-hero-title">Notes & Résultats</h1>
                     <p className="gr-hero-sub">{filiere} — {user.annee}{user.option ? ` (${user.option})` : ''}</p>
+                    <div className="gr-hero-badges">
+                        <span className="gr-hero-badge"><IonIcon icon={schoolOutline} />{entries.length} matières</span>
+                        {entries.length > 0 && (
+                            <span className={`gr-hero-badge ${valide ? 'gr-hero-badge--success' : 'gr-hero-badge--danger'}`}>
+                                <IonIcon icon={valide ? checkmarkCircleOutline : closeCircleOutline} />
+                                Moyenne : {moyenne.toFixed(2)}/20
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="gr-toolbar">
+                <IonSegment mode="ios" value={sem} className="gr-segment" onIonChange={e => setSem(String(e.detail.value))}>
+                    {SEMS.map(s => (
+                        <IonSegmentButton key={s} value={s} className="gr-seg-btn">
+                            <IonLabel>Semestre {s.replace('S','')}</IonLabel>
+                        </IonSegmentButton>
+                    ))}
+                </IonSegment>
+            </div>
+
+            {isLoading ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}><IonSpinner name="crescent" /></div>
+            ) : entries.length === 0 ? (
+                <div className="gr-empty"><IonIcon icon={schoolOutline} className="gr-empty-icon" /><p>Aucune note publiée pour ce semestre.</p></div>
+            ) : (
+                <>
+                    <div className="gr-stats-row">
+                        <div className="gr-stat-card">
+                            <div className="gr-stat-icon gr-stat-icon--primary"><IonIcon icon={trendingUpOutline} /></div>
+                            <div><p className="gr-stat-value">{moyenne.toFixed(2)}</p><p className="gr-stat-label">Moyenne générale</p></div>
+                        </div>
+                        <div className="gr-stat-card">
+                            <div className={`gr-stat-icon ${valide ? 'gr-stat-icon--success' : 'gr-stat-icon--danger'}`}><IonIcon icon={ribbonOutline} /></div>
+                            <div><p className="gr-stat-value">{valide ? 'Validé' : 'Non validé'}</p><p className="gr-stat-label">Statut {sem}</p></div>
+                        </div>
+                        <div className="gr-stat-card gr-stat-card--mentions">
+                            <p className="gr-stat-label gr-stat-label--top">Répartition</p>
+                            <div className="gr-mentions">
+                                <span className="gr-mention gr-mention--excellent">{excellent} ≥16</span>
+                                <span className="gr-mention gr-mention--good">{bon} ≥12</span>
+                                <span className="gr-mention gr-mention--pass">{passable} ≥10</span>
+                                <span className="gr-mention gr-mention--fail">{insuffisant} &lt;10</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="gr-export-row">
+                        <IonButton fill="outline" size="small" color="medium" className="gr-export-btn" onClick={() => exportCSV(entries, sem)}>
+                            <IonIcon slot="start" icon={downloadOutline} />Export CSV
+                        </IonButton>
+                    </div>
+
+                    <Card variant="default" className="gr-table-card">
+                        <CardHeader className="gr-table-card-header">
+                            <CardTitle>Notes — {sem}</CardTitle>
+                            <Badge variant={valide ? 'success' : 'danger'} size="sm" dot>{valide ? 'Semestre validé' : 'Non validé'}</Badge>
+                        </CardHeader>
+                        <CardContent padding="sm">
+                            <div className="gr-table-scroll">
+                                <table className="gr-table">
+                                    <thead>
+                                        <tr className="gr-thead-tr">
+                                            <th className="gr-th gr-th--matiere">Matière</th>
+                                            <th className="gr-th gr-th--center">CC</th>
+                                            <th className="gr-th gr-th--center">TP</th>
+                                            <th className="gr-th gr-th--center">Examen</th>
+                                            <th className="gr-th gr-th--center">Coef</th>
+                                            <th className="gr-th gr-th--center">Moyenne</th>
+                                            <th className="gr-th gr-th--progress">Progression</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {entries.map(g => {
+                                            const moy = calcMoyenne(g.cc, g.tp, g.exam);
+                                            return (
+                                                <tr key={g.id} className="gr-tr">
+                                                    <td className="gr-td gr-td--matiere">
+                                                        <div className="gr-matiere-cell"><IonIcon icon={documentTextOutline} className="gr-matiere-icon" /><span>{g.course?.name ?? '—'}</span></div>
+                                                    </td>
+                                                    <td className="gr-td gr-td--center"><span className={`gr-note ${noteColor(g.cc)}`}>{g.cc ?? '—'}</span></td>
+                                                    <td className="gr-td gr-td--center"><span className={`gr-note ${noteColor(g.tp)}`}>{g.tp ?? '—'}</span></td>
+                                                    <td className="gr-td gr-td--center"><span className={`gr-note ${noteColor(g.exam)}`}>{g.exam ?? '—'}</span></td>
+                                                    <td className="gr-td gr-td--center"><span className="gr-coef">{g.coef}</span></td>
+                                                    <td className="gr-td gr-td--center">
+                                                        <span className={`gr-moyenne ${moy !== null && moy >= 10 ? 'gr-moyenne--pass' : moy !== null ? 'gr-moyenne--fail' : ''}`}>
+                                                            {moy !== null ? moy.toFixed(2) : '—'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="gr-td gr-td--progress">
+                                                        {moy !== null && (
+                                                            <div className="gr-progress-cell">
+                                                                <IonProgressBar value={moy / 20} className={`gr-progress-bar ${moy >= 10 ? 'gr-progress-bar--pass' : 'gr-progress-bar--fail'}`} />
+                                                                <span className="gr-progress-pct">{Math.round((moy / 20) * 100)}%</span>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                        <tr className="gr-tr gr-tr--total">
+                                            <td className="gr-td gr-td--matiere gr-td--total" colSpan={4}>Moyenne générale</td>
+                                            <td className="gr-td gr-td--center gr-td--total">{entries.reduce((a, g) => a + g.coef, 0)}</td>
+                                            <td className="gr-td gr-td--center gr-td--total" colSpan={2}>
+                                                <span className={`gr-moyenne gr-moyenne--lg ${valide ? 'gr-moyenne--pass' : 'gr-moyenne--fail'}`}>{moyenne.toFixed(2)}/20</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </>
+            )}
+        </>
+    );
+};
                     <div className="gr-hero-badges">
                         <span className="gr-hero-badge"><IonIcon icon={schoolOutline} />{entries.length} matières</span>
                         {entries.length > 0 && (
@@ -246,9 +388,169 @@ const NoteInput: React.FC<NoteInputProps> = ({ value, onChange, placeholder = '�
 );
 
 interface CourseGradeViewProps {
-    course: CourseData;
+    course: ApiCourse;
     onBack: () => void;
 }
+
+const CourseGradeView: React.FC<CourseGradeViewProps> = ({ course, onBack }) => {
+    const { user }   = useAuth();
+    const qc         = useQueryClient();
+    const [savingId, setSavingId] = useState<number | null>(null);
+
+    if (!user) return null;
+
+    const { data: students = [] } = useQuery({
+        queryKey: ['users', 'students'],
+        queryFn: () => courseService.list().then(() => fetch('/api/users?role=etudiant_concours').then(r => r.json())),
+        // simpler: use userService directly
+        enabled: false,
+    });
+
+    const { data: entries = [], isLoading } = useQuery({
+        queryKey: ['grades', 'course', course.id],
+        queryFn: () => gradeService.list({ course_id: String(course.id) }),
+    });
+
+    const upsertMutation = useMutation({
+        mutationFn: gradeService.upsert,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['grades'] }); setSavingId(null); },
+    });
+
+    const publishMutation = useMutation({
+        mutationFn: () => gradeService.publish(course.id),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['grades'] }),
+    });
+
+    const unpublishMutation = useMutation({
+        mutationFn: () => gradeService.unpublish(course.id),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['grades'] }),
+    });
+
+    const [drafts, setDrafts] = useState<Record<number, { cc: number|null; tp: number|null; exam: number|null; coef: number }>>({});
+
+    const getDraft = (studentId: number) => {
+        if (drafts[studentId]) return drafts[studentId];
+        const existing = entries.find(e => e.student_id === studentId);
+        return { cc: existing?.cc ?? null, tp: existing?.tp ?? null, exam: existing?.exam ?? null, coef: existing?.coef ?? 2 };
+    };
+
+    const setDraft = (sid: number, field: 'cc'|'tp'|'exam'|'coef', val: number|null) =>
+        setDrafts(prev => ({ ...prev, [sid]: { ...getDraft(sid), [field]: val } }));
+
+    const handleSave = useCallback((studentId: number) => {
+        const d = getDraft(studentId);
+        setSavingId(studentId);
+        upsertMutation.mutate({
+            student_id: studentId,
+            course_id:  course.id,
+            semestre:   course.semester ?? 'S1',
+            filiere:    course.filiere,
+            annee:      course.annee,
+            cc:   d.cc, tp: d.tp, exam: d.exam, coef: d.coef,
+        } as Partial<ApiGrade>);
+    }, [drafts, entries, course]);
+
+    const allPublished = entries.length > 0 && entries.every(e => e.status === 'published');
+    const draftCount   = entries.filter(e => e.status === 'draft').length;
+
+    return (
+        <div>
+            <div className="gr-course-header">
+                <IonButton fill="clear" size="small" onClick={onBack} className="gr-back-btn">
+                    <IonIcon slot="start" icon={arrowBackOutline} />Retour aux cours
+                </IonButton>
+                <div className="gr-course-info">
+                    <h2 className="gr-course-title">{course.name}</h2>
+                    <p className="gr-course-meta">{course.filiere} {course.annee}{course.option_lic ? ` (${course.option_lic})` : ''}</p>
+                </div>
+                <div className="gr-course-actions">
+                    {allPublished ? (
+                        <IonButton fill="outline" size="small" color="warning" onClick={() => unpublishMutation.mutate()} disabled={unpublishMutation.isPending}>
+                            <IonIcon slot="start" icon={eyeOutline} />Dépublier
+                        </IonButton>
+                    ) : (
+                        <IonButton fill="solid" size="small" color="success" onClick={() => publishMutation.mutate()} disabled={entries.length === 0 || publishMutation.isPending}>
+                            <IonIcon slot="start" icon={cloudUploadOutline} />Publier ({entries.length} notes)
+                        </IonButton>
+                    )}
+                </div>
+            </div>
+
+            {entries.length > 0 && (
+                <div className="gr-pub-banner">
+                    <IonChip className={`gr-pub-chip ${allPublished ? 'gr-pub-chip--published' : 'gr-pub-chip--draft'}`}>
+                        {allPublished ? 'Notes publiées' : `${draftCount} brouillon(s), ${entries.length - draftCount} publié(s)`}
+                    </IonChip>
+                </div>
+            )}
+
+            {isLoading ? (
+                <div style={{ textAlign: 'center', padding: '2rem' }}><IonSpinner name="crescent" /></div>
+            ) : entries.length === 0 ? (
+                <div className="gr-empty">
+                    <IonIcon icon={schoolOutline} className="gr-empty-icon" />
+                    <p>Aucune note saisie pour ce cours. Utilisez le formulaire ci-dessous pour ajouter des notes par étudiant.</p>
+                </div>
+            ) : (
+                <Card variant="default" className="gr-table-card">
+                    <CardContent padding="sm">
+                        <div className="gr-table-scroll">
+                            <table className="gr-table">
+                                <thead>
+                                    <tr className="gr-thead-tr">
+                                        <th className="gr-th gr-th--matiere">Étudiant</th>
+                                        <th className="gr-th gr-th--center">CC /20</th>
+                                        <th className="gr-th gr-th--center">TP /20</th>
+                                        <th className="gr-th gr-th--center">Exam /20</th>
+                                        <th className="gr-th gr-th--center">Coef</th>
+                                        <th className="gr-th gr-th--center">Moyenne</th>
+                                        <th className="gr-th gr-th--center">Statut</th>
+                                        <th className="gr-th gr-th--actions">Sauvegarder</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {entries.map(g => {
+                                        const d   = getDraft(g.student_id);
+                                        const moy = calcMoyenne(d.cc, d.tp, d.exam);
+                                        return (
+                                            <tr key={g.id} className="gr-tr">
+                                                <td className="gr-td gr-td--matiere">
+                                                    <div className="gr-matiere-cell">
+                                                        <div className="gr-student-avatar">{(g.student?.nom_complet ?? '?').charAt(0).toUpperCase()}</div>
+                                                        <span>{g.student?.nom_complet ?? `Étudiant #${g.student_id}`}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="gr-td gr-td--center"><NoteInput value={d.cc}   onChange={v => setDraft(g.student_id,'cc',v)}   /></td>
+                                                <td className="gr-td gr-td--center"><NoteInput value={d.tp}   onChange={v => setDraft(g.student_id,'tp',v)}   /></td>
+                                                <td className="gr-td gr-td--center"><NoteInput value={d.exam} onChange={v => setDraft(g.student_id,'exam',v)} /></td>
+                                                <td className="gr-td gr-td--center"><NoteInput value={d.coef} onChange={v => setDraft(g.student_id,'coef', v ?? 1)} placeholder="2" /></td>
+                                                <td className="gr-td gr-td--center">
+                                                    <span className={`gr-moyenne ${moy !== null && moy >= 10 ? 'gr-moyenne--pass' : moy !== null ? 'gr-moyenne--fail' : ''}`}>
+                                                        {moy !== null ? moy.toFixed(2) : '—'}
+                                                    </span>
+                                                </td>
+                                                <td className="gr-td gr-td--center">
+                                                    <Badge variant={g.status === 'published' ? 'success' : 'warning'} size="sm" dot>
+                                                        {g.status === 'published' ? 'Publié' : 'Brouillon'}
+                                                    </Badge>
+                                                </td>
+                                                <td className="gr-td gr-td--center">
+                                                    <IonButton fill="solid" size="small" color="primary" disabled={savingId === g.student_id} onClick={() => handleSave(g.student_id)} className="gr-save-btn">
+                                                        <IonIcon slot="icon-only" icon={createOutline} />
+                                                    </IonButton>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+    );
+};
 
 const CourseGradeView: React.FC<CourseGradeViewProps> = ({ course, onBack }) => {
     const { user } = useAuth();
@@ -426,10 +728,13 @@ const CourseGradeView: React.FC<CourseGradeViewProps> = ({ course, onBack }) => 
 ════════════════════════════════ */
 const ProfessorGradesView: React.FC = () => {
     const { user } = useAuth();
-    const [selected, setSelected] = useState<CourseData | null>(null);
+    const [selected, setSelected] = useState<ApiCourse | null>(null);
     if (!user) return null;
 
-    const courses = getCoursesForProfessor(user.nom_complet);
+    const { data: courses = [], isLoading } = useQuery({
+        queryKey: ['courses', 'professor'],
+        queryFn: courseService.list,
+    });
 
     if (selected) return <CourseGradeView course={selected} onBack={() => setSelected(null)} />;
 
@@ -445,31 +750,27 @@ const ProfessorGradesView: React.FC = () => {
                 </div>
             </div>
 
-            {courses.length === 0 ? (
+            {isLoading ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}><IonSpinner name="crescent" /></div>
+            ) : courses.length === 0 ? (
                 <div className="gr-empty"><IonIcon icon={schoolOutline} className="gr-empty-icon" /><p>Aucun cours assigné.</p></div>
             ) : (
                 <div className="gr-courses-grid">
-                    {courses.map(c => {
-                        const stats = getCourseGradeStatus(c.id);
-                        const allPub = stats.total > 0 && stats.draft === 0;
-                        return (
-                            <button key={c.id} className="gr-course-card" onClick={() => setSelected(c)}>
-                                <div className="gr-course-card-icon"><IonIcon icon={documentTextOutline} /></div>
-                                <div className="gr-course-card-body">
-                                    <p className="gr-course-card-name">{c.name}</p>
-                                    <p className="gr-course-card-meta">{c.filiere} {c.annee}{c.option ? ` (${c.option})` : ''}</p>
-                                </div>
-                                <Badge variant={allPub ? 'success' : stats.total > 0 ? 'warning' : 'secondary'} size="sm">
-                                    {allPub ? 'Publié' : stats.total > 0 ? `${stats.draft} brouillon(s)` : 'Vide'}
-                                </Badge>
-                            </button>
-                        );
-                    })}
+                    {courses.map(c => (
+                        <button key={c.id} className="gr-course-card" onClick={() => setSelected(c)}>
+                            <div className="gr-course-card-icon"><IonIcon icon={documentTextOutline} /></div>
+                            <div className="gr-course-card-body">
+                                <p className="gr-course-card-name">{c.name}</p>
+                                <p className="gr-course-card-meta">{c.filiere} {c.annee}{c.option_lic ? ` (${c.option_lic})` : ''}</p>
+                            </div>
+                        </button>
+                    ))}
                 </div>
             )}
         </>
     );
 };
+
 
 /* ════════════════════════════════
    Page principale

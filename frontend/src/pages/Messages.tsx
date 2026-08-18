@@ -11,15 +11,15 @@ import {
     notificationsOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
-import { getUsers, ROLE_LABELS } from '../lib/store';
-import {
-    getInbox, getSent, sendMessage, markMessageRead,
-    deleteMessage, getUnreadCount, Message,
-} from '../lib/messages-store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { messageService, type ApiMessage } from '../lib/services/messageService';
+import { userService } from '../lib/services/userService';
+import { ROLE_LABELS } from '../lib/store';
 import { Avatar, Badge, AlertDialog } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Messages.css';
 
+type Message = ApiMessage & { from_name?: string; to_name?: string; date?: string };
 type TabKey = 'inbox' | 'sent';
 
 /* ── Formatage date ── */
@@ -38,55 +38,58 @@ function formatDate(iso: string): string {
 ════════════════════════════════ */
 const Messages: React.FC = () => {
     const { user } = useAuth();
+    const qc = useQueryClient();
 
     const [tab,          setTab]          = useState<TabKey>('inbox');
     const [search,       setSearch]       = useState('');
     const [composeOpen,  setComposeOpen]  = useState(false);
     const [detailMsg,    setDetailMsg]    = useState<Message | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Message | null>(null);
-    const [refreshKey,   setRefreshKey]   = useState(0);
-
-    /* Form composer */
-    const [fToId,    setFToId]    = useState('');
-    const [fSubject, setFSubject] = useState('');
-    const [fBody,    setFBody]    = useState('');
+    const [fToId,        setFToId]        = useState<string>('');
+    const [fSubject,     setFSubject]     = useState('');
+    const [fBody,        setFBody]        = useState('');
 
     if (!user) return null;
 
-    const inbox    = getInbox(user.id);
-    const sent     = getSent(user.id);
-    const unread   = getUnreadCount(user.id);
-    const contacts = getUsers().filter(u => u.id !== user.id && u.is_active);
+    const { data: inbox = [] }    = useQuery({ queryKey: ['messages', 'inbox'],    queryFn: messageService.inbox });
+    const { data: sent  = [] }    = useQuery({ queryKey: ['messages', 'sent'],     queryFn: messageService.sent  });
+    const { data: contacts = [] } = useQuery({ queryKey: ['users', 'contacts'],    queryFn: () => userService.list() });
 
-    /* Filtrage */
+    const unread   = inbox.filter(m => !m.read).length;
+    const allUsers = contacts.filter((u: { id: number }) => u.id !== user.id);
+
+    const sendMutation = useMutation({
+        mutationFn: messageService.send,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages'] }); closeCompose(); },
+    });
+
+    const markReadMutation = useMutation({
+        mutationFn: messageService.markRead,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['messages', 'inbox'] }),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: messageService.delete,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages'] }); setDeleteTarget(null); },
+    });
+
     const q = search.toLowerCase().trim();
+    const normalize = (m: Message) => {
+        const fromName = m.sender?.nom_complet ?? m.from_name ?? '';
+        const toName   = m.recipient?.nom_complet ?? m.to_name ?? '';
+        return { ...m, from_name: fromName, to_name: toName, date: m.date ?? m.created_at };
+    };
+    const inboxNorm = inbox.map(normalize);
+    const sentNorm  = sent.map(normalize);
+
     const filterMsgs = (msgs: Message[]) =>
-        msgs.filter(m =>
-            !q ||
-            m.subject.toLowerCase().includes(q)   ||
-            m.from_name.toLowerCase().includes(q) ||
-            m.to_name.toLowerCase().includes(q)
+        msgs.filter(m => !q ||
+            m.subject.toLowerCase().includes(q) ||
+            (m.from_name ?? '').toLowerCase().includes(q) ||
+            (m.to_name ?? '').toLowerCase().includes(q)
         );
 
-    const displayed = filterMsgs(tab === 'inbox' ? inbox : sent);
-
-    /* Handlers */
-    const handleSend = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!fToId || !fSubject || !fBody.trim()) return;
-        const recipient = contacts.find(c => c.id === fToId);
-        if (!recipient) return;
-        sendMessage({
-            from_id:   user.id,
-            from_name: user.nom_complet,
-            to_id:     fToId,
-            to_name:   recipient.nom_complet,
-            subject:   fSubject,
-            body:      fBody,
-        });
-        setRefreshKey(k => k + 1);
-        closeCompose();
-    };
+    const displayed = filterMsgs(tab === 'inbox' ? inboxNorm : sentNorm);
 
     const closeCompose = () => {
         setComposeOpen(false);
@@ -354,9 +357,9 @@ const Messages: React.FC = () => {
                                     interface="action-sheet"
                                     placeholder="Choisir un destinataire"
                                 >
-                                    {contacts.map(c => (
-                                        <IonSelectOption key={c.id} value={c.id}>
-                                            {c.nom_complet} — {ROLE_LABELS[c.role]}
+                                    {allUsers.map((c: { id: number; nom_complet: string; role: string }) => (
+                                        <IonSelectOption key={c.id} value={String(c.id)}>
+                                            {c.nom_complet} — {ROLE_LABELS[c.role] ?? c.role}
                                         </IonSelectOption>
                                     ))}
                                 </IonSelect>

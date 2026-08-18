@@ -1,4 +1,4 @@
-# CFI-LINK — TODO & Feuille de route
+﻿# CFI-LINK — TODO & Feuille de route
 
 > Système de priorités :
 > - 🔴 **CRITIQUE** — bloquant, à faire en premier
@@ -8,21 +8,7 @@
 
 ---
 
-## 1. ANALYSE COMPLÈTE DU PROJET
-
-> Avant tout développement majeur, cartographier précisément l'état actuel du code.
-
-| # | Tâche | Priorité | Statut |
-|---|-------|----------|--------|
-| 1.1 | Auditer les 18 stores localStorage et documenter chaque clé, type de données, relations entre entités | 🔴 CRITIQUE | ⬜ |
-| 1.2 | Identifier les failles de sécurité : mots de passe SHA-256 côté client, données sensibles exposées dans localStorage, absence de CSRF/XSS | 🔴 CRITIQUE | ⬜ |
-| 1.3 | Recenser toutes les routes frontend (React Router) et vérifier la cohérence avec les guards de rôles | 🟠 HAUTE | ⬜ |
-| 1.4 | Inventorier les composants partagés (components/) et identifier les duplications de logique entre pages | 🟡 MOYENNE | ⬜ |
-| 1.5 | Évaluer les performances : taille du bundle Vite, lazy loading des pages, images non optimisées | 🟡 MOYENNE | ⬜ |
-| 1.6 | Vérifier la compatibilité Capacitor (iOS/Android) avec les APIs web utilisées (crypto.subtle, localStorage) | 🟠 HAUTE | ⬜ |
-| 1.7 | Relever les TODO/FIXME dans le code source et les classer par criticité | 🟢 BASSE | ⬜ |
-| 1.8 | Documenter l'architecture actuelle (diagramme de flux de données, relations entre stores) | 🟡 MOYENNE | ⬜ |
-
+## 1. ANALYSE COMPLÈTE DU PROJET ✅ 
 
 ---
 
@@ -30,26 +16,19 @@
 
 > Objectif : que Laravel soit la source de vérité unique. Le frontend ne stocke plus rien de sensible.
 
-### 2.1 — Infrastructure & Configuration (🔴 CRITIQUE)
-
-| # | Tâche | Priorité | Statut |
-|---|-------|----------|--------|
-| 2.1.1 | Configurer CORS dans Laravel (`config/cors.php`) pour autoriser le frontend Vite (localhost:5173) et le domaine de prod | 🔴 CRITIQUE | ⬜ |
-| 2.1.2 | Configurer `.env` : `DB_*`, `APP_URL`, `SANCTUM_STATEFUL_DOMAINS`, `SESSION_DRIVER=cookie` | 🔴 CRITIQUE | ⬜ |
-| 2.1.3 | Créer un service HTTP centralisé côté frontend (`src/lib/api.ts`) avec Axios + intercepteurs (token Sanctum, gestion 401/403/422) | 🔴 CRITIQUE | ⬜ |
-| 2.1.4 | Mettre en place la gestion globale des erreurs API côté frontend (toast d'erreur, redirection si 401) | 🟠 HAUTE | ⬜ |
+### 2.1 — Infrastructure & Configuration (🔴 CRITIQUE) ✅ 
 
 ### 2.2 — Authentification & Sessions (🔴 CRITIQUE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.2.1 | Étendre la migration `users` : ajouter `nom_complet`, `role`, `is_active`, `filiere`, `annee`, `option`, `specialite`, `grade`, `service`, `staff_role`, `payment_blocked` | 🔴 CRITIQUE | ⬜ |
-| 2.2.2 | Mettre à jour `User.php` : fillable, casts, scopes de rôles | 🔴 CRITIQUE | ⬜ |
-| 2.2.3 | Créer `AuthController` : `login()`, `logout()`, `me()`, `register()` avec validation complète | 🔴 CRITIQUE | ⬜ |
-| 2.2.4 | Implémenter Sanctum SPA (cookie-based) pour le web + token API pour Capacitor mobile | 🔴 CRITIQUE | ⬜ |
-| 2.2.5 | Remplacer `login()` / `logout()` / `getCurrentUser()` dans `store.ts` par des appels à l'API Laravel | 🔴 CRITIQUE | ⬜ |
-| 2.2.6 | Supprimer le hachage SHA-256 côté frontend — Laravel gère bcrypt/argon2 | 🔴 CRITIQUE | ⬜ |
-| 2.2.7 | Créer un `AuthContext` React qui wrappe l'utilisateur courant (remplacement de `getCurrentUser()` depuis localStorage) | 🔴 CRITIQUE | ⬜ |
+| 2.2.1 | Étendre la migration `users` : ajouter `nom_complet`, `role`, `is_active`, `filiere`, `annee`, `option`, `specialite`, `grade`, `service`, `staff_role`, `payment_blocked` | 🔴 CRITIQUE | ✅ Migration réécrite avec tous les champs |
+| 2.2.2 | Mettre à jour `User.php` : fillable, casts, scopes de rôles | 🔴 CRITIQUE | ✅ `User.php` : HasApiTokens, scopes, helpers, relations |
+| 2.2.3 | Créer `AuthController` : `login()`, `logout()`, `me()`, `register()` avec validation complète | 🔴 CRITIQUE | ✅ `AuthController.php` créé |
+| 2.2.4 | Implémenter Sanctum SPA (cookie-based) pour le web + token API pour Capacitor mobile | 🔴 CRITIQUE | ✅ `statefulApi()` + Bearer token via `sessionStorage` |
+| 2.2.5 | Remplacer `login()` / `logout()` / `getCurrentUser()` dans `store.ts` par des appels à l'API Laravel | 🔴 CRITIQUE | ⬜ Phase 4 (connexion pages) |
+| 2.2.6 | Supprimer le hachage SHA-256 côté frontend — Laravel gère bcrypt/argon2 | 🔴 CRITIQUE | ⬜ Phase 4 (connexion pages) |
+| 2.2.7 | Créer un `AuthContext` React qui wrappe l'utilisateur courant (remplacement de `getCurrentUser()` depuis localStorage) | 🔴 CRITIQUE | ⬜ Phase 4 (tâche 4.2) |
 | 2.2.8 | Implémenter la réinitialisation de mot de passe (`/forgot-password`, `/reset-password`) | 🟡 MOYENNE | ⬜ |
 
 
@@ -57,145 +36,145 @@
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.3.1 | Migration `concours_codes` : `id`, `code`, `nom_complet`, `filiere`, `annee`, `option`, `used`, `used_by` (FK users), `created_at` | 🔴 CRITIQUE | ⬜ |
-| 2.3.2 | Migration `validation_codes` : `id`, `code`, `used`, `used_by` (FK users), `expires_at`, `created_at` | 🔴 CRITIQUE | ⬜ |
-| 2.3.3 | Créer `ConcoursCode` et `ValidationCode` models avec relations | 🔴 CRITIQUE | ⬜ |
-| 2.3.4 | Créer `CodesController` : CRUD codes concours, CRUD codes validation, validation à l'inscription | 🔴 CRITIQUE | ⬜ |
-| 2.3.5 | Migrer `ManageCodes.tsx` pour consommer l'API à la place de localStorage | 🔴 CRITIQUE | ⬜ |
+| 2.3.1 | Migration `concours_codes` : `id`, `code`, `nom_complet`, `filiere`, `annee`, `option`, `used`, `used_by` (FK users), `created_at` | 🔴 CRITIQUE | ✅ Migration créée |
+| 2.3.2 | Migration `validation_codes` : `id`, `code`, `used`, `used_by` (FK users), `expires_at`, `created_at` | 🔴 CRITIQUE | ✅ Migration créée |
+| 2.3.3 | Créer `ConcoursCode` et `ValidationCode` models avec relations | 🔴 CRITIQUE | ✅ Models créés avec `generateCode()` |
+| 2.3.4 | Créer `CodesController` : CRUD codes concours, CRUD codes validation, validation à l'inscription | 🔴 CRITIQUE | ✅ `CodesController.php` créé |
+| 2.3.5 | Migrer `ManageCodes.tsx` pour consommer l'API à la place de localStorage | 🔴 CRITIQUE | ⬜ Phase 4 |
 
 ### 2.4 — Gestion des utilisateurs (🔴 CRITIQUE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.4.1 | Créer `UserController` : liste, création, mise à jour, suppression, activation/désactivation de compte | 🔴 CRITIQUE | ⬜ |
-| 2.4.2 | Créer des policies Laravel : `UserPolicy` (seul super_admin/admin peut gérer les users) | 🔴 CRITIQUE | ⬜ |
-| 2.4.3 | Migrer `ManageUsers.tsx` pour consommer l'API | 🔴 CRITIQUE | ⬜ |
-| 2.4.4 | Créer un `DatabaseSeeder` complet avec les utilisateurs seed (super_admin, admin, profs, staff, étudiants) | 🟠 HAUTE | ⬜ |
+| 2.4.1 | Créer `UserController` : liste, création, mise à jour, suppression, activation/désactivation de compte | 🔴 CRITIQUE | ✅ `UserController.php` créé |
+| 2.4.2 | Créer des policies Laravel : `UserPolicy` (seul super_admin/admin peut gérer les users) | 🔴 CRITIQUE | ✅ `UserPolicy.php` + Gate::before super_admin |
+| 2.4.3 | Migrer `ManageUsers.tsx` pour consommer l'API | 🔴 CRITIQUE | ⬜ Phase 4 |
+| 2.4.4 | Créer un `DatabaseSeeder` complet avec les utilisateurs seed (super_admin, admin, profs, staff, étudiants) | 🟠 HAUTE | ✅ `DatabaseSeeder.php` avec 8 users + codes + semestres |
 
 ### 2.5 — Paiements (🔴 CRITIQUE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.5.1 | Migration `payment_codes` : `id`, `code`, `student_id` (FK), `month`, `used`, `created_at` | 🔴 CRITIQUE | ⬜ |
-| 2.5.2 | Migration `payment_records` : `id`, `student_id` (FK), `month`, `amount`, `method`, `status`, `reference`, `confirmed_at` | 🔴 CRITIQUE | ⬜ |
-| 2.5.3 | Créer `PaymentController` : créer un enregistrement, confirmer, rejeter, liste par étudiant, liste globale admin | 🔴 CRITIQUE | ⬜ |
-| 2.5.4 | Implémenter la logique de blocage/déblocage (`payment_blocked`) côté Laravel lors de la validation d'un code paiement | 🔴 CRITIQUE | ⬜ |
-| 2.5.5 | Migrer `Payments.tsx` et `ManagePayments.tsx` pour consommer l'API | 🔴 CRITIQUE | ⬜ |
+| 2.5.1 | Migration `payment_codes` : `id`, `code`, `student_id` (FK), `month`, `used`, `created_at` | 🔴 CRITIQUE | ✅ Migration créée |
+| 2.5.2 | Migration `payment_records` : `id`, `student_id` (FK), `month`, `amount`, `method`, `status`, `reference`, `confirmed_at` | 🔴 CRITIQUE | ✅ Migration créée |
+| 2.5.3 | Créer `PaymentController` : créer un enregistrement, confirmer, rejeter, liste par étudiant, liste globale admin | 🔴 CRITIQUE | ✅ `PaymentController.php` créé |
+| 2.5.4 | Implémenter la logique de blocage/déblocage (`payment_blocked`) côté Laravel lors de la validation d'un code paiement | 🔴 CRITIQUE | ✅ Dans `validateCode()` et `confirm()` |
+| 2.5.5 | Migrer `Payments.tsx` et `ManagePayments.tsx` pour consommer l'API | 🔴 CRITIQUE | ⬜ Phase 4 |
 
 
 ### 2.6 — Notes (🔴 CRITIQUE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.6.1 | Migration `grades` : `id`, `student_id` (FK), `course_id` (FK), `semestre`, `filiere`, `annee`, `cc`, `tp`, `exam`, `coef`, `status`, `created_by` (FK), `updated_at` | 🔴 CRITIQUE | ⬜ |
-| 2.6.2 | Créer `GradeController` : upsert, publication par cours, dépublication, liste par étudiant, liste par cours | 🔴 CRITIQUE | ⬜ |
-| 2.6.3 | Policy : seul un professeur ou admin peut créer/modifier des notes ; un étudiant ne voit que ses notes publiées | 🔴 CRITIQUE | ⬜ |
-| 2.6.4 | Migrer `Grades.tsx` et la logique de saisie prof pour consommer l'API | 🔴 CRITIQUE | ⬜ |
+| 2.6.1 | Migration `grades` : `id`, `student_id` (FK), `course_id` (FK), `semestre`, `filiere`, `annee`, `cc`, `tp`, `exam`, `coef`, `status`, `created_by` (FK), `updated_at` | 🔴 CRITIQUE | ✅ Migration créée |
+| 2.6.2 | Créer `GradeController` : upsert, publication par cours, dépublication, liste par étudiant, liste par cours | 🔴 CRITIQUE | ✅ `GradeController.php` créé |
+| 2.6.3 | Policy : seul un professeur ou admin peut créer/modifier des notes ; un étudiant ne voit que ses notes publiées | 🔴 CRITIQUE | ✅ Logique dans `index()` et `upsert()` |
+| 2.6.4 | Migrer `Grades.tsx` et la logique de saisie prof pour consommer l'API | 🔴 CRITIQUE | ⬜ Phase 4 |
 
 ### 2.7 — Présences (🟠 HAUTE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.7.1 | Migration `attendance_records` : `id`, `student_id` (FK), `course_id` (FK), `date`, `status`, `marked_by` (FK) | 🟠 HAUTE | ⬜ |
-| 2.7.2 | Créer `AttendanceController` : marquer/mettre à jour, stats par étudiant, stats par cours, liste globale | 🟠 HAUTE | ⬜ |
-| 2.7.3 | Migrer `Attendance.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ |
+| 2.7.1 | Migration `attendance_records` : `id`, `student_id` (FK), `course_id` (FK), `date`, `status`, `marked_by` (FK) | 🟠 HAUTE | ✅ Migration créée (contrainte unique student+course+date) |
+| 2.7.2 | Créer `AttendanceController` : marquer/mettre à jour, stats par étudiant, stats par cours, liste globale | 🟠 HAUTE | ✅ `AttendanceController.php` créé |
+| 2.7.3 | Migrer `Attendance.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ Phase 4 |
 
 ### 2.8 — Cours & Leçons (🟠 HAUTE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.8.1 | Migration `courses` : `id`, `name`, `teacher_id` (FK), `filiere`, `annee`, `option`, `hours`, `semester`, `description` | 🟠 HAUTE | ⬜ |
-| 2.8.2 | Migration `lessons` : `id`, `course_id` (FK), `title`, `type`, `duration`, `file_url`, `locked`, `order`, `quiz_data` (JSON) | 🟠 HAUTE | ⬜ |
-| 2.8.3 | Migration `lesson_progress` : `id`, `student_id` (FK), `lesson_id` (FK), `course_id` (FK), `completed`, `score`, `completed_at` | 🟠 HAUTE | ⬜ |
-| 2.8.4 | Créer `CourseController`, `LessonController`, `LessonProgressController` | 🟠 HAUTE | ⬜ |
-| 2.8.5 | Migrer `Courses.tsx`, `CourseDetail.tsx`, `ELearning.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ |
+| 2.8.1 | Migration `courses` : `id`, `name`, `teacher_id` (FK), `filiere`, `annee`, `option`, `hours`, `semester`, `description` | 🟠 HAUTE | ✅ Migration créée |
+| 2.8.2 | Migration `lessons` : `id`, `course_id` (FK), `title`, `type`, `duration`, `file_url`, `locked`, `order`, `quiz_data` (JSON) | 🟠 HAUTE | ✅ Migration créée |
+| 2.8.3 | Migration `lesson_progress` : `id`, `student_id` (FK), `lesson_id` (FK), `course_id` (FK), `completed`, `score`, `completed_at` | 🟠 HAUTE | ✅ Migration créée |
+| 2.8.4 | Créer `CourseController`, `LessonController`, `LessonProgressController` | 🟠 HAUTE | ✅ `CourseController.php` (cours + leçons + progression) |
+| 2.8.5 | Migrer `Courses.tsx`, `CourseDetail.tsx`, `ELearning.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ Phase 4 |
 
 ### 2.9 — Semestres (🟠 HAUTE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.9.1 | Migration `semesters` : `id`, `name`, `year`, `start_date`, `end_date`, `is_active`, `type` | 🟠 HAUTE | ⬜ |
-| 2.9.2 | Créer `SemesterController` : CRUD, activer/désactiver | 🟠 HAUTE | ⬜ |
-| 2.9.3 | Migrer `ManageSemesters.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ |
+| 2.9.1 | Migration `semesters` : `id`, `name`, `year`, `start_date`, `end_date`, `is_active`, `type` | 🟠 HAUTE | ✅ Migration créée |
+| 2.9.2 | Créer `SemesterController` : CRUD, activer/désactiver | 🟠 HAUTE | ✅ `SemesterController.php` créé |
+| 2.9.3 | Migrer `ManageSemesters.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ Phase 4 |
 
 
 ### 2.10 — Emplois du temps (🟠 HAUTE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.10.1 | Migration `schedule_entries` : `id`, `day`, `hour`, `subject`, `room`, `teacher`, `filiere`, `annee`, `option`, `color` | 🟠 HAUTE | ⬜ |
-| 2.10.2 | Créer `ScheduleController` : CRUD, filtre par filière/année/option, filtre par professeur | 🟠 HAUTE | ⬜ |
-| 2.10.3 | Migrer `Schedule.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ |
+| 2.10.1 | Migration `schedule_entries` : `id`, `day`, `hour`, `subject`, `room`, `teacher`, `filiere`, `annee`, `option`, `color` | 🟠 HAUTE | ✅ Migration créée |
+| 2.10.2 | Créer `ScheduleController` : CRUD, filtre par filière/année/option, filtre par professeur | 🟠 HAUTE | ✅ `ScheduleController.php` créé |
+| 2.10.3 | Migrer `Schedule.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ Phase 4 |
 
 ### 2.11 — Annonces & Notifications (🟡 MOYENNE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.11.1 | Migration `announcements` : `id`, `title`, `content`, `author_id` (FK), `priority`, `target_role`, `pinned`, `created_at` | 🟡 MOYENNE | ⬜ |
-| 2.11.2 | Migration `notifications` : `id`, `user_id` (FK), `type`, `title`, `message`, `read`, `target_role`, `date` | 🟡 MOYENNE | ⬜ |
-| 2.11.3 | Créer `AnnouncementController` et `NotificationController` | 🟡 MOYENNE | ⬜ |
+| 2.11.1 | Migration `announcements` : `id`, `title`, `content`, `author_id` (FK), `priority`, `target_role`, `pinned`, `created_at` | 🟡 MOYENNE | ✅ Migration créée |
+| 2.11.2 | Migration `notifications` : `id`, `user_id` (FK), `type`, `title`, `message`, `read`, `target_role`, `date` | 🟡 MOYENNE | ✅ Migration créée |
+| 2.11.3 | Créer `AnnouncementController` et `NotificationController` | 🟡 MOYENNE | ✅ Les deux controllers créés |
 | 2.11.4 | Utiliser les Notifications Laravel (broadcast ou polling) pour pousser les notifs en temps réel (optionnel : Pusher/Laravel Echo) | 🟢 BASSE | ⬜ |
-| 2.11.5 | Migrer `Announcements.tsx` et le panneau de notifications pour consommer l'API | 🟡 MOYENNE | ⬜ |
+| 2.11.5 | Migrer `Announcements.tsx` et le panneau de notifications pour consommer l'API | 🟡 MOYENNE | ⬜ Phase 4 |
 
 ### 2.12 — Messages internes (🟡 MOYENNE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.12.1 | Migration `messages` : `id`, `from_id` (FK), `to_id` (FK), `subject`, `body`, `read`, `created_at` | 🟡 MOYENNE | ⬜ |
-| 2.12.2 | Créer `MessageController` : envoyer, liste inbox/sent, marquer lu, supprimer | 🟡 MOYENNE | ⬜ |
-| 2.12.3 | Migrer `Messages.tsx` pour consommer l'API | 🟡 MOYENNE | ⬜ |
+| 2.12.1 | Migration `messages` : `id`, `from_id` (FK), `to_id` (FK), `subject`, `body`, `read`, `created_at` | 🟡 MOYENNE | ✅ Migration créée |
+| 2.12.2 | Créer `MessageController` : envoyer, liste inbox/sent, marquer lu, supprimer | 🟡 MOYENNE | ✅ `MessageController.php` créé |
+| 2.12.3 | Migrer `Messages.tsx` pour consommer l'API | 🟡 MOYENNE | ⬜ Phase 4 |
 
 ### 2.13 — Documents administratifs (🟡 MOYENNE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.13.1 | Migration `document_requests` : `id`, `student_id` (FK), `type`, `status`, `requested_at`, `processed_at`, `processed_by` (FK), `notes` | 🟡 MOYENNE | ⬜ |
-| 2.13.2 | Créer `DocumentRequestController` : créer demande, lister, traiter (approuver/rejeter/prêt), générer PDF (via DomPDF ou Browsershot) | 🟡 MOYENNE | ⬜ |
-| 2.13.3 | Migrer `Documents.tsx` pour consommer l'API | 🟡 MOYENNE | ⬜ |
+| 2.13.1 | Migration `document_requests` : `id`, `student_id` (FK), `type`, `status`, `requested_at`, `processed_at`, `processed_by` (FK), `notes` | 🟡 MOYENNE | ✅ Migration créée |
+| 2.13.2 | Créer `DocumentRequestController` : créer demande, lister, traiter (approuver/rejeter/prêt), générer PDF (via DomPDF ou Browsershot) | 🟡 MOYENNE | ✅ `DocumentRequestController.php` créé (PDF reste frontend) |
+| 2.13.3 | Migrer `Documents.tsx` pour consommer l'API | 🟡 MOYENNE | ⬜ Phase 4 |
 
 
 ### 2.14 — Bibliothèque (🟡 MOYENNE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.14.1 | Migration `library_items` : `id`, `title`, `author`, `category`, `filiere`, `description`, `file_type`, `size`, `downloads`, `added_by` (FK) | 🟡 MOYENNE | ⬜ |
-| 2.14.2 | Créer `LibraryController` : CRUD, recherche, incrémenter téléchargements, upload de fichiers (Laravel Storage) | 🟡 MOYENNE | ⬜ |
-| 2.14.3 | Migrer `Library.tsx` pour consommer l'API | 🟡 MOYENNE | ⬜ |
+| 2.14.1 | Migration `library_items` : `id`, `title`, `author`, `category`, `filiere`, `description`, `file_type`, `size`, `downloads`, `added_by` (FK) | 🟡 MOYENNE | ✅ Migration créée |
+| 2.14.2 | Créer `LibraryController` : CRUD, recherche, incrémenter téléchargements, upload de fichiers (Laravel Storage) | 🟡 MOYENNE | ✅ `LibraryController.php` créé |
+| 2.14.3 | Migrer `Library.tsx` pour consommer l'API | 🟡 MOYENNE | ⬜ Phase 4 |
 
 ### 2.15 — Calendrier & Événements (🟡 MOYENNE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.15.1 | Migration `calendar_events` : `id`, `title`, `description`, `date`, `time`, `type`, `target_role`, `created_by` (FK) | 🟡 MOYENNE | ⬜ |
-| 2.15.2 | Créer `CalendarEventController` : CRUD, filtre par rôle, événements à venir | 🟡 MOYENNE | ⬜ |
-| 2.15.3 | Migrer `CalendarPage.tsx` pour consommer l'API | 🟡 MOYENNE | ⬜ |
+| 2.15.1 | Migration `calendar_events` : `id`, `title`, `description`, `date`, `time`, `type`, `target_role`, `created_by` (FK) | 🟡 MOYENNE | ✅ Migration créée |
+| 2.15.2 | Créer `CalendarEventController` : CRUD, filtre par rôle, événements à venir | 🟡 MOYENNE | ✅ `CalendarEventController.php` créé |
+| 2.15.3 | Migrer `CalendarPage.tsx` pour consommer l'API | 🟡 MOYENNE | ⬜ Phase 4 |
 
 ### 2.16 — Communauté & Forum (🟢 BASSE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.16.1 | Migration `community_posts` : `id`, `author_id` (FK), `content`, `likes` (JSON ou table pivot `post_likes`), `created_at` | 🟢 BASSE | ⬜ |
-| 2.16.2 | Migration `forum_posts` + `forum_replies` : relations parent/enfant, `pinned` | 🟢 BASSE | ⬜ |
-| 2.16.3 | Créer `CommunityController` et `ForumController` | 🟢 BASSE | ⬜ |
-| 2.16.4 | Migrer `Community.tsx` et `Forum.tsx` pour consommer l'API | 🟢 BASSE | ⬜ |
+| 2.16.1 | Migration `community_posts` : `id`, `author_id` (FK), `content`, `likes` (JSON ou table pivot `post_likes`), `created_at` | 🟢 BASSE | ✅ Migration avec table pivot `community_post_likes` |
+| 2.16.2 | Migration `forum_posts` + `forum_replies` : relations parent/enfant, `pinned` | 🟢 BASSE | ✅ Migrations créées |
+| 2.16.3 | Créer `CommunityController` et `ForumController` | 🟢 BASSE | ✅ Les deux controllers créés |
+| 2.16.4 | Migrer `Community.tsx` et `Forum.tsx` pour consommer l'API | 🟢 BASSE | ⬜ Phase 4 |
 
 ### 2.17 — Audit Log (🟠 HAUTE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.17.1 | Migration `audit_logs` : `id`, `user_id` (FK nullable), `action`, `details`, `category`, `ip_address`, `created_at` | 🟠 HAUTE | ⬜ |
-| 2.17.2 | Créer un `AuditService` Laravel (appelé dans les controllers via Observer ou manuellement) | 🟠 HAUTE | ⬜ |
-| 2.17.3 | Créer `AuditLogController` : lecture seule, filtres par catégorie/date | 🟠 HAUTE | ⬜ |
-| 2.17.4 | Migrer `AuditLog.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ |
+| 2.17.1 | Migration `audit_logs` : `id`, `user_id` (FK nullable), `action`, `details`, `category`, `ip_address`, `created_at` | 🟠 HAUTE | ✅ Migration créée |
+| 2.17.2 | Créer un `AuditService` Laravel (appelé dans les controllers via Observer ou manuellement) | 🟠 HAUTE | ✅ `AuditService.php` + `NotificationService.php` créés |
+| 2.17.3 | Créer `AuditLogController` : lecture seule, filtres par catégorie/date | 🟠 HAUTE | ✅ `AuditLogController.php` créé |
+| 2.17.4 | Migrer `AuditLog.tsx` pour consommer l'API | 🟠 HAUTE | ⬜ Phase 4 |
 
 ### 2.18 — Nettoyage final localStorage (🔴 CRITIQUE)
 
 | # | Tâche | Priorité | Statut |
 |---|-------|----------|--------|
-| 2.18.1 | Supprimer tous les appels `localStorage.getItem/setItem` dans les 18 stores une fois migrés | 🔴 CRITIQUE | ⬜ |
-| 2.18.2 | Supprimer les fonctions `initialize*()` de seed côté frontend (remplacées par `DatabaseSeeder` Laravel) | 🔴 CRITIQUE | ⬜ |
-| 2.18.3 | Vérifier qu'aucune donnée sensible ne reste en localStorage (token d'auth, infos user, notes, paiements) | 🔴 CRITIQUE | ⬜ |
-| 2.18.4 | Mettre en place React Query ou SWR pour le cache côté client (remplacement du cache localStorage) | 🟡 MOYENNE | ⬜ |
+| 2.18.1 | Supprimer tous les appels `localStorage.getItem/setItem` dans les 18 stores une fois migrés | 🔴 CRITIQUE | ⬜ Phase 4 |
+| 2.18.2 | Supprimer les fonctions `initialize*()` de seed côté frontend (remplacées par `DatabaseSeeder` Laravel) | 🔴 CRITIQUE | ⬜ Phase 4 |
+| 2.18.3 | Vérifier qu'aucune donnée sensible ne reste en localStorage (token d'auth, infos user, notes, paiements) | 🔴 CRITIQUE | ⬜ Phase 4 |
+| 2.18.4 | Mettre en place React Query ou SWR pour le cache côté client (remplacement du cache localStorage) | 🟡 MOYENNE | ⬜ Phase 4 (tâche 4.3) |
 
 
 ---

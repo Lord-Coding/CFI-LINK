@@ -11,11 +11,8 @@ import {
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
 import { isAdmin, isStaff, isStudent } from '../lib/store';
-import {
-    getDocumentRequests, getStudentRequests,
-    createDocumentRequest, processRequest,
-    DOC_TYPE_LABELS, DOC_STATUS_LABELS, DocumentRequest,
-} from '../lib/documents-store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { documentService, type ApiDocumentRequest } from '../lib/services/documentService';
 import {
     generateDocument, printDocument, downloadDocumentAsPdf, DocTemplateType,
 } from '../lib/document-templates';
@@ -23,7 +20,16 @@ import { Badge, Card, CardContent, CardHeader, CardTitle } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Documents.css';
 
-/* ── Données mockées des documents disponibles ── */
+type DocumentRequest = ApiDocumentRequest;
+const DOC_TYPE_LABELS: Record<string, string> = {
+    attestation_inscription: "Attestation d'inscription",
+    releve_notes: 'Relevé de notes',
+    certificat_scolarite: 'Certificat de scolarité',
+    attestation_reussite: 'Attestation de réussite',
+};
+const DOC_STATUS_LABELS: Record<string, string> = {
+    pending: 'En attente', approved: 'Approuvée', rejected: 'Rejetée', ready: 'Prête',
+};
 interface Doc {
     id:     string;
     title:  string;
@@ -141,15 +147,13 @@ function printAttestation(user: ReturnType<typeof useAuth>['user']) {
 const Documents: React.FC = () => {
     const { user } = useAuth();
 
+    const qc = useQueryClient();
     const [mainTab,       setMainTab]       = useState<MainTab>('docs');
     const [docFilter,     setDocFilter]     = useState<DocFilter>('all');
     const [search,        setSearch]        = useState('');
     const [viewDoc,       setViewDoc]       = useState<Doc | null>(null);
     const [requestOpen,   setRequestOpen]   = useState(false);
     const [reqType,       setReqType]       = useState<DocumentRequest['type']>('attestation_inscription');
-    const [refreshKey,    setRefreshKey]    = useState(0);
-
-    /* Aperçu document généré */
     const [previewHtml,   setPreviewHtml]   = useState('');
     const [previewTitle,  setPreviewTitle]  = useState('');
     const [previewOpen,   setPreviewOpen]   = useState(false);
@@ -159,43 +163,53 @@ const Documents: React.FC = () => {
     const canManage  = isAdmin(user.role) || isStaff(user.role);
     const canRequest = isStudent(user.role);
 
+    const { data: requests = [] } = useQuery({
+        queryKey: ['document-requests'],
+        queryFn: documentService.list,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: documentService.create,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['document-requests'] }); setRequestOpen(false); },
+    });
+
+    const processMutation = useMutation({
+        mutationFn: ({ id, status, notes }: { id: number; status: string; notes?: string }) =>
+            documentService.process(id, status, notes),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['document-requests'] }),
+    });
+
+    const pendingCount = requests.filter(r => r.status === 'pending').length;
+
     const openPreview = (type: DocTemplateType, title: string) => {
-        const html = generateDocument(type, user);
-        setPreviewHtml(html);
-        setPreviewTitle(title);
-        setPreviewOpen(true);
+        const html = generateDocument(type, user as Parameters<typeof generateDocument>[1]);
+        setPreviewHtml(html); setPreviewTitle(title); setPreviewOpen(true);
     };
 
-    /* Documents */
+    const handleRequest = (e: React.FormEvent) => {
+        e.preventDefault();
+        createMutation.mutate(reqType);
+    };
+
     const q = search.toLowerCase().trim();
     const filteredDocs = MOCK_DOCS.filter(d => {
         if (q && !d.title.toLowerCase().includes(q)) return false;
         if (docFilter !== 'all' && d.type !== docFilter) return false;
         return true;
     });
-
-    /* Demandes */
-    const requests      = canManage ? getDocumentRequests() : getStudentRequests(user.id);
-    const pendingCount  = requests.filter(r => r.status === 'pending').length;
-
-    const handleRequest = (e: React.FormEvent) => {
-        e.preventDefault();
-        createDocumentRequest({
-            student_id:   user.id,
-            student_name: user.nom_complet,
-            type:         reqType,
-        });
-        setRefreshKey(k => k + 1);
-        setRequestOpen(false);
-    };
-
-    const DOC_TABS: { value: DocFilter; label: string }[] = [
         { value: 'all',           label: 'Tous'          },
         { value: 'attestation',   label: 'Attestations'  },
         { value: 'releve',        label: 'Relevés'       },
         { value: 'certificat',    label: 'Certificats'   },
         { value: 'administratif', label: 'Administratifs'},
     ];
+
+    const q = search.toLowerCase().trim();
+    const filteredDocs = MOCK_DOCS.filter(d => {
+        if (q && !d.title.toLowerCase().includes(q)) return false;
+        if (docFilter !== 'all' && d.type !== docFilter) return false;
+        return true;
+    });
 
     return (
         <DashboardLayout>
@@ -416,10 +430,7 @@ const Documents: React.FC = () => {
                                                                         size="small"
                                                                         color="success"
                                                                         className="dc-req-action-btn"
-                                                                        onClick={() => {
-                                                                            processRequest(r.id, 'ready', user.nom_complet);
-                                                                            setRefreshKey(k => k + 1);
-                                                                        }}
+                                                                        onClick={() => processMutation.mutate({ id: r.id as number, status: 'ready' })}
                                                                     >
                                                                         <IonIcon slot="start" icon={checkmarkCircleOutline} />
                                                                         Prêt
@@ -429,10 +440,7 @@ const Documents: React.FC = () => {
                                                                         size="small"
                                                                         color="danger"
                                                                         className="dc-req-action-btn"
-                                                                        onClick={() => {
-                                                                            processRequest(r.id, 'rejected', user.nom_complet);
-                                                                            setRefreshKey(k => k + 1);
-                                                                        }}
+                                                                        onClick={() => processMutation.mutate({ id: r.id as number, status: 'rejected' })}
                                                                     >
                                                                         <IonIcon slot="start" icon={closeCircleOutline} />
                                                                         Refuser

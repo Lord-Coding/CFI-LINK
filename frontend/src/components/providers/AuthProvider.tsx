@@ -1,83 +1,79 @@
 import { ReactNode, useEffect, useState } from "react";
-import { initializeAnnouncements } from "../../lib/announcements-store";
-import { initializeAttendance } from "../../lib/attendance-store";
-import { initializeDocumentRequests } from "../../lib/documents-store";
-import { initializeEvents } from "../../lib/events-store";
-import { initializeMessages } from "../../lib/messages-store";
-import { initializeSchedules } from "../../lib/schedule-store";
-import { initializeSemesters } from "../../lib/semester-store";
-import { getCurrentUser, getUserById, getUsers, initializeStore, isStudent, setCurrentUser, User, login as storeLogin, logout as storeLogout } from "../../lib/store";
-import { initializeAuditLog } from "../../lib/audit-store";
-import { initializeForum } from "../../lib/forum-store";
-import { initializeCommunity } from "../../lib/community-store";
-import { initializeLibrary } from "../../lib/library-store";
-import { initializeNotifications } from "../../lib/notifications";
 import { AuthContext } from "../../contexts/authContext";
+import { authService, type ApiUser } from "../../lib/services/authService";
+import type { User } from "../../lib/store";
+
+/** Adapte ApiUser (backend) → User (frontend) pour maintenir la compatibilité. */
+function adapt(u: ApiUser): User {
+    return {
+        id:              String(u.id),
+        email:           u.email,
+        password:        '',            // jamais exposé côté client
+        nom_complet:     u.nom_complet,
+        role:            u.role as User['role'],
+        is_active:       u.is_active,
+        payment_blocked: u.payment_blocked,
+        filiere:         (u.filiere ?? undefined) as User['filiere'],
+        annee:           (u.annee   ?? undefined) as User['annee'],
+        option:          (u.option_lic ?? undefined) as User['option'],
+        specialite:      u.specialite,
+        grade:           u.grade,
+        service:         u.service,
+        staff_role:      (u.staff_role ?? undefined) as User['staff_role'],
+        created_at:      new Date().toISOString(),
+    };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [user,    setUser]    = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // Restaurer la session depuis le token stocké
     useEffect(() => {
-        const init = async () => {
-            await initializeStore(); // async : hashe les mots de passe du seed + migration
-            initializeNotifications();
-            initializeEvents();
-            initializeAnnouncements();
-            initializeForum();
-            initializeCommunity();
-            initializeAuditLog();
-            initializeLibrary();
-            initializeSchedules();
-            initializeSemesters();
-            initializeDocumentRequests();
-            initializeMessages();
+        const token = sessionStorage.getItem('cfi_token');
+        if (!token) { setLoading(false); return; }
 
-            const users = getUsers();
-            const students = users.filter(u => isStudent(u.role) && u.is_active);
-            const studentData = students.map(s => ({ id: s.id, name: s.nom_complet }));
-            const allCourses = [
-                { id: "lic-l1-1", name: "Introduction à l'informatique" },
-                { id: "lic-l2-1", name: "Algorithmique avancée" },
-                { id: "lic-l2-2", name: "Base de données" },
-            ];
-            initializeAttendance(studentData, allCourses);
-
-            setUser(getCurrentUser());
-            setLoading(false);
-        };
-        init();
+        authService.me()
+            .then(apiUser => setUser(adapt(apiUser)))
+            .catch(() => sessionStorage.removeItem('cfi_token'))
+            .finally(() => setLoading(false));
     }, []);
 
     const login = async (email: string, password: string) => {
-        const result = await storeLogin(email, password);
-        if (result.success && result.user) {
-            setUser(result.user);
-        } else if (result.error === "PAYMENT_BLOCKED" && result.user) {
-            setUser(result.user);
-        }
-        return { success: result.success, error: result.error };
-    }
+        try {
+            const res = await authService.login(email, password);
 
-    const logout = () => {
-        storeLogout();
+            if (res.message === 'PAYMENT_BLOCKED') {
+                setUser(adapt(res.user));
+                return { success: true, error: 'PAYMENT_BLOCKED' };
+            }
+
+            setUser(adapt(res.user));
+            return { success: true };
+        } catch (err: unknown) {
+            const status  = (err as { response?: { status: number; data?: { message?: string } } })?.response?.status;
+            const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+
+            if (status === 403) return { success: false, error: message ?? "Compte inactif." };
+            return { success: false, error: message ?? "Email ou mot de passe incorrect." };
+        }
+    };
+
+    const logout = async () => {
+        await authService.logout().catch(() => {});
         setUser(null);
     };
 
-    const refreshUser = () => {
-        const current = getCurrentUser();
-        if (current) {
-            const fresh = getUserById(current.id);
-            if (fresh) {
-                setCurrentUser(fresh);
-                setUser(fresh);
-            }
-        }
+    const refreshUser = async () => {
+        try {
+            const apiUser = await authService.me();
+            setUser(adapt(apiUser));
+        } catch { /* silencieux */ }
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+        <AuthContext.Provider value={{ user, loading, login, logout: () => { void logout(); }, refreshUser: () => { void refreshUser(); } }}>
             {children}
         </AuthContext.Provider>
-    )
+    );
 }

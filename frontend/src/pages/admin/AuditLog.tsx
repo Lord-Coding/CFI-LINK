@@ -9,6 +9,8 @@ import {
     getAuditLog, getAuditByCategory,
     CATEGORY_LABELS, AuditEntry,
 } from '../../lib/audit-store';
+import { useQuery } from '@tanstack/react-query';
+import { auditService } from '../../lib/services/auditService';
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '../../components';
 import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/AuditLog.css';
@@ -64,22 +66,23 @@ const AuditLog: React.FC = () => {
     const [search,   setSearch]   = useState('');
     const [category, setCategory] = useState<CategoryKey>('all');
 
-    const allEntries = getAuditLog(200);
+    const params: Record<string, string> = {};
+    if (category !== 'all') params.category = category;
+    if (search.trim()) params.search = search.trim();
 
-    const filtered = allEntries.filter(e => {
-        const matchCat = category === 'all' || e.category === category;
-        if (!matchCat) return false;
-        if (!search.trim()) return true;
-        const q = search.toLowerCase();
-        return (
-            e.action.toLowerCase().includes(q)    ||
-            e.user_name.toLowerCase().includes(q) ||
-            e.details.toLowerCase().includes(q)
-        );
+    const { data: allEntries = [] } = useQuery({
+        queryKey: ['audit-logs', category, search],
+        queryFn: () => auditService.list(params),
     });
 
-    /* Stats par catégorie */
-    const countBy = (cat: string) => allEntries.filter(e => e.category === cat).length;
+    // Fallback local pour les stats par catégorie
+    const { data: allForStats = [] } = useQuery({
+        queryKey: ['audit-logs', 'all'],
+        queryFn: () => auditService.list(),
+    });
+
+    const filtered = allEntries;
+    const countBy = (cat: string) => allForStats.filter((e: AuditEntry) => e.category === cat).length;
 
     return (
         <DashboardLayout>
@@ -169,7 +172,7 @@ const AuditLog: React.FC = () => {
                                             </td>
                                         </tr>
                                     ) : filtered.map(e => {
-                                        const { date, time } = formatDate(e.timestamp);
+                                        const { date, time } = formatDate(e.created_at);
                                         return (
                                             <tr key={e.id} className="al-tr">
                                                 <td className="al-td al-td--date">
@@ -184,9 +187,9 @@ const AuditLog: React.FC = () => {
                                                 <td className="al-td al-td--user">
                                                     <div className="al-user-cell">
                                                         <div className="al-user-avatar">
-                                                            {e.user_name.charAt(0).toUpperCase()}
+                                                            {(e.user?.nom_complet ?? '?').charAt(0).toUpperCase()}
                                                         </div>
-                                                        <span className="al-user-name">{e.user_name}</span>
+                                                        <span className="al-user-name">{e.user?.nom_complet ?? '—'}</span>
                                                     </div>
                                                 </td>
                                                 <td className="al-td al-td--action">
@@ -196,10 +199,7 @@ const AuditLog: React.FC = () => {
                                                     <span className="al-details">{e.details}</span>
                                                 </td>
                                                 <td className="al-td al-td--cat">
-                                                    <Badge
-                                                        variant={CATEGORY_BADGE[e.category] ?? 'secondary'}
-                                                        size="sm"
-                                                    >
+                                                    <Badge variant={CATEGORY_BADGE[e.category] ?? 'secondary'} size="sm">
                                                         <IonIcon icon={CATEGORY_ICONS[e.category] ?? shieldOutline} />
                                                         {CATEGORY_LABELS[e.category]}
                                                     </Badge>
