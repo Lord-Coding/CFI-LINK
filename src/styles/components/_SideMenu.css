@@ -36,6 +36,14 @@
   color: #fff;
 }
 
+/* Logo image dans le brand */
+.menu-brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
 .menu-brand-text {
   display: flex;
   flex-direction: column;

@@ -10,7 +10,6 @@ import {
   IonMenu,
   IonMenuToggle,
   logOutOutline,
-  schoolOutline,
 } from "../lib/ionic";
 import { useHistory, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -47,7 +46,7 @@ const SideMenu: React.FC = () => {
     <IonMenu contentId="main-content" type="overlay" className="dashboard-menu">
       <div className="menu-brand">
         <div className="menu-brand-logo">
-          <img src="../../public/favicon.png" alt="logo" />
+          <img src="/logo.png" alt="CFI-LINK logo" />
         </div>
         <div className="menu-brand-text">
           <span className="menu-brand-name">CFI-LINK</span>
