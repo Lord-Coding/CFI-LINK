@@ -161,18 +161,20 @@ const SideMenu: React.FC = () => {
       <div className="menu-footer">
         <IonItem
           className="menu-logout-item"
-          button
+          button={true}
           lines="none"
           detail={false}
           onClick={handleLogout}
         >
-          <IonIcon
-            slot="start"
-            icon={logOutOutline}
-            color="light"
-            className="menu-logout-icon"
-          />
-          <IonLabel color="light">Déconnexion</IonLabel>
+          <IonLabel>
+            <IonIcon
+              slot="start"
+              icon={logOutOutline}
+              color="danger"
+              className="menu-logout-icon"
+            />
+            Déconnexion
+          </IonLabel>
         </IonItem>
       </div>
     </IonMenu>

@@ -33,9 +33,8 @@ const Landing: React.FC = () => {
           <div className="landing-nav-inner">
             <Link to="/" className="landing-nav-brand">
               <div className="landing-nav-logo">
-                <IonIcon icon={schoolOutline}></IonIcon>
+                <img src="../../public/logo.png" alt="logo" />
               </div>
-              <span className="landing-nav-name">CFI-LINK</span>
             </Link>
 
             <div className="landing-nav-links">
@@ -77,13 +76,13 @@ const Landing: React.FC = () => {
             </p>
             <div className="landing-hero-ctas">
               <Link to="/login">
-                <IonButton expand="block" size="large"  className="ctas-btn">
+                <IonButton expand="block" size="large" className="ctas-btn">
                   <IonIcon slot="end" icon={arrowForwardOutline}></IonIcon>
                   Commencer maintenant
                 </IonButton>
               </Link>
               <a href="#features">
-                <IonButton fill="outline" size="large" color="light" className="ctas-btn" style={{ fontWeight: "bold" }}>
+                <IonButton fill="outline" size="large" className="ctas-btn" style={{ fontWeight: "bold" }}>
                   Découvrir la plateforme
                 </IonButton>
               </a>

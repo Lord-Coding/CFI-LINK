@@ -114,7 +114,7 @@ const Login: React.FC = () => {
                                 <div className="login-hero-overlay"></div>
                                 <div className="login-hero-body">
                                     <div className="login-hero-logo">
-                                        <IonIcon icon={schoolOutline}></IonIcon>
+                                        <img src="../../../public/favicon.png" alt="logo" />
                                     </div>
                                     <h2 className="login-hero-title">Bienvenu sur CFI-LINK</h2>
                                     <p className="login-hero-sub">La plateforme académique du CFI-CIRAS. Connectez-vous pour accéder à vos cours, notes et ressources.</p>

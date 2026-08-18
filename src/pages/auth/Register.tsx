@@ -94,7 +94,7 @@ const Register: React.FC = () => {
                 <div className="register-hero-overlay" />
                 <div className="register-hero-body">
                   <div className="register-hero-logo">
-                    <IonIcon icon={schoolOutline} />
+                    <img src="../../../public/favicon.png" alt="logo" />
                   </div>
                   <h2 className="register-hero-title">Rejoignez CFI-LINK</h2>
                   <p className="register-hero-sub">
