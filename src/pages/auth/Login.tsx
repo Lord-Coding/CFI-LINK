@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { Link, useHistory } from 'react-router-dom';
 import { IonButton, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonInputPasswordToggle, IonLabel, IonPage, IonRow, IonSpinner, lockClosedOutline, mailOutline, schoolOutline, arrowBackOutline } from '../../lib/ionic';
 import { Alert } from '../../components';
+import LogoUrl from "../../public/favicon.png";
 import '../../styles/LoginPage.css';
 
 const QUICK_LOGINS = [
@@ -114,7 +115,7 @@ const Login: React.FC = () => {
                                 <div className="login-hero-overlay"></div>
                                 <div className="login-hero-body">
                                     <div className="login-hero-logo">
-                                        <img src="../../../public/favicon.png" alt="logo" />
+                                        <img src={LogoUrl} alt="logo" />
                                     </div>
                                     <h2 className="login-hero-title">Bienvenu sur CFI-LINK</h2>
                                     <p className="login-hero-sub">La plateforme académique du CFI-CIRAS. Connectez-vous pour accéder à vos cours, notes et ressources.</p>

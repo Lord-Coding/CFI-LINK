@@ -14,16 +14,14 @@ import {
 import { useHistory, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { getNavModules } from "../constants/menu-items";
-import { ROLE_LABELS } from "../lib/store";
+import LogoUrl from "../../public/favicon.png";
 import "../styles/components/_SideMenu.css";
+
 
 const SideMenu: React.FC = () => {
   const location = useLocation();
   const history = useHistory();
   const { user, logout } = useAuth();
-
-  const avatarColor = localStorage.getItem("cfi_avatar_color") || "#3880ff";
-  const initials = user?.nom_complet.charAt(0).toUpperCase();
 
   const modules = useMemo(() => (user ? getNavModules(user.role, user.staff_role) : []), [user]);
   const activeModuleId = useMemo(() => {
@@ -46,7 +44,7 @@ const SideMenu: React.FC = () => {
     <IonMenu contentId="main-content" type="overlay" className="dashboard-menu">
       <div className="menu-brand">
         <div className="menu-brand-logo">
-          <img src="/logo.png" alt="CFI-LINK logo" />
+          <img src={LogoUrl} alt="CFI-LINK_logo" />
         </div>
         <div className="menu-brand-text">
           <span className="menu-brand-name">CFI-LINK</span>

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { arrowForwardOutline, bookOutline, desktopOutline, documentTextOutline, IonButton, IonCol, IonContent, IonGrid, IonIcon, IonPage, IonRow, moonOutline, peopleOutline, ribbonOutline, schoolOutline, shieldOutline, sunnyOutline } from '../lib/ionic';
 import { Card, CardContent } from '../components';
 import { useTheme } from '../hooks/useTheme';
+import LogoHeader from "../../public/logo.png";
+import LogoUrl from "../../public/favicon.png";
 import '../styles/LandingPage.css';
 
 
@@ -33,7 +35,7 @@ const Landing: React.FC = () => {
           <div className="landing-nav-inner">
             <Link to="/" className="landing-nav-brand">
               <div className="landing-nav-logo">
-                <img src="../../public/logo.png" alt="logo" />
+                <img src={LogoHeader} alt="logo" />
               </div>
             </Link>
 
@@ -179,7 +181,7 @@ const Landing: React.FC = () => {
         <footer id="about" className="landing-footer">
           <div className="landing-container landing-footer-inner">
             <div className="landing-footer-brand">
-              <div className="landing-footer-logo"><IonIcon icon={schoolOutline} /></div>
+              <div className="landing-footer-logo"><img src={LogoUrl} alt="logo"/></div>
               <div>
                 <h3 className="landing-footer-name">CFI-LINK</h3>
                 <p className="landing-footer-sub">CFI-CIRAS — Plateforme académique</p>
