@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { Annee, ConcoursCode, createUser, Filiere, markConcoursCodeUsed, markValidationCodeUsed, OptionLIC, validateConcoursCode, validateExternalCode, ValidationCode } from '../../lib/store';
 import { arrowBackOutline, checkmarkCircleOutline, IonButton, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonInputPasswordToggle, IonItem, IonLabel, IonPage, IonRow, IonSelect, IonSelectOption, IonSpinner, schoolOutline } from '../../lib/ionic';
-import { Card, CardContent, Alert } from '../../../components';
-import LogoUrl from "../../public/favicon.png";
+import { Card, CardContent, Alert } from '../../components';
+import LogoUrl from "../../../public/favicon.png";
 import '../../styles/RegisterPage.css';
 
 type StudentType = "concours" | "externe";
