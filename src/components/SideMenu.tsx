@@ -47,7 +47,7 @@ const SideMenu: React.FC = () => {
     <IonMenu contentId="main-content" type="overlay" className="dashboard-menu">
       <div className="menu-brand">
         <div className="menu-brand-logo">
-          <IonIcon icon={schoolOutline} />
+          <img src="../../public/favicon.png" alt="logo" />
         </div>
         <div className="menu-brand-text">
           <span className="menu-brand-name">CFI-LINK</span>
@@ -55,7 +55,7 @@ const SideMenu: React.FC = () => {
         </div>
       </div>
 
-      <IonContent className="menu-content">
+      <IonContent className="menu-content" fullscreen>
         <IonAccordionGroup
           className="menu-accordion-group"
           value={activeModuleId}
