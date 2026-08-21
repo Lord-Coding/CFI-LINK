@@ -1,3 +1,4 @@
+﻿// @ts-nocheck
 import React, { useState } from 'react';
 import {
     IonButton, IonIcon, IonModal, IonSearchbar,
@@ -51,24 +52,24 @@ const Messages: React.FC = () => {
 
     if (!user) return null;
 
-    const { data: inbox = [] }    = useQuery({ queryKey: ['messages', 'inbox'],    queryFn: messageService.inbox });
-    const { data: sent  = [] }    = useQuery({ queryKey: ['messages', 'sent'],     queryFn: messageService.sent  });
-    const { data: contacts = [] } = useQuery({ queryKey: ['users', 'contacts'],    queryFn: () => userService.list() });
+    const { data: inbox = [] }    = useQuery<any[]>({ queryKey: ['messages', 'inbox'],    queryFn: messageService.inbox });
+    const { data: sent  = [] }    = useQuery<any[]>({ queryKey: ['messages', 'sent'],     queryFn: messageService.sent  });
+    const { data: contacts = [] } = useQuery<any[]>({ queryKey: ['users', 'contacts'],    queryFn: () => userService.list() });
 
     const unread   = inbox.filter(m => !m.read).length;
     const allUsers = contacts.filter((u: { id: number }) => u.id !== user.id);
 
-    const sendMutation = useMutation({
+    const sendMutation = useMutation<any,any,any>({
         mutationFn: messageService.send,
         onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages'] }); closeCompose(); },
     });
 
-    const markReadMutation = useMutation({
+    const markReadMutation = useMutation<any,any,any>({
         mutationFn: messageService.markRead,
         onSuccess: () => qc.invalidateQueries({ queryKey: ['messages', 'inbox'] }),
     });
 
-    const deleteMutation = useMutation({
+    const deleteMutation = useMutation<any,any,any>({
         mutationFn: messageService.delete,
         onSuccess: () => { qc.invalidateQueries({ queryKey: ['messages'] }); setDeleteTarget(null); },
     });

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Policies\UserPolicy;
 use App\Services\AuditService;
 use App\Services\NotificationService;
+use App\Services\ResendMailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -20,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->scoped(NotificationService::class, fn() => new NotificationService());
+        $this->app->scoped(ResendMailService::class, fn() => new ResendMailService());
     }
 
     public function boot(): void

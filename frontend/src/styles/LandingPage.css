@@ -1,15 +1,35 @@
-/* Landing.css */
+﻿/* Landing.css */
 
 .landing-content { --background: var(--ion-background-color, #ffffff); }
 
 /* ════════════════ NAVBAR ════════════════ */
 .landing-nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(var(--ion-background-color-rgb, 255,255,255), 0.88);
+  /* Flottante par-dessus le hero */
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  box-shadow: none;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Une fois scrollé : redevient sticky et opaque */
+.landing-nav--scrolled {
+  position: sticky;
+  background: rgba(var(--ion-background-color-rgb, 255,255,255), 0.92);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--ion-color-light-shade);
   box-shadow: 0 1px 8px rgba(0,0,0,0.06);
 }
+
+/* Texte blanc sur le hero */
+.landing-nav:not(.landing-nav--scrolled) .landing-nav-name,
+.landing-nav:not(.landing-nav--scrolled) .landing-nav-link {
+  color: rgba(255,255,255,0.92);
+}
+.landing-nav:not(.landing-nav--scrolled) .landing-nav-link:hover { color: #fff; }
+.landing-nav:not(.landing-nav--scrolled) .action-btn { --color: rgba(255,255,255,0.92); }
 
 .landing-nav-inner {
   max-width: 1200px; margin: 0 auto;
@@ -22,12 +42,12 @@
   text-decoration: none; flex-shrink: 0;
 }
 .landing-nav-logo {
-  width: 38px; height: 38px; border-radius: 11px;
-  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  width: 120px; border-radius: 11px;
+  background: transparent;
   display: flex; align-items: center; justify-content: center;
 }
-.landing-nav-logo ion-icon { font-size: 1.3rem; color: #fff; }
-.landing-nav-name { font-size: 1.2rem; font-weight: 700; color: var(--ion-color-dark); }
+.landing-nav-logo ion-icon { font-size: var(--cfi-fs-lg); color: #fff; }
+.landing-nav-name { font-size: var(--cfi-fs-lg); font-weight: 700; color: var(--ion-color-dark); }
 
 .landing-nav-links {
   display: none; align-items: center; gap: 2rem; flex: 1;
@@ -35,14 +55,14 @@
 @media (min-width: 768px) { .landing-nav-links { display: flex; } }
 
 .landing-nav-link {
-  font-size: 1.2rem; font-weight: 600;
+  font-size: var(--cfi-fs-lg); font-weight: 600;
   color: var(--ion-color-medium); text-decoration: none; transition: color 0.18s;
 }
 .action-btn {
   height: 2.25rem;
   --border-radius: 0.5rem;
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: var(--cfi-fs-lg);
   text-transform: none;
 }
 .landing-nav-link:hover { color: var(--ion-color-dark); }
@@ -54,17 +74,64 @@
 /* ════════════════ HERO ════════════════ */
 .landing-hero {
   position: relative;
-  min-height: 88vh;
+  min-height: 100vh;
   background: linear-gradient(180deg, transparent 0%, var(--ion-color-primary) 100%);
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center; overflow: hidden;
+  align-items: center; justify-content: center;
+  /* PAS de overflow:hidden — laisse la wave dépasser */
+  overflow: visible;
 }
 
 .landing-hero-bg {
   position: absolute; inset: 0;
   background-image: url('../assets/hero-campus.jpg');
-  background-size: cover; background-position: center; 
+  background-size: cover; background-position: center;
   opacity: 0.45;
+  /* clippe l'image sans toucher aux enfants */
+  clip-path: inset(0);
+}
+
+/* ── Wave animée ── */
+.landing-hero-wave {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 130px;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.landing-wave-svg {
+  position: absolute;
+  bottom: 0;
+  width: 200%;       /* 2× la largeur pour permettre le défilement */
+  height: 100%;
+}
+
+/* Couche arrière : plus lente, plus transparente */
+.landing-wave-svg--back {
+  animation: waveMove 9s linear infinite;
+  opacity: 0.45;
+}
+
+/* Couche avant : plus rapide, pleine opacité */
+.landing-wave-svg--front {
+  animation: waveMove 6s linear infinite reverse;
+  opacity: 1;
+}
+
+.landing-wave-path {
+  fill: var(--ion-color-light);
+}
+
+@keyframes waveMove {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* défile de la moitié = 1× la largeur réelle */
+}
+
+/* Combler le pixel de jointure entre hero et section suivante */
+.landing-hero + .landing-section {
+  margin-top: -2px;
 }
 
 .landing-hero-body {
@@ -76,13 +143,13 @@
   display: inline-flex; align-items: center; gap: 0.5rem;
   padding: 0.45rem 1rem; border-radius: 20px;
   background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
-  color: rgba(255,255,255,0.9); font-size: 0.82rem; font-weight: 500;
+  color: rgba(255,255,255,0.9); font-size: var(--cfi-fs-sm); font-weight: 500;
   margin-bottom: 1.75rem; backdrop-filter: blur(4px);
 }
-.landing-hero-badge ion-icon { font-size: 1rem; }
+.landing-hero-badge ion-icon { font-size: var(--cfi-fs-base); }
 
 .landing-hero-title {
-  font-size: 3.75rem; font-weight: 800; color: #fff;
+  font-size: clamp(2rem, 3vw + 1rem, 3.75rem); font-weight: 800; color: #fff;
   line-height: 1.15; margin: 0 0 1.25rem; letter-spacing: -0.02em;
 }
 .landing-hero-gradient {
@@ -91,7 +158,7 @@
 }
 
 .landing-hero-sub {
-  font-size: 1.5rem !important; color: rgba(0,0,0, 0.8); line-height: 1.7;
+  font-size: var(--cfi-fs-xl) !important; color: var(--ion-color-dark-shade); line-height: 1.7;
   margin: 0 auto 2.5rem; max-width: 560px; font-weight: bold;
 }
 
@@ -114,10 +181,10 @@
   height: 3rem;
   font-weight: 800;
   text-transform: none;
+  --border-radius: 1rem;
+  color: #fff;
+  --border-color: #fff;
 }
-
-.landing-hero-wave { position: absolute; bottom: -1px; left: 0; right: 0; }
-.landing-hero-wave svg { display: block; width: 100%; height: 80px; }
 
 /* ════════════════ SECTIONS ════════════════ */
 .landing-section { padding: 5rem 0; background: var(--ion-background-color, #fff); }
@@ -128,11 +195,11 @@
 .landing-section-header { text-align: center; margin-bottom: 3rem; }
 
 .landing-section-title {
-  font-size: 3rem; font-weight: 700; color: var(--ion-color-dark);
+  font-size: var(--cfi-fs-3xl); font-weight: 700; color: var(--ion-color-dark);
   margin: 0 0 0.75rem; letter-spacing: -0.01em;
 }
 .landing-section-sub {
-  font-size: 1.5rem; color: var(--ion-color-medium);
+  font-size: var(--cfi-fs-xl); color: var(--ion-color-medium);
   margin: 0 auto; max-width: 560px; line-height: 1.6;
 }
 
@@ -156,10 +223,10 @@
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 1rem; transition: background 0.2s;
 }
-.landing-feature-icon ion-icon { font-size: 2rem; color: var(--ion-color-primary); transition: color 0.2s; }
+.landing-feature-icon ion-icon { font-size: var(--cfi-fs-3xl); color: var(--ion-color-primary); transition: color 0.2s; }
 
-.landing-feature-title { font-size: 1.3rem !important; font-weight: 600 !important; color: var(--ion-color-dark); margin: 0 0 0.5rem !important; }
-.landing-feature-desc  { font-size: 1.1rem !important; color: var(--ion-color-medium); line-height: 1.6 !important; margin: 0 !important; }
+.landing-feature-title { font-size: var(--cfi-fs-lg) !important; font-weight: 600 !important; color: var(--ion-color-dark); margin: 0 0 0.5rem !important; }
+.landing-feature-desc  { font-size: var(--cfi-fs-md) !important; color: var(--ion-color-medium); line-height: 1.6 !important; margin: 0 !important; }
 
 /* ── Filière card — sur base Card UI CFI ── */
 .landing-filiere-card { margin: 0.375rem !important; }
@@ -168,18 +235,18 @@
   width: 60px; height: 60px; border-radius: 16px;
   display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;
 }
-.landing-filiere-icon ion-icon { font-size: 2rem !important; color: #fff; }
+.landing-filiere-icon ion-icon { font-size: var(--cfi-fs-3xl) !important; color: #fff; }
 .landing-filiere-icon--blue  { background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade)); }
 .landing-filiere-icon--green { background: linear-gradient(135deg, var(--ion-color-success), #1ea85b); }
 
-.landing-filiere-title { font-size: 1.6rem !important; font-weight: 700 !important; color: var(--ion-color-dark); margin: 0 0 0.5rem !important; }
-.landing-filiere-desc  { font-size: 1.2rem !important; color: var(--ion-color-medium); margin: 0 0 1rem !important; line-height: 1.5 !important; }
+.landing-filiere-title { font-size: var(--cfi-fs-2xl) !important; font-weight: 700 !important; color: var(--ion-color-dark); margin: 0 0 0.5rem !important; }
+.landing-filiere-desc  { font-size: var(--cfi-fs-lg) !important; color: var(--ion-color-medium); margin: 0 0 1rem !important; line-height: 1.5 !important; }
 
 .landing-filiere-list {
   list-style: none; margin: 0; padding: 0;
   display: flex; flex-direction: column; gap: 0.5rem;
 }
-.landing-filiere-list li { display: flex; align-items: center; gap: 0.6rem; font-size: 1.15rem !important; color: var(--ion-color-medium); }
+.landing-filiere-list li { display: flex; align-items: center; gap: 0.6rem; font-size: var(--cfi-fs-md) !important; color: var(--ion-color-medium); }
 .landing-filiere-list strong { color: var(--ion-color-dark); }
 
 .landing-filiere-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
@@ -203,7 +270,29 @@
   background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.landing-footer-logo ion-icon { font-size: 2rem !important; color: #fff; }
-.landing-footer-name { font-size: 1.25rem !important; font-weight: 700; color: #fff; margin: 0 0 0.2rem; }
-.landing-footer-sub  { font-size: 1rem !important; color: rgba(255,255,255,0.45); margin: 0; }
-.landing-footer-copy { font-size: 1rem !important; color: rgba(255,255,255,0.35); margin: 0; }
+.landing-footer-logo ion-icon { font-size: var(--cfi-fs-3xl) !important; color: #fff; }
+.landing-footer-name { font-size: var(--cfi-fs-lg) !important; font-weight: 700; color: #fff; margin: 0 0 0.2rem; }
+.landing-footer-sub  { font-size: var(--cfi-fs-base) !important; color: rgba(255,255,255,0.45); margin: 0; }
+.landing-footer-copy { font-size: var(--cfi-fs-base) !important; color: rgba(255,255,255,0.35); margin: 0; }
+
+/* ── Responsive patch (clamp + media) ── */
+.landing-hero-title {
+    font-size: clamp(1.8rem, 3vw + 1rem, 3.75rem) !important;
+}
+.landing-hero-subtitle,
+.landing-filiere-list li {
+    font-size: var(--cfi-fs-md) !important;
+}
+.landing-footer-name {
+    font-size: var(--cfi-fs-lg) !important;
+}
+.landing-features-grid,
+.landing-filieres-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+}
+@media (max-width: 575px) {
+    .landing-hero { padding: 3rem 1rem 2rem; text-align: center; }
+    .landing-hero-cta { flex-direction: column; align-items: center; }
+    .landing-nav  { padding: 0.75rem 1rem; }
+}
+

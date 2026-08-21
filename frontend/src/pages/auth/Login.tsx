@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth';
 import { Link, useHistory } from 'react-router-dom';
-import { IonButton, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonInputPasswordToggle, IonLabel, IonPage, IonRow, IonSpinner, lockClosedOutline, mailOutline, schoolOutline, arrowBackOutline } from '../../lib/ionic';
+import { IonButton, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonInputPasswordToggle, IonLabel, IonPage, IonRow, IonSpinner, lockClosedOutline, mailOutline, arrowBackOutline } from '../../lib/ionic';
 import { Alert } from '../../components';
 import '../../styles/LoginPage.css';
 
@@ -43,7 +43,7 @@ const Login: React.FC = () => {
                                 <div className="login-hero-overlay"></div>
                                 <div className="login-hero-body">
                                     <div className="login-hero-logo">
-                                        <IonIcon icon={schoolOutline}></IonIcon>
+                                        <img src="/favicon.png" alt="logo" />
                                     </div>
                                     <h2 className="login-hero-title">Bienvenu sur CFI-LINK</h2>
                                     <p className="login-hero-sub">La plateforme académique du CFI-CIRAS. Connectez-vous pour accéder à vos cours, notes et ressources.</p>
@@ -55,8 +55,8 @@ const Login: React.FC = () => {
                         <IonCol size="12" sizeLg="6" className="login-form-col">
                             <div className="login-form-wrapper">
                                 <Link to="/" className="login-mobile-logo">
-                                    <div className="login-mobile-logo-icon">
-                                        <IonIcon icon={schoolOutline}></IonIcon>
+                                    <div className="login-hero-logo">
+                                        <img src="/favicon.png" alt="logo" />
                                     </div>
                                     <span className="login-mobile-logo-text">CFI-LINK</span>
                                 </Link>
@@ -103,6 +103,12 @@ const Login: React.FC = () => {
                                     { error && (
                                         <Alert variant="danger" description={error} dismissible onDismiss={() => setError("")}></Alert>
                                     )}
+
+                                    <div className="login-forgot-wrap">
+                                        <Link to="/forgot-password" className="login-forgot-link">
+                                            Mot de passe oublié ?
+                                        </Link>
+                                    </div>
 
                                     <IonButton
                                         expand="block"

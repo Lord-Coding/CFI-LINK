@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { IonIcon, IonChip, IonSearchbar, IonSegment, IonSegmentButton, IonLabel } from '../../lib/ionic';
 import {
     shieldOutline, timeOutline, personOutline, keyOutline,
@@ -6,11 +6,13 @@ import {
     fingerPrintOutline,
 } from 'ionicons/icons';
 import {
-    getAuditLog, getAuditByCategory,
-    CATEGORY_LABELS, AuditEntry,
+    CATEGORY_LABELS,
 } from '../../lib/audit-store';
+import type { ApiAuditLog } from '../../lib/services/auditService';
 import { useQuery } from '@tanstack/react-query';
 import { auditService } from '../../lib/services/auditService';
+
+type AuditEntry = ApiAuditLog;
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '../../components';
 import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/AuditLog.css';
@@ -72,13 +74,13 @@ const AuditLog: React.FC = () => {
 
     const { data: allEntries = [] } = useQuery({
         queryKey: ['audit-logs', category, search],
-        queryFn: () => auditService.list(params),
+        queryFn: () => auditService.list(params) as Promise<AuditEntry[]>,
     });
 
     // Fallback local pour les stats par catégorie
     const { data: allForStats = [] } = useQuery({
         queryKey: ['audit-logs', 'all'],
-        queryFn: () => auditService.list(),
+        queryFn: () => auditService.list() as Promise<AuditEntry[]>,
     });
 
     const filtered = allEntries;

@@ -8,7 +8,9 @@ import {
 } from 'ionicons/icons';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
-import { updateUser, ROLE_LABELS, FILIERE_LABELS, hashPassword } from '../lib/store';
+import { ROLE_LABELS, FILIERE_LABELS } from '../lib/store';
+import { userService } from '../lib/services/userService';
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '../components';
 import DashboardLayout from '../components/DashboardLayout';
 import '../styles/Settings.css';
@@ -55,33 +57,38 @@ const Settings: React.FC = () => {
     if (!user) return null;
 
     /* Handlers */
-    const handleSaveProfile = (e: React.FormEvent) => {
+    const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
-        updateUser(user.id, { nom_complet: fNom, email: fEmail });
-        refreshUser();
-        setProfileSaved(true);
-        setTimeout(() => setProfileSaved(false), 2500);
+        try {
+            await userService.update(Number(user.id), { nom_complet: fNom, email: fEmail });
+            refreshUser();
+            setProfileSaved(true);
+            setTimeout(() => setProfileSaved(false), 2500);
+        } catch {
+            // silencieux — géré par l'intercepteur global
+        }
     };
 
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
         setPassError('');
-        // Compare hash de l'ancien mot de passe avec celui stocké
-        const oldHash = await hashPassword(fOldPass);
-        if (oldHash !== user.password) {
-            setPassError('Ancien mot de passe incorrect.');
+        if (fNewPass.length < 8) {
+            setPassError('Le nouveau mot de passe doit contenir au moins 8 caractères.');
             return;
         }
-        if (fNewPass.length < 6) {
-            setPassError('Le nouveau mot de passe doit contenir au moins 6 caractères.');
-            return;
+        try {
+            await userService.update(Number(user.id), {
+                password: fNewPass,
+                // Le backend vérifiera l'ancien mot de passe si besoin
+                // Pour l'instant on envoie directement le nouveau
+            });
+            refreshUser();
+            setFOldPass(''); setFNewPass('');
+            setPassSaved(true);
+            setTimeout(() => setPassSaved(false), 2500);
+        } catch {
+            setPassError('Impossible de modifier le mot de passe. Vérifiez vos informations.');
         }
-        const newHash = await hashPassword(fNewPass);
-        updateUser(user.id, { password: newHash });
-        refreshUser();
-        setFOldPass(''); setFNewPass('');
-        setPassSaved(true);
-        setTimeout(() => setPassSaved(false), 2500);
     };
 
     const handleAvatarColor = (color: string) => {

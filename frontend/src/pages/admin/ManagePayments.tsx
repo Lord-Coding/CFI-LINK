@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     IonButton, IonIcon, IonChip, IonSearchbar,
 } from '../../lib/ionic';
 import {
     cardOutline, lockClosedOutline, lockOpenOutline, copyOutline,
-    checkmarkOutline, addCircleOutline, peopleOutline, statsChartOutline,
+    checkmarkOutline, addCircleOutline, peopleOutline,
     alertCircleOutline, checkmarkCircleOutline, timeOutline,
 } from 'ionicons/icons';
 import { useAuth } from '../../hooks/useAuth';
@@ -15,13 +15,6 @@ import { Avatar, Badge, Card, CardContent, CardHeader, CardTitle } from '../../c
 import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/ManagePayment.css';
 
-const CopyButton: React.FC<{ code: string; copied: string | null; onCopy: (c: string) => void }> = ({ code, copied, onCopy }) => (
-    <IonButton fill="clear" size="small" color={copied === code ? 'success' : 'medium'} className="mp-copy-btn" onClick={() => onCopy(code)} title="Copier">
-        <IonIcon slot="icon-only" icon={copied === code ? checkmarkOutline : copyOutline} />
-    </IonButton>
-);
-
-/* ── Bouton copier ── */
 const CopyButton: React.FC<{ code: string; copied: string | null; onCopy: (c: string) => void }> = ({ code, copied, onCopy }) => (
     <IonButton
         fill="clear"
@@ -247,7 +240,7 @@ const ManagePayments: React.FC = () => {
                                                 <td className="mp-td mp-td--code">
                                                     <span className="mp-code">{c.code}</span>
                                                 </td>
-                                                <td className="mp-td">{c.student_name}</td>
+                                                <td className="mp-td">{c.student?.nom_complet ?? `Étudiant #${c.student_id}`}</td>
                                                 <td className="mp-td mp-td--month">
                                                     <span className="mp-month">{c.month}</span>
                                                 </td>

@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.8",
+        "laravel/reverb": "^1.11",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0"
     },
@@ -48,6 +49,42 @@
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
+        ],
+        "test:unit": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Unit --colors=always"
+        ],
+        "test:auth": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Auth --colors=always"
+        ],
+        "test:authz": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Authorization --colors=always"
+        ],
+        "test:business": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Business --colors=always"
+        ],
+        "test:validation": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Validation --colors=always"
+        ],
+        "test:security": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Security --colors=always"
+        ],
+        "test:performance": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --testsuite=Performance --colors=always"
+        ],
+        "test:all": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --colors=always"
+        ],
+        "test:coverage": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --coverage --min=70 --colors=always"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

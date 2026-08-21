@@ -1,4 +1,4 @@
-/* Avatar.css */
+﻿/* Avatar.css */
 
 /* Tailles via variables */
 :root {
@@ -62,9 +62,9 @@
 }
 
 .cfi-avatar--xs .cfi-avatar-fallback { font-size: 0.6rem; }
-.cfi-avatar--sm .cfi-avatar-fallback { font-size: 0.72rem; }
-.cfi-avatar--md .cfi-avatar-fallback { font-size: 0.9rem; }
-.cfi-avatar--lg .cfi-avatar-fallback { font-size: 1.1rem; }
+.cfi-avatar--sm .cfi-avatar-fallback { font-size: var(--cfi-fs-xs); }
+.cfi-avatar--md .cfi-avatar-fallback { font-size: var(--cfi-fs-base); }
+.cfi-avatar--lg .cfi-avatar-fallback { font-size: var(--cfi-fs-md); }
 .cfi-avatar--xl .cfi-avatar-fallback { font-size: 1.55rem; }
 
 /* Badge superposé */
@@ -88,7 +88,7 @@
 .cfi-avatar--xl .cfi-avatar-badge {
   min-width: 20px;
   height: 20px;
-  font-size: 0.7rem;
+  font-size: var(--cfi-fs-xs);
 }
 
 /* Cliquable */

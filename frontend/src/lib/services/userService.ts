@@ -1,9 +1,13 @@
 import api from '../api';
 import type { ApiUser } from './authService';
+import type { PaginatedResponse } from './paginationService';
 
 export const userService = {
     list: (params?: Record<string, string>) =>
-        api.get<ApiUser[]>('/users', { params }).then(r => r.data),
+        api.get<ApiUser[]>('/users', { params: { ...params, all: 'true' } }).then(r => r.data),
+
+    listPaginated: (params?: Record<string, string>) =>
+        api.get<PaginatedResponse<ApiUser>>('/users', { params }).then(r => r.data),
 
     get: (id: number) =>
         api.get<ApiUser>(`/users/${id}`).then(r => r.data),

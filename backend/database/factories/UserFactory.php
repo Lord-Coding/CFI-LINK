@@ -2,44 +2,83 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
-/**
- * @extends Factory<User>
- */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
-
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'nom_complet'     => fake()->name(),
+            'email'           => fake()->unique()->safeEmail(),
+            'password'        => Hash::make('password'),
+            'role'            => 'etudiant_concours',
+            'is_active'       => true,
+            'payment_blocked' => false,
+            'filiere'         => 'LIC',
+            'annee'           => 'L1',
+            'option_lic'      => null,
+            'specialite'      => null,
+            'grade'           => null,
+            'service'         => null,
+            'staff_role'      => null,
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function superAdmin(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+        return $this->state(['role' => 'super_admin', 'filiere' => null, 'annee' => null]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(['role' => 'admin', 'filiere' => null, 'annee' => null]);
+    }
+
+    public function professor(): static
+    {
+        return $this->state([
+            'role'       => 'professeur',
+            'filiere'    => null,
+            'annee'      => null,
+            'specialite' => 'Informatique',
+            'grade'      => 'Maître de conférences',
         ]);
+    }
+
+    public function staff(string $staffRole = 'secretariat'): static
+    {
+        return $this->state([
+            'role'       => 'membre_administratif',
+            'filiere'    => null,
+            'annee'      => null,
+            'staff_role' => $staffRole,
+            'service'    => 'Administration',
+        ]);
+    }
+
+    public function student(string $filiere = 'LIC', string $annee = 'L1'): static
+    {
+        return $this->state([
+            'role'    => 'etudiant_concours',
+            'filiere' => $filiere,
+            'annee'   => $annee,
+        ]);
+    }
+
+    public function external(): static
+    {
+        return $this->state(['role' => 'etudiant_externe']);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(['is_active' => false]);
+    }
+
+    public function blocked(): static
+    {
+        return $this->state(['payment_blocked' => true]);
     }
 }

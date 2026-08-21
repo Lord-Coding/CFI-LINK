@@ -9,19 +9,23 @@ class MessageController extends Controller
 {
     public function inbox(Request $request)
     {
+        $perPage = min((int) ($request->per_page ?? 25), 100);
         return response()->json(
             Message::with('sender:id,nom_complet')
                 ->where('to_id', $request->user()->id)
-                ->orderByDesc('created_at')->get()
+                ->orderByDesc('created_at')
+                ->paginate($perPage)
         );
     }
 
     public function sent(Request $request)
     {
+        $perPage = min((int) ($request->per_page ?? 25), 100);
         return response()->json(
             Message::with('recipient:id,nom_complet')
                 ->where('from_id', $request->user()->id)
-                ->orderByDesc('created_at')->get()
+                ->orderByDesc('created_at')
+                ->paginate($perPage)
         );
     }
 

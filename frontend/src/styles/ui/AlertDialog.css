@@ -1,4 +1,4 @@
-/* AlertDialog.css */
+﻿/* AlertDialog.css */
 
 /* Taille du modal */
 .cfi-alert-dialog-modal {
@@ -36,7 +36,7 @@
   transition: background 0.15s;
 }
 .cfi-alert-dialog__x:hover { background: var(--ion-color-light-shade); }
-.cfi-alert-dialog__x ion-icon { font-size: 1rem; }
+.cfi-alert-dialog__x ion-icon { font-size: var(--cfi-fs-base); }
 
 /* ── Icône centrale ── */
 .cfi-alert-dialog__icon-wrap {
@@ -56,7 +56,7 @@
   background: rgba(var(--ion-color-tertiary-rgb, 82,96,255), 0.1);
 }
 
-.cfi-alert-dialog__icon { font-size: 2.2rem; }
+.cfi-alert-dialog__icon { font-size: var(--cfi-fs-3xl); }
 
 .cfi-alert-dialog--confirm .cfi-alert-dialog__icon { color: var(--ion-color-primary); }
 .cfi-alert-dialog--danger  .cfi-alert-dialog__icon { color: var(--ion-color-danger); }
@@ -64,7 +64,7 @@
 
 /* ── Textes ── */
 .cfi-alert-dialog__title {
-  font-size: 1.15rem;
+  font-size: var(--cfi-fs-md);
   font-weight: 700;
   color: var(--ion-color-dark);
   margin: 0;
@@ -72,7 +72,7 @@
 }
 
 .cfi-alert-dialog__desc {
-  font-size: 0.88rem;
+  font-size: var(--cfi-fs-base);
   color: var(--ion-color-medium);
   margin: 0 0 0.5rem;
   line-height: 1.6;
@@ -92,7 +92,7 @@
   border-radius: 12px;
   border: none;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--cfi-fs-base);
   font-weight: 600;
   transition: opacity 0.15s, transform 0.12s;
   display: flex; align-items: center; justify-content: center;

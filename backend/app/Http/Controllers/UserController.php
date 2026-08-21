@@ -14,14 +14,13 @@ class UserController extends Controller
     // GET /api/users
     public function index(Request $request)
     {
+        if (! $request->user()->isAdmin() && ! $request->user()->isStaff()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $query = User::query();
 
-        if ($request->has('role')) {
-            $query->where('role', $request->role);
-        }
-        if ($request->has('filiere')) {
-            $query->where('filiere', $request->filiere);
-        }
+        if ($request->has('role'))   $query->where('role', $request->role);
+        if ($request->has('filiere')) $query->where('filiere', $request->filiere);
         if ($request->has('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('nom_complet', 'like', "%{$request->search}%")
@@ -29,7 +28,14 @@ class UserController extends Controller
             });
         }
 
-        return response()->json($query->orderBy('nom_complet')->get());
+        $query->orderBy('nom_complet');
+        $perPage = min((int) ($request->per_page ?? 50), 200);
+
+        if ($request->boolean('all')) {
+            return response()->json($query->get());
+        }
+
+        return response()->json($query->paginate($perPage));
     }
 
     // GET /api/users/{user}
@@ -41,6 +47,9 @@ class UserController extends Controller
     // POST /api/users
     public function store(Request $request)
     {
+        if (! $request->user()->isAdmin()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $data = $request->validate([
             'nom_complet' => 'required|string|max:255',
             'email'       => 'required|email|unique:users,email',
@@ -69,6 +78,14 @@ class UserController extends Controller
     // PUT /api/users/{user}
     public function update(Request $request, User $user)
     {
+        // Un utilisateur peut modifier son propre profil ; seul admin peut changer le rôle
+        if (! $request->user()->isAdmin() && $request->user()->id !== $user->id) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+        // Empêcher l'escalade de rôle par un non-admin
+        if ($request->has('role') && ! $request->user()->isAdmin()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $data = $request->validate([
             'nom_complet'     => 'sometimes|string|max:255',
             'email'           => ['sometimes', 'email', Rule::unique('users')->ignore($user->id)],
@@ -98,6 +115,9 @@ class UserController extends Controller
     // DELETE /api/users/{user}
     public function destroy(Request $request, User $user)
     {
+        if (! $request->user()->isAdmin()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         if ($user->id === $request->user()->id) {
             return response()->json(['message' => 'Impossible de supprimer votre propre compte.'], 422);
         }

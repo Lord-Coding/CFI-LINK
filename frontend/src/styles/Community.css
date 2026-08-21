@@ -1,4 +1,4 @@
-/* ════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════
    Community.css — préfixe co-
    ════════════════════════════════════════════ */
 
@@ -9,18 +9,18 @@
 .co-hero::before { content:''; position:absolute; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,0.07); top:-60px; right:-40px; pointer-events:none; }
 .co-hero::after  { content:''; position:absolute; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,0.05); bottom:-30px; right:80px; pointer-events:none; }
 .co-hero-text  { position:relative; z-index:1; }
-.co-hero-title { font-size:1.4rem; font-weight:800; color:#fff; margin:0 0 0.35rem; line-height:1.2; letter-spacing:-0.01em; }
-.co-hero-sub   { font-size:0.85rem; color:rgba(255,255,255,0.78); margin:0 0 1rem; }
+.co-hero-title { font-size: var(--cfi-fs-xl); font-weight:800; color:#fff; margin:0 0 0.35rem; line-height:1.2; letter-spacing:-0.01em; }
+.co-hero-sub   { font-size: var(--cfi-fs-sm); color:rgba(255,255,255,0.78); margin:0 0 1rem; }
 .co-hero-badges { display:flex; gap:0.5rem; flex-wrap:wrap; }
-.co-hero-badge  { display:inline-flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; border-radius:999px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); font-size:0.75rem; font-weight:600; color:#fff; backdrop-filter:blur(4px); }
-.co-hero-badge ion-icon { font-size:0.85rem; }
-@media (max-width:576px) { .co-hero { padding:1.25rem; } .co-hero-title { font-size:1.2rem; } }
+.co-hero-badge  { display:inline-flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; border-radius:999px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); font-size: var(--cfi-fs-xs); font-weight:600; color:#fff; backdrop-filter:blur(4px); }
+.co-hero-badge ion-icon { font-size: var(--cfi-fs-sm); }
+@media (max-width:576px) { .co-hero { padding:1.25rem; } .co-hero-title { font-size: var(--cfi-fs-lg); } }
 
 /* ── Segment ── */
 .co-segment { --background:var(--ion-color-light); border-radius:12px !important; width:100%; }
-.co-seg-btn  { font-size:0.82rem !important; min-height:38px !important; --color:var(--ion-color-medium) !important; }
+.co-seg-btn  { font-size: var(--cfi-fs-sm) !important; min-height:38px !important; --color:var(--ion-color-medium) !important; }
 .co-seg-btn ion-label { display:flex; align-items:center; gap:0.3rem; }
-.co-seg-btn ion-icon  { font-size:0.95rem; }
+.co-seg-btn ion-icon  { font-size: var(--cfi-fs-md); }
 
 .co-segment .segment-button-checked { --background-checked:var(--ion-color-primary) !important; --color-checked:#fff !important; --indicator-color:transparent !important; border-radius:10px !important; box-shadow:0 2px 8px rgba(var(--ion-color-primary-rgb),0.35) !important; }
 .co-segment .segment-button-checked ion-label { color:#fff !important; font-weight:600 !important; }
@@ -50,7 +50,7 @@
     display:         flex;
     align-items:     center;
     justify-content: center;
-    font-size:       1.1rem;
+    font-size: var(--cfi-fs-md);
     font-weight:     800;
     flex-shrink:     0;
 }
@@ -68,7 +68,7 @@
     --color:             var(--ion-color-dark);
     border-radius:       10px !important;
     border:              1.5px solid var(--ion-color-light-shade) !important;
-    font-size:           0.875rem !important;
+    font-size: var(--cfi-fs-base) !important;
     min-height:          48px;
     transition:          border-color 0.18s !important;
 }
@@ -101,17 +101,17 @@
     display:         flex;
     align-items:     center;
     justify-content: center;
-    font-size:       0.9rem;
+    font-size: var(--cfi-fs-base);
     font-weight:     700;
     flex-shrink:     0;
 }
 
 .co-post-meta   { display:flex; flex-direction:column; gap:0.1rem; }
-.co-post-author { font-size:0.88rem; font-weight:700; color:var(--ion-color-dark); }
-.co-post-date   { font-size:0.7rem; color:var(--ion-color-medium); }
+.co-post-author { font-size: var(--cfi-fs-base); font-weight:700; color:var(--ion-color-dark); }
+.co-post-date   { font-size: var(--cfi-fs-xs); color:var(--ion-color-medium); }
 
 .co-post-content {
-    font-size:  0.875rem;
+    font-size: var(--cfi-fs-base);
     color:      var(--ion-color-dark);
     line-height: 1.6;
     margin:     0 0 0.875rem;
@@ -124,7 +124,7 @@
     display:     inline-flex;
     align-items: center;
     gap:         0.35rem;
-    font-size:   0.78rem;
+    font-size: var(--cfi-fs-xs);
     color:       var(--ion-color-medium);
     background:  none;
     border:      none;
@@ -134,7 +134,7 @@
     transition:  all 0.15s;
 }
 .co-action-btn:hover { background:var(--ion-color-light); color:var(--ion-color-primary); }
-.co-action-btn ion-icon { font-size:1rem; }
+.co-action-btn ion-icon { font-size: var(--cfi-fs-base); }
 
 .co-action-btn--liked { color:var(--ion-color-danger) !important; }
 .co-action-btn--liked ion-icon { color:var(--ion-color-danger) !important; }
@@ -171,15 +171,24 @@
     display:         flex;
     align-items:     center;
     justify-content: center;
-    font-size:       1rem;
+    font-size: var(--cfi-fs-base);
     font-weight:     700;
     flex-shrink:     0;
 }
 
 .co-member-body  { flex:1; min-width:0; }
-.co-member-name  { font-size:0.86rem; font-weight:600; color:var(--ion-color-dark); margin:0 0 0.15rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.co-member-meta  { font-size:0.71rem; color:var(--ion-color-medium); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.co-member-name  { font-size: var(--cfi-fs-sm); font-weight:600; color:var(--ion-color-dark); margin:0 0 0.15rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.co-member-meta  { font-size: var(--cfi-fs-xs); color:var(--ion-color-medium); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 /* État vide */
-.co-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:3rem 1rem; color:var(--ion-color-medium); font-size:0.875rem; text-align:center; }
-.co-empty-icon { font-size:3rem; opacity:0.3; margin-bottom:0.75rem; }
+.co-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:3rem 1rem; color:var(--ion-color-medium); font-size: var(--cfi-fs-base); text-align:center; }
+.co-empty-icon { font-size: var(--cfi-fs-3xl); opacity:0.3; margin-bottom:0.75rem; }
+
+/* ── Responsive patch ── */
+.co-hero-title {
+    font-size: clamp(1.2rem, 0.9rem + 1.2vw, 1.75rem) !important;
+}
+@media (max-width: 575px) {
+    .co-tabs            { flex-direction: row; }
+    .co-compose-area    { padding: 0.75rem; }
+}

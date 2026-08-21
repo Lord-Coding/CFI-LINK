@@ -1,4 +1,4 @@
-/* PaymentBlockedOverlay.css */
+﻿/* PaymentBlockedOverlay.css */
 
 /* ── Fond flouté plein écran ── */
 .pbo-backdrop {
@@ -49,13 +49,13 @@
 }
 
 .pbo-icon {
-  font-size: 2.25rem;
+  font-size: var(--cfi-fs-3xl);
   color: var(--ion-color-warning);
 }
 
 /* ── Titre ── */
 .pbo-title {
-  font-size: 1.3rem;
+  font-size: var(--cfi-fs-lg);
   font-weight: 700;
   color: var(--ion-color-dark);
   margin: 0;
@@ -92,7 +92,7 @@
 .pbo-input {
   --placeholder-color: var(--ion-color-medium);
   --placeholder-opacity: 0.7;
-  font-size: 0.95rem;
+  font-size: var(--cfi-fs-md);
   letter-spacing: 0.05em;
 }
 
@@ -102,7 +102,7 @@
   --padding-top: 14px;
   --padding-bottom: 14px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--cfi-fs-md);
   letter-spacing: 0.02em;
 }
 
@@ -112,6 +112,8 @@
     padding: 1.5rem 1.25rem !important;
   }
   .pbo-icon-wrapper { width: 60px; height: 60px; }
-  .pbo-icon         { font-size: 1.9rem; }
-  .pbo-title        { font-size: 1.15rem; }
+  .pbo-icon         { font-size: var(--cfi-fs-2xl); }
+  .pbo-title        { font-size: var(--cfi-fs-md); }
 }
+
+

@@ -17,14 +17,20 @@ class CodesController extends Controller
     // ══════════════════════════════════════════
 
     // GET /api/codes/concours
-    public function indexConcours()
+    public function indexConcours(Request $request)
     {
+        if (! $request->user()->isAdmin()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         return response()->json(ConcoursCode::with('usedByUser:id,nom_complet')->latest()->get());
     }
 
     // POST /api/codes/concours
     public function storeConcours(Request $request)
     {
+        if (! $request->user()->isAdmin()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $data = $request->validate([
             'nom_complet' => 'required|string|max:255',
             'filiere'     => ['required', Rule::in(['LIC', 'LAP'])],
@@ -65,14 +71,20 @@ class CodesController extends Controller
     // ══════════════════════════════════════════
 
     // GET /api/codes/validation
-    public function indexValidation()
+    public function indexValidation(Request $request)
     {
+        if (! $request->user()->isAdmin()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         return response()->json(ValidationCode::with('usedByUser:id,nom_complet')->latest()->get());
     }
 
     // POST /api/codes/validation
     public function storeValidation(Request $request)
     {
+        if (! $request->user()->isAdmin()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $data = $request->validate([
             'expires_in_days' => 'nullable|integer|min:1|max:365',
         ]);

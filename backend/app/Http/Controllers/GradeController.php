@@ -16,7 +16,7 @@ class GradeController extends Controller
         private NotificationService $notifService,
     ) {}
 
-    // GET /api/grades  (étudiant: ses notes publiées | prof: ses cours | admin: tout)
+    // GET /api/grades
     public function index(Request $request)
     {
         $user  = $request->user();
@@ -28,14 +28,17 @@ class GradeController extends Controller
             $query->whereHas('course', fn($q) => $q->where('teacher_id', $user->id));
         }
 
-        if ($request->has('course_id')) {
-            $query->where('course_id', $request->course_id);
-        }
-        if ($request->has('semestre')) {
-            $query->where('semestre', $request->semestre);
+        if ($request->has('course_id'))  $query->where('course_id', $request->course_id);
+        if ($request->has('semestre'))   $query->where('semestre', $request->semestre);
+
+        $query->orderBy('student_id');
+        $perPage = min((int) ($request->per_page ?? 50), 200);
+
+        if ($request->boolean('all')) {
+            return response()->json($query->get());
         }
 
-        return response()->json($query->orderBy('student_id')->get());
+        return response()->json($query->paginate($perPage));
     }
 
     // PUT /api/grades/upsert  (prof/admin : créer ou mettre à jour)

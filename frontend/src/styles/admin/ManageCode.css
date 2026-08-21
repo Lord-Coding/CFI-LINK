@@ -1,4 +1,4 @@
-/* ════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════
    ManageCode.css — préfixe mc-
    Contenu rendu dans .dashboard-page-body
    ════════════════════════════════════════════ */
@@ -43,7 +43,7 @@
 .mc-hero-text   { flex: 1; min-width: 0; position: relative; z-index: 1; }
 
 .mc-hero-title {
-    font-size:      1.4rem;
+    font-size: var(--cfi-fs-xl);
     font-weight:    800;
     color:          #fff;
     margin:         0 0 0.35rem;
@@ -52,7 +52,7 @@
 }
 
 .mc-hero-sub {
-    font-size:   0.85rem;
+    font-size: var(--cfi-fs-sm);
     color:       rgba(255,255,255,0.78);
     margin:      0 0 1rem;
     line-height: 1.4;
@@ -68,12 +68,12 @@
     border-radius: 999px;
     background:    rgba(255,255,255,0.15);
     border:        1px solid rgba(255,255,255,0.25);
-    font-size:     0.75rem;
+    font-size: var(--cfi-fs-xs);
     font-weight:   600;
     color:         #fff;
     backdrop-filter: blur(4px);
 }
-.mc-hero-badge ion-icon { font-size: 0.85rem; }
+.mc-hero-badge ion-icon { font-size: var(--cfi-fs-sm); }
 
 .mc-hero-action { flex-shrink: 0; position: relative; z-index: 1; }
 
@@ -91,7 +91,7 @@
 
 @media (max-width: 576px) {
     .mc-hero        { flex-direction: column; align-items: flex-start; padding: 1.25rem; }
-    .mc-hero-title  { font-size: 1.2rem; }
+    .mc-hero-title  { font-size: var(--cfi-fs-lg); }
     .mc-hero-action { width: 100%; }
     .mc-hero-btn    { width: 100%; }
 }
@@ -116,17 +116,17 @@
     text-align:     center;
 }
 
-.mc-stat-chip-icon  { font-size: 1.25rem; color: var(--ion-color-primary); }
+.mc-stat-chip-icon  { font-size: var(--cfi-fs-lg); color: var(--ion-color-primary); }
 
 .mc-stat-chip-count {
-    font-size:   1.3rem;
+    font-size: var(--cfi-fs-lg);
     font-weight: 800;
     color:       var(--ion-color-dark);
     line-height: 1;
 }
 
 .mc-stat-chip-label {
-    font-size:   0.68rem;
+    font-size: var(--cfi-fs-xs);
     font-weight: 500;
     color:       var(--ion-color-medium);
     white-space: nowrap;
@@ -149,7 +149,7 @@
 }
 
 .mc-seg-btn {
-    font-size:  0.85rem !important;
+    font-size: var(--cfi-fs-sm) !important;
     min-height: 38px !important;
     --color:    var(--ion-color-medium) !important;
 }
@@ -182,7 +182,7 @@
 .mc-count-chip {
     --background: rgba(var(--ion-color-primary-rgb), 0.1) !important;
     color:        var(--ion-color-primary) !important;
-    font-size:    0.78rem !important;
+    font-size: var(--cfi-fs-xs) !important;
     font-weight:  600 !important;
     height:       22px !important;
 }
@@ -196,7 +196,7 @@
 .mc-table {
     width:           100%;
     border-collapse: collapse;
-    font-size:       0.875rem;
+    font-size: var(--cfi-fs-base);
 }
 
 .mc-thead-tr { background: var(--ion-color-light); }
@@ -204,7 +204,7 @@
 .mc-th {
     padding:        0.625rem 0.875rem;
     text-align:     left;
-    font-size:      0.7rem;
+    font-size: var(--cfi-fs-xs);
     font-weight:    700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -235,7 +235,7 @@
 /* Code monospace */
 .mc-code {
     font-family:   'Courier New', Courier, monospace;
-    font-size:     0.82rem;
+    font-size: var(--cfi-fs-sm);
     font-weight:   600;
     color:         var(--ion-color-primary);
     background:    rgba(var(--ion-color-primary-rgb), 0.08);
@@ -246,7 +246,7 @@
 }
 
 .mc-annee {
-    font-size:   0.82rem;
+    font-size: var(--cfi-fs-sm);
     font-weight: 500;
     color:       var(--ion-color-dark);
 }
@@ -256,11 +256,11 @@
     display:     flex;
     align-items: center;
     gap:         0.35rem;
-    font-size:   0.82rem;
+    font-size: var(--cfi-fs-sm);
     color:       var(--ion-color-medium);
 }
 
-.mc-date-icon { font-size: 0.9rem; flex-shrink: 0; }
+.mc-date-icon { font-size: var(--cfi-fs-base); flex-shrink: 0; }
 
 /* Bouton copier */
 .mc-copy-btn {
@@ -276,10 +276,10 @@
     text-align: center;
     padding:    2.5rem 1rem !important;
     color:      var(--ion-color-medium);
-    font-size:  0.875rem;
+    font-size: var(--cfi-fs-base);
 }
 .mc-empty-row > * { display: block; margin: 0 auto; }
-.mc-empty-icon    { font-size: 2.5rem; opacity: 0.35; margin-bottom: 0.5rem; }
+.mc-empty-icon    { font-size: var(--cfi-fs-3xl); opacity: 0.35; margin-bottom: 0.5rem; }
 
 /* ── Modal ── */
 .mc-modal {
@@ -316,23 +316,23 @@
     justify-content: center;
     flex-shrink:     0;
 }
-.mc-modal-header-icon ion-icon { font-size: 1.4rem; color: var(--ion-color-primary); }
+.mc-modal-header-icon ion-icon { font-size: var(--cfi-fs-xl); color: var(--ion-color-primary); }
 
 .mc-modal-title {
-    font-size:   1.1rem;
+    font-size: var(--cfi-fs-md);
     font-weight: 700;
     color:       var(--ion-color-dark);
     margin:      0 0 0.2rem;
     line-height: 1.2;
 }
-.mc-modal-subtitle { font-size: 0.8rem; color: var(--ion-color-medium); margin: 0; }
+.mc-modal-subtitle { font-size: var(--cfi-fs-sm); color: var(--ion-color-medium); margin: 0; }
 
 .mc-modal-close {
     margin-left:     auto;
     flex-shrink:     0;
     --color:         var(--ion-color-medium) !important;
     --border-radius: 50% !important;
-    font-size:       1.3rem;
+    font-size: var(--cfi-fs-lg);
 }
 
 /* ── Formulaire ── */
@@ -347,7 +347,7 @@
 
 .mc-form-section-label {
     display:        block;
-    font-size:      0.7rem;
+    font-size: var(--cfi-fs-xs);
     font-weight:    700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -362,12 +362,12 @@
     display:     flex;
     align-items: center;
     gap:         0.3rem;
-    font-size:   0.78rem;
+    font-size: var(--cfi-fs-xs);
     font-weight: 600;
     color:       var(--ion-color-dark);
 }
 
-.mc-field-icon { font-size: 0.9rem; color: var(--ion-color-primary); flex-shrink: 0; }
+.mc-field-icon { font-size: var(--cfi-fs-base); color: var(--ion-color-primary); flex-shrink: 0; }
 .mc-required   { color: var(--ion-color-danger); }
 
 .mc-field-input {
@@ -381,7 +381,7 @@
     --color:             var(--ion-color-dark);
     border-radius:       10px !important;
     border:              1.5px solid var(--ion-color-light-shade) !important;
-    font-size:           0.875rem !important;
+    font-size: var(--cfi-fs-base) !important;
     transition:          border-color 0.18s !important;
     min-height:          44px;
 }
@@ -427,11 +427,11 @@
     box-shadow:   0 2px 12px rgba(var(--ion-color-primary-rgb), 0.2);
 }
 
-.mc-pick-card-icon  { font-size: 1.2rem; color: var(--ion-color-medium); transition: color 0.18s; }
+.mc-pick-card-icon  { font-size: var(--cfi-fs-lg); color: var(--ion-color-medium); transition: color 0.18s; }
 .mc-pick-card--active .mc-pick-card-icon { color: var(--ion-color-primary); }
 
 .mc-pick-card-label {
-    font-size:   0.85rem;
+    font-size: var(--cfi-fs-sm);
     font-weight: 700;
     color:       var(--ion-color-dark);
     line-height: 1.2;
@@ -439,7 +439,7 @@
 .mc-pick-card--active .mc-pick-card-label { color: var(--ion-color-primary); }
 
 .mc-pick-card-sub {
-    font-size:   0.67rem;
+    font-size: var(--cfi-fs-xs);
     color:       var(--ion-color-medium);
     line-height: 1;
 }
@@ -470,4 +470,16 @@
     .mc-modal-header { padding: 1.25rem 1.25rem 0; }
     .mc-form-actions { grid-template-columns: 1fr; }
     .mc-picker-grid--3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+
+/* ── Responsive patch ── */
+.mc-hero-title {
+    font-size: clamp(1.2rem, 0.9rem + 1.2vw, 1.75rem) !important;
+}
+.mc-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 575px) {
+    .mc-hero        { flex-direction: column; }
+    .mc-stats-row   { grid-template-columns: repeat(2, 1fr); }
+    .mc-picker-grid { grid-template-columns: repeat(2, 1fr); }
 }

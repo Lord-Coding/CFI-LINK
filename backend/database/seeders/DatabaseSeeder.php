@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // ── Utilisateurs ──────────────────────────────────────────
+        // ── 1. Utilisateurs ───────────────────────────────────────
         $superAdmin = User::create([
             'nom_complet' => 'Super Administrateur',
             'email'       => 'admin@cfi-ciras.org',
@@ -102,54 +102,29 @@ class DatabaseSeeder extends Seeder
             'payment_blocked' => true,
         ]);
 
-        // ── Codes concours ────────────────────────────────────────
-        ConcoursCode::create([
-            'code'        => 'CONC-ABC123',
-            'nom_complet' => 'Jean Kamga',
-            'filiere'     => 'LIC',
-            'annee'       => 'L1',
-            'used'        => true,
-            'used_by'     => $etud1->id,
-        ]);
+        // ── 2. Codes concours ─────────────────────────────────────
+        ConcoursCode::create(['code'=>'CONC-ABC123','nom_complet'=>'Jean Kamga',   'filiere'=>'LIC','annee'=>'L1',            'used'=>true, 'used_by'=>$etud1->id]);
+        ConcoursCode::create(['code'=>'CONC-DEF456','nom_complet'=>'Marie Nkoulou','filiere'=>'LAP','annee'=>'L1',            'used'=>false]);
+        ConcoursCode::create(['code'=>'CONC-GHI789','nom_complet'=>'Paul Essomba', 'filiere'=>'LIC','annee'=>'L3','option_lic'=>'GL','used'=>true,'used_by'=>$etud2->id]);
 
-        ConcoursCode::create([
-            'code'        => 'CONC-DEF456',
-            'nom_complet' => 'Marie Nkoulou',
-            'filiere'     => 'LAP',
-            'annee'       => 'L1',
-            'used'        => false,
-        ]);
+        // ── 3. Codes validation ───────────────────────────────────
+        ValidationCode::create(['code'=>'EXT-XYZ001','used'=>true, 'used_by'=>$etud3->id,'expires_at'=>now()->addDays(30)]);
+        ValidationCode::create(['code'=>'EXT-XYZ002','used'=>false,                       'expires_at'=>now()->addDays(30)]);
 
-        ConcoursCode::create([
-            'code'        => 'CONC-GHI789',
-            'nom_complet' => 'Paul Essomba',
-            'filiere'     => 'LIC',
-            'annee'       => 'L3',
-            'option_lic'  => 'GL',
-            'used'        => true,
-            'used_by'     => $etud2->id,
-        ]);
+        // ── 4. Semestres ──────────────────────────────────────────
+        Semester::create(['name'=>'Semestre 1','year'=>'2024-2025','start_date'=>'2024-10-01','end_date'=>'2025-01-31','is_active'=>true, 'type'=>'S1']);
+        Semester::create(['name'=>'Semestre 2','year'=>'2024-2025','start_date'=>'2025-02-01','end_date'=>'2025-06-30','is_active'=>false,'type'=>'S2']);
+        Semester::create(['name'=>'Semestre 3','year'=>'2024-2025','start_date'=>'2024-10-01','end_date'=>'2025-01-31','is_active'=>false,'type'=>'S3']);
+        Semester::create(['name'=>'Semestre 4','year'=>'2024-2025','start_date'=>'2025-02-01','end_date'=>'2025-06-30','is_active'=>false,'type'=>'S4']);
+        Semester::create(['name'=>'Semestre 5','year'=>'2024-2025','start_date'=>'2024-10-01','end_date'=>'2025-01-31','is_active'=>false,'type'=>'S5']);
+        Semester::create(['name'=>'Semestre 6','year'=>'2024-2025','start_date'=>'2025-02-01','end_date'=>'2025-06-30','is_active'=>false,'type'=>'S6']);
 
-        // ── Codes validation ──────────────────────────────────────
-        ValidationCode::create([
-            'code'       => 'EXT-XYZ001',
-            'used'       => true,
-            'used_by'    => $etud3->id,
-            'expires_at' => now()->addDays(30),
+        // ── 5. Cours, leçons, emplois du temps, annonces, bibliothèque ──
+        $this->call([
+            CourseSeeder::class,
+            ScheduleSeeder::class,
+            AnnouncementSeeder::class,
+            LibrarySeeder::class,
         ]);
-
-        ValidationCode::create([
-            'code'       => 'EXT-XYZ002',
-            'used'       => false,
-            'expires_at' => now()->addDays(30),
-        ]);
-
-        // ── Semestres ─────────────────────────────────────────────
-        Semester::create(['name' => 'Semestre 1', 'year' => '2024-2025', 'start_date' => '2024-10-01', 'end_date' => '2025-01-31', 'is_active' => true,  'type' => 'S1']);
-        Semester::create(['name' => 'Semestre 2', 'year' => '2024-2025', 'start_date' => '2025-02-01', 'end_date' => '2025-06-30', 'is_active' => false, 'type' => 'S2']);
-        Semester::create(['name' => 'Semestre 3', 'year' => '2024-2025', 'start_date' => '2024-10-01', 'end_date' => '2025-01-31', 'is_active' => false, 'type' => 'S3']);
-        Semester::create(['name' => 'Semestre 4', 'year' => '2024-2025', 'start_date' => '2025-02-01', 'end_date' => '2025-06-30', 'is_active' => false, 'type' => 'S4']);
-        Semester::create(['name' => 'Semestre 5', 'year' => '2024-2025', 'start_date' => '2024-10-01', 'end_date' => '2025-01-31', 'is_active' => false, 'type' => 'S5']);
-        Semester::create(['name' => 'Semestre 6', 'year' => '2024-2025', 'start_date' => '2025-02-01', 'end_date' => '2025-06-30', 'is_active' => false, 'type' => 'S6']);
     }
 }

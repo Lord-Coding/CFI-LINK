@@ -6,11 +6,16 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:5173',   // Vite dev
+        'http://localhost:5173',    // Vite dev
+        'https://localhost:5173',   // Vite dev HTTPS
         'http://localhost:3000',
+        'https://localhost:3000',
         'http://localhost',
-        'capacitor://localhost',   // Capacitor iOS
-        'http://localhost:8100',   // Ionic serve
+        'capacitor://localhost',    // Capacitor iOS
+        'http://localhost:8100',    // Ionic serve
+        // Production : ajouter le domaine réel ci-dessous
+        // 'https://cfi-ciras.org',
+        // 'https://www.cfi-ciras.org',
     ],
 
     'allowed_origins_patterns' => [],

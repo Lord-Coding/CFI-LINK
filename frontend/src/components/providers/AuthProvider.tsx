@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { AuthContext } from "../../contexts/authContext";
 import { authService, type ApiUser } from "../../lib/services/authService";
+import { disconnectEcho, refreshEchoAuth } from "../../lib/echo";
 import type { User } from "../../lib/store";
 
 /** Adapte ApiUser (backend) → User (frontend) pour maintenir la compatibilité. */
@@ -61,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = async () => {
         await authService.logout().catch(() => {});
+        disconnectEcho();   // couper la connexion WebSocket Reverb
         setUser(null);
     };
 
@@ -68,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             const apiUser = await authService.me();
             setUser(adapt(apiUser));
+            refreshEchoAuth(); // recrée Echo avec le token à jour si besoin
         } catch { /* silencieux */ }
     };
 

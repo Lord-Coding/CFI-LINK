@@ -20,18 +20,32 @@ use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\PasswordResetController;
+
 // ══════════════════════════════════════════════════════════════════
 //  Routes publiques (sans authentification)
 // ══════════════════════════════════════════════════════════════════
 
-Route::post('/login',    [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login',    [AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+
+// ── Réinitialisation mot de passe (public) ────────────────────────
+Route::post('/password/forgot', [PasswordResetController::class, 'requestReset'])->middleware('throttle:5,1');
+Route::post('/password/verify', [PasswordResetController::class, 'verifyCode'])->middleware('throttle:10,1');
+Route::post('/password/reset',  [PasswordResetController::class, 'resetPassword'])->middleware('throttle:5,1');
 
 // ══════════════════════════════════════════════════════════════════
 //  Routes protégées (Sanctum)
 // ══════════════════════════════════════════════════════════════════
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    // ── Broadcasting auth (Reverb canaux privés) ──────────────────
+    // Laravel Reverb expose /broadcasting/auth automatiquement,
+    // mais on le redéfinit ici pour être sûr qu'il passe par sanctum
+    Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
+        return \Illuminate\Support\Facades\Broadcast::auth($request);
+    });
 
     // ── Auth ──────────────────────────────────────────────────────
     Route::get( '/me',     [AuthController::class, 'me']);

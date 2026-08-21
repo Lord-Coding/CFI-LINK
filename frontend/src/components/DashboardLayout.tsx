@@ -1,6 +1,7 @@
 import React from 'react';
 import { IonContent, IonMenuButton, IonPage } from '../lib/ionic';
 import { useAuth } from '../hooks/useAuth';
+import { useRealTimeNotifications } from '../hooks/useRealTimeNotifications';
 import { ROLE_LABELS } from '../lib/store';
 import PaymentBlockedOverlay from './PaymentBlockedOverlay';
 import NotificationPanel from './NotificationsPanel';
@@ -13,6 +14,14 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const { user } = useAuth();
+
+    // ── Connexion WebSocket Reverb ────────────────────────────────
+    // Le hook s'abonne aux canaux privés de l'utilisateur et invalide
+    // automatiquement le cache ['notifications'] à chaque push reçu.
+    useRealTimeNotifications({
+        userId: user?.id ?? '',
+        role:   user?.role ?? '',
+    });
 
     const avatarColor = localStorage.getItem('cfi_avatar_color') || '#3880ff';
     const initials    = user?.nom_complet.charAt(0).toUpperCase();

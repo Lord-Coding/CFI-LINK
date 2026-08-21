@@ -1,4 +1,4 @@
-/* Popover.css */
+﻿/* Popover.css */
 
 .cfi-popover-trigger-wrap {
   display: inline-flex;
@@ -24,7 +24,7 @@
   --padding-start: 0.875rem;
   --inner-padding-end: 0.875rem;
   --background-hover: var(--ion-color-light);
-  font-size: 0.9rem;
+  font-size: var(--cfi-fs-base);
 }
 
 .cfi-popover-content ion-list {
@@ -39,7 +39,7 @@
 
 /* Titre de section optionnel (via ion-list-header) */
 .cfi-popover-content ion-list-header {
-  font-size: 0.72rem;
+  font-size: var(--cfi-fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;

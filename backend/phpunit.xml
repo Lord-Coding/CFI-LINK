@@ -3,13 +3,29 @@
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
+         stopOnFailure="false"
 >
     <testsuites>
         <testsuite name="Unit">
-            <directory>tests/Unit</directory>
+            <directory suffix="Test.php">tests/Unit</directory>
         </testsuite>
-        <testsuite name="Feature">
-            <directory>tests/Feature</directory>
+        <testsuite name="Auth">
+            <directory suffix="Test.php">tests/Feature/Auth</directory>
+        </testsuite>
+        <testsuite name="Authorization">
+            <directory suffix="Test.php">tests/Feature/Authorization</directory>
+        </testsuite>
+        <testsuite name="Business">
+            <directory suffix="Test.php">tests/Feature/Business</directory>
+        </testsuite>
+        <testsuite name="Validation">
+            <directory suffix="Test.php">tests/Feature/Validation</directory>
+        </testsuite>
+        <testsuite name="Security">
+            <directory suffix="Test.php">tests/Feature/Security</directory>
+        </testsuite>
+        <testsuite name="Performance">
+            <directory suffix="Test.php">tests/Feature/Performance</directory>
         </testsuite>
     </testsuites>
     <source>
@@ -18,19 +34,20 @@
         </include>
     </source>
     <php>
-        <env name="APP_ENV" value="testing"/>
+        <env name="APP_ENV"                value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
-        <env name="BCRYPT_ROUNDS" value="4"/>
-        <env name="BROADCAST_CONNECTION" value="null"/>
-        <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
-        <env name="DB_URL" value=""/>
-        <env name="MAIL_MAILER" value="array"/>
-        <env name="QUEUE_CONNECTION" value="sync"/>
-        <env name="SESSION_DRIVER" value="array"/>
-        <env name="PULSE_ENABLED" value="false"/>
-        <env name="TELESCOPE_ENABLED" value="false"/>
-        <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="BCRYPT_ROUNDS"          value="4"/>
+        <env name="BROADCAST_CONNECTION"   value="null"/>
+        <env name="CACHE_STORE"            value="array"/>
+        <env name="DB_CONNECTION"          value="sqlite"/>
+        <env name="DB_DATABASE"            value=":memory:"/>
+        <env name="DB_URL"                 value=""/>
+        <env name="MAIL_MAILER"            value="array"/>
+        <env name="QUEUE_CONNECTION"       value="sync"/>
+        <env name="SESSION_DRIVER"         value="array"/>
+        <env name="RESEND_API_KEY"         value="test_fake_key"/>
+        <env name="PULSE_ENABLED"          value="false"/>
+        <env name="TELESCOPE_ENABLED"      value="false"/>
+        <env name="NIGHTWATCH_ENABLED"     value="false"/>
     </php>
 </phpunit>

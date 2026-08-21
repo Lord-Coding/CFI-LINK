@@ -1,4 +1,4 @@
-/* Register.css */
+﻿/* Register.css */
 
 .register-content {
   --background: var(--ion-background-color, #ffffff);
@@ -39,13 +39,13 @@
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 2rem;
 }
-.register-hero-logo ion-icon { font-size: 2.25rem; color: #fff; }
+.register-hero-logo ion-icon { font-size: var(--cfi-fs-3xl); color: #fff; }
 
 .register-hero-title {
-  font-size: 2rem; font-weight: 700; color: #fff; margin: 0 0 1rem; line-height: 1.2;
+  font-size: var(--cfi-fs-3xl); font-weight: 700; color: #fff; margin: 0 0 1rem; line-height: 1.2;
 }
 .register-hero-sub {
-  font-size: 1rem; color: rgba(255,255,255,0.78); line-height: 1.6; margin: 0;
+  font-size: var(--cfi-fs-base); color: rgba(255,255,255,0.78); line-height: 1.6; margin: 0;
 }
 
 /* ── Colonne formulaire ── */
@@ -69,8 +69,8 @@
   background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
   display: flex; align-items: center; justify-content: center;
 }
-.register-mobile-logo-icon ion-icon { font-size: 1.3rem; color: #fff; }
-.register-mobile-logo-text { font-size: 1.25rem; font-weight: 700; color: var(--ion-color-dark); }
+.register-mobile-logo-icon ion-icon { font-size: var(--cfi-fs-lg); color: #fff; }
+.register-mobile-logo-text { font-size: var(--cfi-fs-lg); font-weight: 700; color: var(--ion-color-dark); }
 
 @media (min-width: 992px) {
   .register-mobile-logo { display: none; }
@@ -81,17 +81,17 @@
 .register-step { width: 100%; }
 
 .register-title {
-  font-size: 1.65rem; font-weight: 700;
+  font-size: var(--cfi-fs-2xl); font-weight: 700;
   color: var(--ion-color-dark); margin: 0 0 0.3rem;
 }
 .register-subtitle {
-  font-size: 0.9rem; color: var(--ion-color-medium);
+  font-size: var(--cfi-fs-base); color: var(--ion-color-medium);
   margin: 0 0 1.5rem; line-height: 1.5;
 }
 
 /* Bouton retour — Button UI CFI */
 .register-back-btn {
-  --padding-start: 0;
+  font-size: var(--cfi-fs-base);
   margin-bottom: 0.75rem;
 }
 
@@ -105,11 +105,11 @@
 }
 
 .register-type-card-title {
-  font-size: 1rem; font-weight: 600;
+  font-size: var(--cfi-fs-base); font-weight: 600;
   color: var(--ion-color-dark); margin: 0 0 0.3rem;
 }
 .register-type-card-desc {
-  font-size: 0.83rem; color: var(--ion-color-medium);
+  font-size: var(--cfi-fs-sm); color: var(--ion-color-medium);
   line-height: 1.5; margin: 0;
 }
 
@@ -139,7 +139,7 @@
   background: var(--ion-color-light) !important;
 }
 .register-concours-text {
-  font-size: 0.88rem; color: var(--ion-color-dark); line-height: 1.5; margin: 0;
+  font-size: var(--cfi-fs-base); color: var(--ion-color-dark); line-height: 1.5; margin: 0;
 }
 
 /* Bouton submit — Button UI CFI */
@@ -158,22 +158,38 @@
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 0.25rem;
 }
-.register-success-icon ion-icon { font-size: 2.75rem; color: var(--ion-color-success); }
+.register-success-icon ion-icon { font-size: var(--cfi-fs-3xl); color: var(--ion-color-success); }
 
 .register-success-title {
-  font-size: 1.5rem; font-weight: 700; color: var(--ion-color-dark); margin: 0;
+  font-size: var(--cfi-fs-xl); font-weight: 700; color: var(--ion-color-dark); margin: 0;
 }
 .register-success-msg {
-  font-size: 0.9rem; color: var(--ion-color-medium);
+  font-size: var(--cfi-fs-base); color: var(--ion-color-medium);
   line-height: 1.6; margin: 0 0 0.25rem; max-width: 360px;
 }
 
 /* ── Lien bas de page ── */
 .register-login-link {
-  text-align: center; font-size: 0.88rem;
+  text-align: center; font-size: var(--cfi-fs-base);
   color: var(--ion-color-medium); margin-top: 1.5rem;
 }
 .register-link {
   color: var(--ion-color-primary); font-weight: 600; text-decoration: none;
 }
 .register-link:hover { text-decoration: underline; }
+
+
+
+
+/* ── Responsive patch ── */
+.register-hero-title {
+    font-size: clamp(1.3rem, 1rem + 1.5vw, 1.75rem) !important;
+}
+.register-title {
+    font-size: clamp(1.2rem, 1rem + 1vw, 1.6rem) !important;
+}
+@media (max-width: 575px) {
+    .register-form-col   { padding: 1.5rem 1rem; }
+    .register-type-cards { flex-direction: column; }
+    .register-row-2col   { grid-template-columns: 1fr; }
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     IonButton, IonIcon, IonModal, IonInput, IonChip,
     IonSegment, IonSegmentButton, IonLabel,
@@ -8,18 +8,14 @@ import {
     trashOutline, closeCircleOutline, timeOutline, checkmarkOutline,
     schoolOutline, layersOutline,
 } from 'ionicons/icons';
-import {
-    getSemesters, addSemester, setActiveSemester, deleteSemester,
-    Semester, SemesterCode, SEMESTER_LABELS, SEMESTER_TO_ANNEE,
-} from '../../lib/semester-store';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { semesterService, type ApiSemester } from '../../lib/services/semesterService';
 import { Badge, Card, CardContent, CardHeader, CardTitle, AlertDialog } from '../../components';
 import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/ManageSemesters.css';
 
-type Semester = ApiSemester;
-type SemesterCode = 'S1'|'S2'|'S3'|'S4'|'S5'|'S6';
+type Semester         = ApiSemester;
+type SemesterCode     = 'S1'|'S2'|'S3'|'S4'|'S5'|'S6';
 const SEMESTER_TO_ANNEE: Record<string, string> = { S1:'L1', S2:'L1', S3:'L2', S4:'L2', S5:'L3', S6:'L3' };
 
 const ANNEE_GROUPS: { annee: 'L1' | 'L2' | 'L3'; codes: SemesterCode[]; label: string }[] = [
@@ -43,22 +39,22 @@ const ManageSemesters: React.FC = () => {
     const [fStartDate, setFStartDate] = useState('');
     const [fEndDate,   setFEndDate]   = useState('');
 
-    const { data: semesters = [] } = useQuery({
+    const { data: semesters = [] } = useQuery<ApiSemester[]>({
         queryKey: ['semesters'],
         queryFn: semesterService.list,
     });
 
-    const addMutation = useMutation({
+    const addMutation = useMutation<ApiSemester, Error, Partial<ApiSemester>>({
         mutationFn: semesterService.create,
         onSuccess: () => { qc.invalidateQueries({ queryKey: ['semesters'] }); closeModal(); },
     });
 
-    const activateMutation = useMutation({
+    const activateMutation = useMutation<ApiSemester, Error, number>({
         mutationFn: semesterService.activate,
         onSuccess: () => qc.invalidateQueries({ queryKey: ['semesters'] }),
     });
 
-    const deleteMutation = useMutation({
+    const deleteMutation = useMutation<void, Error, number>({
         mutationFn: semesterService.delete,
         onSuccess: () => { qc.invalidateQueries({ queryKey: ['semesters'] }); setDeleteTarget(null); },
     });
@@ -373,3 +369,4 @@ const ManageSemesters: React.FC = () => {
 };
 
 export default ManageSemesters;
+

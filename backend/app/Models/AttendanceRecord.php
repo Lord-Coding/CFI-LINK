@@ -13,7 +13,7 @@ class AttendanceRecord extends Model
 
     protected function casts(): array
     {
-        return ['date' => 'date'];
+        return [];  // date stockée en string Y-m-d directement
     }
 
     public function student()

@@ -1,4 +1,4 @@
-/* NavLink.css
+﻿/* NavLink.css
  *
  * Styles de base pour les liens NavLink custom.
  * Importer dans le composant parent qui utilise <NavLink>.
@@ -12,7 +12,7 @@
   padding: 0.4rem 0.75rem;
   border-radius: 8px;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: var(--cfi-fs-base);
   font-weight: 500;
   color: var(--ion-color-medium);
   transition: color 0.18s ease, background-color 0.18s ease;

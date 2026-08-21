@@ -23,14 +23,17 @@ class AttendanceController extends Controller
             $query->whereHas('course', fn($q) => $q->where('teacher_id', $user->id));
         }
 
-        if ($request->has('course_id')) {
-            $query->where('course_id', $request->course_id);
-        }
-        if ($request->has('student_id')) {
-            $query->where('student_id', $request->student_id);
+        if ($request->has('course_id'))  $query->where('course_id', $request->course_id);
+        if ($request->has('student_id')) $query->where('student_id', $request->student_id);
+
+        $query->orderByDesc('date');
+        $perPage = min((int) ($request->per_page ?? 50), 200);
+
+        if ($request->boolean('all')) {
+            return response()->json($query->get());
         }
 
-        return response()->json($query->orderByDesc('date')->get());
+        return response()->json($query->paginate($perPage));
     }
 
     // POST /api/attendance/upsert
@@ -43,14 +46,16 @@ class AttendanceController extends Controller
             'status'     => ['required', Rule::in(['present', 'absent', 'late', 'excused'])],
         ]);
 
+        $dateStr = \Carbon\Carbon::parse($data['date'])->format('Y-m-d');
+
         $previous = AttendanceRecord::where([
             'student_id' => $data['student_id'],
             'course_id'  => $data['course_id'],
-            'date'       => $data['date'],
+            'date'       => $dateStr,
         ])->first();
 
         $record = AttendanceRecord::updateOrCreate(
-            ['student_id' => $data['student_id'], 'course_id' => $data['course_id'], 'date' => $data['date']],
+            ['student_id' => $data['student_id'], 'course_id' => $data['course_id'], 'date' => $dateStr],
             ['status' => $data['status'], 'marked_by' => $request->user()->id]
         );
 

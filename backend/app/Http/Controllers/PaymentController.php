@@ -17,20 +17,26 @@ class PaymentController extends Controller
         private NotificationService $notifService,
     ) {}
 
-    // GET /api/payments  (admin : tous | étudiant : ses paiements)
+    // GET /api/payments
     public function index(Request $request)
     {
         $user = $request->user();
 
         if ($user->isStudent()) {
-            $records = PaymentRecord::where('student_id', $user->id)
-                ->orderByDesc('created_at')->get();
+            $query = PaymentRecord::where('student_id', $user->id)
+                ->orderByDesc('created_at');
         } else {
-            $records = PaymentRecord::with('student:id,nom_complet,filiere,annee')
-                ->orderByDesc('created_at')->get();
+            $query = PaymentRecord::with('student:id,nom_complet,filiere,annee')
+                ->orderByDesc('created_at');
         }
 
-        return response()->json($records);
+        $perPage = min((int) ($request->per_page ?? 25), 100);
+
+        if ($request->boolean('all')) {
+            return response()->json($query->get());
+        }
+
+        return response()->json($query->paginate($perPage));
     }
 
     // POST /api/payments  (étudiant soumet un paiement)

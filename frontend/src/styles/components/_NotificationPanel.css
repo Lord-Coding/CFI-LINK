@@ -1,4 +1,4 @@
-/* NotificationPanel.css */
+﻿/* NotificationPanel.css */
 
 /* ════════════════════════════════════════════
    Cloche + badge
@@ -22,7 +22,7 @@
 }
 
 .notif-bell-icon {
-  font-size: 1.35rem;
+  font-size: var(--cfi-fs-xl);
 }
 
 /* Badge via composant Badge UI — positionné en absolu */
@@ -38,7 +38,7 @@
 .notif-badge-pill {
   min-width: 18px !important;
   height: 18px !important;
-  font-size: 0.62rem !important;
+  font-size: var(--cfi-fs-xs) !important;
   padding: 0 4px !important;
   line-height: 1 !important;
 }
@@ -71,7 +71,7 @@
 }
 
 .notif-popover-title {
-  font-size: 0.95rem !important;
+  font-size: var(--cfi-fs-md) !important;
   font-weight: 700;
   padding-inline-start: 1rem;
   display: flex;
@@ -84,7 +84,7 @@
 }
 
 .notif-mark-all-btn {
-  font-size: 0.75rem;
+  font-size: var(--cfi-fs-xs);
   --color: var(--ion-color-primary);
 }
 
@@ -131,14 +131,14 @@
 }
 
 .notif-empty-icon {
-  font-size: 2.5rem;
+  font-size: var(--cfi-fs-3xl);
   opacity: 0.25;
   color: var(--ion-color-medium);
 }
 
 .notif-empty-text {
   margin: 0;
-  font-size: 0.88rem;
+  font-size: var(--cfi-fs-base);
 }
 
 /* ════════════════════════════════════════════
@@ -176,7 +176,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: var(--cfi-fs-base);
   flex-shrink: 0;
   margin-top: 0.1rem;
   margin-right: 0.75rem;
@@ -216,7 +216,7 @@
 }
 
 .notif-item-title {
-  font-size: 0.84rem;
+  font-size: var(--cfi-fs-sm);
   color: var(--ion-color-medium);
   flex: 1;
   overflow: hidden;
@@ -246,7 +246,7 @@
 }
 
 .notif-item-message {
-  font-size: 0.78rem;
+  font-size: var(--cfi-fs-xs);
   color: var(--ion-color-medium);
   margin: 0.2rem 0 0;
   overflow: hidden;
@@ -257,7 +257,7 @@
 }
 
 .notif-item-time {
-  font-size: 0.68rem;
+  font-size: var(--cfi-fs-xs);
   color: var(--ion-color-medium-shade);
   margin: 0.25rem 0 0;
 }
@@ -274,10 +274,10 @@
     display: none;
   }
   .notif-item-title {
-    font-size: 0.82rem;
+    font-size: var(--cfi-fs-sm);
   }
   .notif-item-message {
-    font-size: 0.76rem;
+    font-size: var(--cfi-fs-xs);
   }
 }
 
@@ -305,7 +305,7 @@
 /* ── Footer "N notifications non affichées" ── */
 .notif-more-hint {
     text-align:   center;
-    font-size:    0.72rem;
+    font-size: var(--cfi-fs-xs);
     color:        var(--ion-color-medium);
     padding:      0.75rem 1rem;
     border-top:   1px solid var(--ion-color-light-shade);
@@ -316,3 +316,4 @@
 @media (max-width: 576px) {
     .notif-delete-btn { opacity: 1; }
 }
+

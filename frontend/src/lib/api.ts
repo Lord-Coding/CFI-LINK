@@ -6,7 +6,7 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api',
-    withCredentials: true,          // nécessaire pour les cookies Sanctum (SPA)
+    withCredentials: true,
     withXSRFToken: true,
     headers: {
         Accept: 'application/json',
@@ -20,6 +20,10 @@ api.interceptors.request.use((config) => {
     const token = sessionStorage.getItem('cfi_token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+    }
+    // En production, forcer HTTPS si la baseURL commence par https
+    if (import.meta.env.PROD && config.url && config.baseURL?.startsWith('https')) {
+        config.url = config.url.replace(/^http:\/\//, 'https://');
     }
     return config;
 });

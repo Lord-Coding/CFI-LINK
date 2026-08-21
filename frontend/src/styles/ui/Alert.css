@@ -1,4 +1,4 @@
-/* Alert.css */
+﻿/* Alert.css */
 
 .cfi-alert {
   display: flex;
@@ -48,7 +48,7 @@
 
 /* ── Icône ── */
 .cfi-alert__icon {
-  font-size: 1.25rem;
+  font-size: var(--cfi-fs-lg);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -57,7 +57,7 @@
 .cfi-alert__body { flex: 1; min-width: 0; }
 
 .cfi-alert__title {
-  font-size: 0.9rem;
+  font-size: var(--cfi-fs-base);
   font-weight: 700;
   margin: 0 0 0.2rem;
   color: inherit;
@@ -65,7 +65,7 @@
 }
 
 .cfi-alert__desc {
-  font-size: 0.84rem;
+  font-size: var(--cfi-fs-sm);
   margin: 0;
   color: inherit;
   opacity: 0.85;
@@ -89,4 +89,4 @@
 }
 
 .cfi-alert__close:hover  { opacity: 1; background: rgba(0,0,0,0.08); }
-.cfi-alert__close ion-icon { font-size: 1.1rem; }
+.cfi-alert__close ion-icon { font-size: var(--cfi-fs-md); }

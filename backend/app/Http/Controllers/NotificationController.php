@@ -10,8 +10,7 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-
-        $notifs = Notification::where(fn($q) => $q
+        $query = Notification::where(fn($q) => $q
             ->where('user_id', $user->id)
             ->orWhere(fn($q2) => $q2
                 ->whereNull('user_id')
@@ -20,9 +19,15 @@ class NotificationController extends Controller
                     ->orWhere('target_role', $user->role)
                 )
             )
-        )->orderByDesc('created_at')->limit(50)->get();
+        )->orderByDesc('created_at');
 
-        return response()->json($notifs);
+        $perPage = min((int) ($request->per_page ?? 30), 100);
+
+        if ($request->boolean('all')) {
+            return response()->json($query->limit(100)->get());
+        }
+
+        return response()->json($query->paginate($perPage));
     }
 
     public function markRead(Notification $notification)

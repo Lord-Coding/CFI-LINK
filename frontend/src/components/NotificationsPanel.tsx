@@ -1,21 +1,21 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     bookOutline, cardOutline, checkmarkDoneOutline, closeOutline,
     IonButton, IonButtons, IonContent, IonHeader, IonIcon,
     IonItem, IonLabel, IonList, IonPopover, IonText, IonTitle, IonToolbar,
     megaphoneOutline, notificationsOutline, schoolOutline, settingsOutline, trashOutline,
 } from '../lib/ionic';
-import {
-    getNotifications, getUnreadCount, markAllAsRead, markAsRead,
-    deleteNotification, NotificationType, Notification, NOTIF_TYPE_LABELS,
-} from '../lib/notifications';
+import { NOTIF_TYPE_LABELS } from '../lib/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { notificationService, type ApiNotification } from '../lib/services/notificationService';
 import "../styles/components/_NotificationPanel.css";
 import Badge from './ui/Badge';
 import { Skeleton, SkeletonAvatar } from './ui/Skeleton';
 
-/* ── Icône et couleurs par type ── */
+type NotificationType = ApiNotification['type'];
+
 const TYPE_ICONS: Record<NotificationType, string> = {
     annonce:  megaphoneOutline,
     note:     schoolOutline,
@@ -32,7 +32,6 @@ const TYPE_BADGE_VARIANT: Record<NotificationType, 'default' | 'success' | 'warn
     cours:    'info',
 };
 
-/* ── Formatage date relative ── */
 function timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -51,50 +50,40 @@ function timeAgo(dateStr: string): string {
 const NotificationPanel: React.FC = () => {
     const { user }  = useAuth();
     const toast     = useToast();
+    const qc        = useQueryClient();
 
     const [popoverOpen,  setPopoverOpen]  = useState(false);
     const [popoverEvent, setPopoverEvent] = useState<Event | undefined>();
-    const [notifs,       setNotifs]       = useState<Notification[]>([]);
-    const [unread,       setUnread]       = useState(0);
-    const [isLoading,    setIsLoading]    = useState(false);
 
-    const refresh = useCallback(() => {
-        if (!user) return;
-        setNotifs(getNotifications(user.id, user.role));
-        setUnread(getUnreadCount(user.id, user.role));
-    }, [user]);
+    const { data: notifs = [], isLoading } = useQuery({
+        queryKey: ['notifications'],
+        queryFn: notificationService.list,
+        // Echo invalide le cache en temps réel — le polling n'est qu'un filet de sécurité
+        refetchInterval: 60_000,
+        enabled: !!user,
+    });
 
-    useEffect(() => { refresh(); }, [refresh]);
+    const unread = notifs.filter((n: ApiNotification) => !n.read).length;
 
-    useEffect(() => {
-        if (!popoverOpen) return;
-        setIsLoading(true);
-        const t = setTimeout(() => { refresh(); setIsLoading(false); }, 300);
-        return () => clearTimeout(t);
-    }, [popoverOpen, refresh]);
+    const markReadMutation = useMutation({
+        mutationFn: notificationService.markRead,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+    });
 
-    const openPopover = (e: React.MouseEvent) => {
-        setPopoverEvent(e.nativeEvent);
-        setPopoverOpen(true);
-    };
+    const markAllMutation = useMutation({
+        mutationFn: notificationService.markAllRead,
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['notifications'] }); toast.success('Toutes les notifications ont été lues.'); },
+    });
 
-    const handleMarkRead = (id: string) => {
-        markAsRead(id);
-        refresh();
-    };
+    const deleteMutation = useMutation({
+        mutationFn: notificationService.delete,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+    });
 
-    const handleMarkAllRead = () => {
-        if (!user) return;
-        markAllAsRead(user.id, user.role);
-        refresh();
-        toast.success('Toutes les notifications ont été lues.');
-    };
-
-    const handleDelete = (e: React.MouseEvent, id: string) => {
-        e.stopPropagation();
-        deleteNotification(id);
-        refresh();
-    };
+    const openPopover = (e: React.MouseEvent) => { setPopoverEvent(e.nativeEvent); setPopoverOpen(true); };
+    const handleMarkRead    = (id: number) => markReadMutation.mutate(id);
+    const handleMarkAllRead = () => markAllMutation.mutate();
+    const handleDelete      = (e: React.MouseEvent, id: number) => { e.stopPropagation(); deleteMutation.mutate(id); };
 
     return (
         <div className="notif-wrapper">
@@ -187,53 +176,28 @@ const NotificationPanel: React.FC = () => {
                     {/* Liste */}
                     {!isLoading && notifs.length > 0 && (
                         <IonList lines="full" className="notif-list">
-                            {notifs.slice(0, 20).map(n => (
-                                <IonItem
-                                    key={n.id}
-                                    button
-                                    detail={false}
+                            {notifs.slice(0, 20).map((n: ApiNotification) => (
+                                <IonItem key={n.id} button detail={false}
                                     onClick={() => handleMarkRead(n.id)}
-                                    className={`notif-item ${!n.read ? 'notif-item--unread' : ''}`}
-                                >
-                                    {/* Icône colorée */}
-                                    <div
-                                        slot="start"
-                                        className={`notif-type-icon notif-type-icon--${n.type}`}
-                                        aria-hidden
-                                    >
+                                    className={`notif-item ${!n.read ? 'notif-item--unread' : ''}`}>
+                                    <div slot="start" className={`notif-type-icon notif-type-icon--${n.type}`} aria-hidden>
                                         <IonIcon icon={TYPE_ICONS[n.type]} />
                                     </div>
-
                                     <IonLabel className="notif-item-label">
                                         <div className="notif-item-header">
-                                            <span className={`notif-item-title ${!n.read ? 'notif-item-title--bold' : ''}`}>
-                                                {n.title}
-                                            </span>
-                                            <Badge
-                                                variant={TYPE_BADGE_VARIANT[n.type]}
-                                                size="sm"
-                                                pill
-                                                className="notif-type-badge"
-                                            >
+                                            <span className={`notif-item-title ${!n.read ? 'notif-item-title--bold' : ''}`}>{n.title}</span>
+                                            <Badge variant={TYPE_BADGE_VARIANT[n.type]} size="sm" pill className="notif-type-badge">
                                                 {NOTIF_TYPE_LABELS[n.type]}
                                             </Badge>
                                             {!n.read && <span className="notif-unread-dot" aria-label="Non lu" />}
                                         </div>
                                         <p className="notif-item-message">{n.message}</p>
-                                        <p className="notif-item-time">{timeAgo(n.date)}</p>
+                                        <p className="notif-item-time">{timeAgo(n.created_at)}</p>
                                     </IonLabel>
-
-                                    {/* Bouton supprimer */}
-                                    <IonButton
-                                        slot="end"
-                                        fill="clear"
-                                        size="small"
-                                        color="medium"
+                                    <IonButton slot="end" fill="clear" size="small" color="medium"
                                         className="notif-delete-btn"
                                         onClick={e => handleDelete(e, n.id)}
-                                        title="Supprimer"
-                                        aria-label="Supprimer la notification"
-                                    >
+                                        title="Supprimer" aria-label="Supprimer la notification">
                                         <IonIcon slot="icon-only" icon={trashOutline} />
                                     </IonButton>
                                 </IonItem>

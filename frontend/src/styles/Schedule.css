@@ -1,4 +1,4 @@
-/* ════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════
    Schedule.css — préfixe sc-
    ════════════════════════════════════════════ */
 
@@ -19,17 +19,17 @@
 .sc-hero::after  { content:''; position:absolute; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,0.05); bottom:-30px; right:80px; pointer-events:none; }
 
 .sc-hero-text    { flex:1; min-width:0; position:relative; z-index:1; }
-.sc-hero-title   { font-size:1.4rem; font-weight:800; color:#fff; margin:0 0 0.35rem; line-height:1.2; letter-spacing:-0.01em; }
-.sc-hero-sub     { font-size:0.85rem; color:rgba(255,255,255,0.78); margin:0 0 1rem; }
+.sc-hero-title   { font-size: var(--cfi-fs-xl); font-weight:800; color:#fff; margin:0 0 0.35rem; line-height:1.2; letter-spacing:-0.01em; }
+.sc-hero-sub     { font-size: var(--cfi-fs-sm); color:rgba(255,255,255,0.78); margin:0 0 1rem; }
 
 .sc-hero-badges  { display:flex; gap:0.5rem; flex-wrap:wrap; }
 .sc-hero-badge   {
     display:inline-flex; align-items:center; gap:0.3rem;
     padding:0.3rem 0.75rem; border-radius:999px;
     background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25);
-    font-size:0.75rem; font-weight:600; color:#fff; backdrop-filter:blur(4px);
+    font-size: var(--cfi-fs-xs); font-weight:600; color:#fff; backdrop-filter:blur(4px);
 }
-.sc-hero-badge ion-icon { font-size:0.85rem; }
+.sc-hero-badge ion-icon { font-size: var(--cfi-fs-sm); }
 
 .sc-hero-actions { flex-shrink:0; position:relative; z-index:1; }
 
@@ -43,7 +43,7 @@
 
 @media (max-width:576px) {
     .sc-hero         { flex-direction:column; align-items:flex-start; padding:1.25rem; }
-    .sc-hero-title   { font-size:1.2rem; }
+    .sc-hero-title   { font-size: var(--cfi-fs-lg); }
     .sc-hero-actions { width:100%; }
     .sc-export-btn   { width:100%; }
 }
@@ -68,11 +68,11 @@
     --color:         var(--ion-color-primary) !important;
     --border-color:  var(--ion-color-primary) !important;
     height:          36px !important;
-    font-size:       0.82rem !important;
+    font-size: var(--cfi-fs-sm) !important;
 }
 
 .sc-week-label {
-    font-size:   0.85rem;
+    font-size: var(--cfi-fs-sm);
     font-weight: 600;
     color:       var(--ion-color-dark);
     margin-left: 0.25rem;
@@ -86,10 +86,10 @@
     justify-content: center;
     padding:         3rem 1rem;
     color:           var(--ion-color-medium);
-    font-size:       0.875rem;
+    font-size: var(--cfi-fs-base);
     text-align:      center;
 }
-.sc-empty-icon { font-size:3rem; opacity:0.3; margin-bottom:0.75rem; }
+.sc-empty-icon { font-size: var(--cfi-fs-3xl); opacity:0.3; margin-bottom:0.75rem; }
 
 /* ── Grille ── */
 .sc-grid-wrap {
@@ -130,7 +130,7 @@
 .sc-day-header--today { background:rgba(var(--ion-color-primary-rgb),0.06); }
 
 .sc-day-name {
-    font-size:      0.68rem;
+    font-size: var(--cfi-fs-xs);
     font-weight:    600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -138,7 +138,7 @@
 }
 
 .sc-day-num {
-    font-size:   1rem;
+    font-size: var(--cfi-fs-base);
     font-weight: 700;
     color:       var(--ion-color-dark);
     width:       28px;
@@ -161,7 +161,7 @@
     align-items:     flex-start;
     justify-content: center;
     padding:         0.625rem 0.375rem 0;
-    font-size:       0.68rem;
+    font-size: var(--cfi-fs-xs);
     font-weight:     600;
     color:           var(--ion-color-medium);
     min-width:       64px;
@@ -241,7 +241,7 @@
 .sc-event--info .sc-event-room    { color:var(--ion-color-tertiary,#5260ff); }
 
 .sc-event-subject {
-    font-size:     0.75rem;
+    font-size: var(--cfi-fs-xs);
     font-weight:   700;
     line-height:   1.2;
     white-space:   nowrap;
@@ -254,23 +254,33 @@
     display:     flex;
     align-items: center;
     gap:         0.2rem;
-    font-size:   0.65rem;
+    font-size: var(--cfi-fs-xs);
     opacity:     0.85;
 }
-.sc-event-room ion-icon { font-size:0.75rem; flex-shrink:0; }
+.sc-event-room ion-icon { font-size: var(--cfi-fs-xs); flex-shrink:0; }
 
 .sc-event-badge { margin-top:0.125rem; }
 
 /* ── Responsive ── */
 @media (max-width:768px) {
     .sc-grid           { min-width:640px; }
-    .sc-event-subject  { font-size:0.68rem; }
+    .sc-event-subject  { font-size: var(--cfi-fs-xs); }
     .sc-event-room     { display:none; }
 }
 
 @media (max-width:480px) {
     .sc-header-row,
     .sc-hour-row { grid-template-columns: 48px repeat(6, 1fr); }
-    .sc-time-cell { min-width:48px; font-size:0.62rem; }
+    .sc-time-cell { min-width:48px; font-size: var(--cfi-fs-xs); }
     .sc-grid      { min-width:540px; }
+}
+
+/* ── Responsive patch ── */
+.sc-hero-title {
+    font-size: clamp(1.2rem, 0.9rem + 1.2vw, 1.75rem) !important;
+}
+@media (max-width: 575px) {
+    .sc-grid       { grid-template-columns: repeat(2, 1fr); }
+    .sc-hero       { flex-direction: column; }
+    .sc-form-grid  { grid-template-columns: 1fr; }
 }

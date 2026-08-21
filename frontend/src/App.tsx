@@ -19,6 +19,7 @@ import '@ionic/react/css/palettes/dark.class.css';
 /* Theme & global styles */
 import './theme/variables.css';
 import './theme/global.css';
+import './styles/responsive.css';
 
 import { AuthProvider } from './components/providers/AuthProvider';
 import { ToastProvider } from './components/providers/ToastProvider';
@@ -32,6 +33,7 @@ import NotFound  from './components/NotFound';
 import Landing   from './pages/Landing';
 import Login     from './pages/auth/Login';
 import Register  from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import ManageUsers     from './pages/admin/ManageUsers';
 import ManageCodes     from './pages/admin/ManageCodes';
@@ -213,6 +215,9 @@ const AppRoutes: React.FC = () => {
             </Route>
             <Route exact path="/register">
                 {user ? <Redirect to="/dashboard" /> : <Register />}
+            </Route>
+            <Route exact path="/forgot-password">
+                {user ? <Redirect to="/dashboard" /> : <ForgotPassword />}
             </Route>
 
             {/* Racine : redirige selon l'état auth */}

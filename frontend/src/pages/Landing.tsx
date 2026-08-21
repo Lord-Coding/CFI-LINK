@@ -1,8 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { arrowForwardOutline, bookOutline, desktopOutline, documentTextOutline, IonButton, IonCol, IonContent, IonGrid, IonIcon, IonPage, IonRow, moonOutline, peopleOutline, ribbonOutline, schoolOutline, shieldOutline, sunnyOutline } from '../lib/ionic';
 import { Card, CardContent } from '../components';
 import { useTheme } from '../hooks/useTheme';
+import LogoHeader from "../../public/logo.png";
 import '../styles/LandingPage.css';
 
 
@@ -25,9 +26,8 @@ const Landing: React.FC = () => {
           <div className="landing-nav-inner">
             <Link to="/" className="landing-nav-brand">
               <div className="landing-nav-logo">
-                <IonIcon icon={schoolOutline}></IonIcon>
+                <img src={LogoHeader} alt="logo"></img>
               </div>
-              <span className="landing-nav-name">CFI-LINK</span>
             </Link>
 
             <div className="landing-nav-links">
@@ -81,9 +81,13 @@ const Landing: React.FC = () => {
               </a>
             </div>
           </div>
-          <div className="landing-hero-wave">
-            <svg viewBox="0 0 1440 100" preserveAspectRatio="none">
-              <path d="M0 40C360 100 720 0 1440 60V100H0V40Z" fill="var(--ion-background-color, #fff)" />
+         {/* Wave animée à l'intérieur du hero */}
+          <div className="landing-hero-wave" aria-hidden="true">
+            <svg className="landing-wave-svg landing-wave-svg--back"  viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0,60 C240,110 480,10 720,60 C960,110 1200,10 1440,60 L1440,120 L0,120 Z" className="landing-wave-path" />
+            </svg>
+            <svg className="landing-wave-svg landing-wave-svg--front" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0,80 C240,30  480,120 720,70 C960,20  1200,110 1440,60 L1440,120 L0,120 Z" className="landing-wave-path" />
             </svg>
           </div>
         </section>
@@ -165,7 +169,7 @@ const Landing: React.FC = () => {
         <footer id="about" className="landing-footer">
           <div className="landing-container landing-footer-inner">
             <div className="landing-footer-brand">
-              <div className="landing-footer-logo"><IonIcon icon={schoolOutline} /></div>
+              <div className="landing-footer-logo"><img src="/favicon.png" alt="logo" /></div>
               <div>
                 <h3 className="landing-footer-name">CFI-LINK</h3>
                 <p className="landing-footer-sub">CFI-CIRAS — Plateforme académique</p>

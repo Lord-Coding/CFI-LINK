@@ -9,12 +9,19 @@ import {
 } from 'ionicons/icons';
 import { useQuery } from '@tanstack/react-query';
 import { userService } from '../../lib/services/userService';
+import type { ApiUser } from '../../lib/services/authService';
 import { paymentService } from '../../lib/services/paymentService';
+import type { ApiPaymentRecord } from '../../lib/services/paymentService';
 import { gradeService } from '../../lib/services/gradeService';
+import type { ApiGrade } from '../../lib/services/gradeService';
 import { attendanceService } from '../../lib/services/attendanceService';
+import type { ApiAttendance } from '../../lib/services/attendanceService';
 import { courseService } from '../../lib/services/courseService';
+import type { ApiCourse } from '../../lib/services/courseService';
 import { codesService } from '../../lib/services/codesService';
+import type { ApiConcoursCode, ApiValidationCode } from '../../lib/services/codesService';
 import { auditService } from '../../lib/services/auditService';
+import type { ApiAuditLog } from '../../lib/services/auditService';
 import { Card, CardContent, CardHeader, CardTitle, Badge } from '../../components';
 import DashboardLayout from '../../components/DashboardLayout';
 import '../../styles/admin/AdminStats.css';
@@ -22,14 +29,14 @@ import '../../styles/admin/AdminStats.css';
 const MONTHLY_FEE = 25000;
 
 const AdminStats: React.FC = () => {
-    const { data: users           = [] } = useQuery({ queryKey: ['users'],            queryFn: userService.list });
-    const { data: payments        = [] } = useQuery({ queryKey: ['payments', 'admin'], queryFn: paymentService.list });
-    const { data: concoursCodes   = [] } = useQuery({ queryKey: ['codes', 'concours'], queryFn: codesService.listConcours });
-    const { data: validationCodes = [] } = useQuery({ queryKey: ['codes', 'validation'], queryFn: codesService.listValidation });
-    const { data: allGrades       = [] } = useQuery({ queryKey: ['grades'],            queryFn: () => gradeService.list() });
-    const { data: attendanceRecs  = [] } = useQuery({ queryKey: ['attendance', 'all'], queryFn: () => attendanceService.list() });
-    const { data: allCourses      = [] } = useQuery({ queryKey: ['courses'],           queryFn: courseService.list });
-    const { data: auditEntries    = [] } = useQuery({ queryKey: ['audit-logs', 'recent'], queryFn: () => auditService.list() });
+    const { data: users           = [] } = useQuery({ queryKey: ['users'],             queryFn: userService.list as () => Promise<ApiUser[]> });
+    const { data: payments        = [] } = useQuery({ queryKey: ['payments', 'admin'],  queryFn: paymentService.list as () => Promise<ApiPaymentRecord[]> });
+    const { data: concoursCodes   = [] } = useQuery({ queryKey: ['codes', 'concours'],  queryFn: codesService.listConcours as () => Promise<ApiConcoursCode[]> });
+    const { data: validationCodes = [] } = useQuery({ queryKey: ['codes', 'validation'],queryFn: codesService.listValidation as () => Promise<ApiValidationCode[]> });
+    const { data: allGrades       = [] } = useQuery({ queryKey: ['grades'],             queryFn: () => gradeService.list() as Promise<ApiGrade[]> });
+    const { data: attendanceRecs  = [] } = useQuery({ queryKey: ['attendance', 'all'],  queryFn: () => attendanceService.list() as Promise<ApiAttendance[]> });
+    const { data: allCourses      = [] } = useQuery({ queryKey: ['courses'],            queryFn: courseService.list as () => Promise<ApiCourse[]> });
+    const { data: auditEntries    = [] } = useQuery({ queryKey: ['audit-logs', 'recent'],queryFn: () => auditService.list() as Promise<ApiAuditLog[]> });
 
     const students        = users.filter((u: {role: string}) => u.role === 'etudiant_concours' || u.role === 'etudiant_externe');
     const professors      = users.filter((u: {role: string}) => u.role === 'professeur');
@@ -315,7 +322,7 @@ const AdminStats: React.FC = () => {
                                 </div>
                             </CardHeader>
                             <CardContent padding="md">
-                                {attendanceRecords.length === 0 ? (
+                                {attendanceRecs.length === 0 ? (
                                     <p className="as-activity-empty">Aucune donnée de présence.</p>
                                 ) : (
                                     <div className="as-filiere-list">
@@ -456,7 +463,7 @@ const AdminStats: React.FC = () => {
                         <Card variant="default" className="as-card">
                             <CardHeader><div className="as-card-header"><IonIcon icon={clipboardOutline} className="as-card-header-icon--info" /><CardTitle>Présences par filière</CardTitle></div></CardHeader>
                             <CardContent padding="md">
-                                {attendanceRecords.length === 0 ? <p className="as-activity-empty">Aucune donnée de présence.</p> : (
+                                {attendanceRecs.length === 0 ? <p className="as-activity-empty">Aucune donnée de présence.</p> : (
                                     <div className="as-filiere-list">{attByFiliere.map(a => (<div key={a.filiere} className="as-filiere-item"><div className="as-filiere-label"><span>{a.filiere}</span><div style={{display:'flex',gap:'0.4rem'}}><Badge variant="success" size="sm">{a.present} présents</Badge><Badge variant="danger" size="sm">{a.absent} absences</Badge></div></div><div className="as-progress-wrap"><IonProgressBar value={a.rate/100} className="as-progress" /><span className="as-progress-pct">{a.rate}%</span></div></div>))}</div>
                                 )}
                             </CardContent>

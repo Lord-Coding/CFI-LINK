@@ -1,4 +1,4 @@
-/* ════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════
    _OnboardingModal.css
    ════════════════════════════════════════════ */
 
@@ -72,7 +72,7 @@
     justify-content: center;
     cursor:      pointer;
     color:       var(--ion-color-medium);
-    font-size:   1.1rem;
+    font-size: var(--cfi-fs-md);
     transition:  background 0.15s;
     z-index:     1;
 }
@@ -129,7 +129,7 @@
     margin:          0 auto 1.25rem;
 }
 
-.ob-icon-wrap ion-icon { font-size: 2rem; color: #fff; }
+.ob-icon-wrap ion-icon { font-size: var(--cfi-fs-3xl); color: #fff; }
 
 .ob-icon-wrap--primary  { background: var(--ion-color-primary);  box-shadow: 0 8px 24px rgba(var(--ion-color-primary-rgb),  0.35); }
 .ob-icon-wrap--success  { background: var(--ion-color-success);   box-shadow: 0 8px 24px rgba(var(--ion-color-success-rgb),  0.3);  }
@@ -140,7 +140,7 @@
 
 /* ── Titre et description ── */
 .ob-title {
-    font-size:      1.2rem;
+    font-size: var(--cfi-fs-lg);
     font-weight:    800;
     color:          var(--ion-color-dark);
     margin:         0 0 0.75rem;
@@ -149,7 +149,7 @@
 }
 
 .ob-description {
-    font-size:   0.9rem;
+    font-size: var(--cfi-fs-base);
     color:       var(--ion-color-medium-shade, #666);
     line-height: 1.6;
     margin:      0 0 1rem;
@@ -167,7 +167,7 @@
 
 .ob-tip-label {
     display:     block;
-    font-size:   0.72rem;
+    font-size: var(--cfi-fs-xs);
     font-weight: 700;
     color:       var(--ion-color-primary);
     margin-bottom: 0.3rem;
@@ -176,7 +176,7 @@
 }
 
 .ob-tip-text {
-    font-size:   0.82rem;
+    font-size: var(--cfi-fs-sm);
     color:       var(--ion-color-dark-tint, #444);
     margin:      0;
     line-height: 1.5;
@@ -185,7 +185,7 @@
 /* ── Compteur ── */
 .ob-counter {
     text-align:  center;
-    font-size:   0.72rem;
+    font-size: var(--cfi-fs-xs);
     color:       var(--ion-color-medium);
     margin:      1.25rem 0 0;
     font-weight: 500;
@@ -202,7 +202,7 @@
 .ob-btn-prev {
     flex-shrink: 0;
     --color:     var(--ion-color-medium);
-    font-size:   0.85rem;
+    font-size: var(--cfi-fs-sm);
 }
 
 .ob-btn-next {
@@ -219,7 +219,7 @@
     background: none;
     border:     none;
     color:      var(--ion-color-medium);
-    font-size:  0.78rem;
+    font-size: var(--cfi-fs-xs);
     cursor:     pointer;
     padding:    0.5rem 0 0;
     transition: color 0.15s;
@@ -255,15 +255,15 @@
         margin:        0 0.5rem;
     }
 
-    .ob-title       { font-size: 1.05rem; }
-    .ob-description { font-size: 0.85rem; }
+    .ob-title       { font-size: var(--cfi-fs-md); }
+    .ob-description { font-size: var(--cfi-fs-sm); }
 
     .ob-icon-wrap {
         width:         60px;
         height:        60px;
         border-radius: 16px;
     }
-    .ob-icon-wrap ion-icon { font-size: 1.6rem; }
+    .ob-icon-wrap ion-icon { font-size: var(--cfi-fs-2xl); }
 
     .ob-actions { flex-direction: column-reverse; }
     .ob-btn-prev { width: 100%; }

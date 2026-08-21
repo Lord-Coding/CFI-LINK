@@ -31,27 +31,6 @@ type PayBadge = 'success' | 'warning' | 'danger' | 'secondary';
 const STATUS_BADGE: Record<string, PayBadge> = { confirmed: 'success', pending: 'warning', rejected: 'danger' };
 const STATUS_LABEL: Record<string, string> = { confirmed: 'Confirmé', pending: 'En attente', rejected: 'Rejeté' };
 
-const MONTHS = [
-    'Octobre 2024', 'Novembre 2024', 'Décembre 2024',
-    'Janvier 2025', 'Février 2025', 'Mars 2025',
-    'Avril 2025',   'Mai 2025',     'Juin 2025',
-];
-
-type PayBadge = 'success' | 'warning' | 'danger' | 'secondary';
-const STATUS_BADGE: Record<string, PayBadge> = {
-    confirmed: 'success', pending: 'warning', rejected: 'danger',
-};
-const STATUS_LABEL: Record<string, string> = {
-    confirmed: 'Confirmé', pending: 'En attente', rejected: 'Rejeté',
-};
-
-/* ── Icône méthode ── */
-const METHOD_ICON: Record<PaymentMethod, string> = {
-    cash:         cashOutline,
-    mobile_money: phonePortraitOutline,
-    card:         cardOutline,
-};
-
 /* ════════════════════════════════
    Vue Étudiant
 ════════════════════════════════ */

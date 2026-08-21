@@ -27,100 +27,102 @@ CFI-LINK est une application académique tout-en-un conçue pour numériser et c
 
 L'application est pensée pour fonctionner sur web (navigateur) et sur mobile natif (Android et iOS) depuis une seule base de code.
 
+**Technologies principales :**
+- Frontend : React 19 + Ionic 8 + TypeScript + TanStack Query v5
+- Backend : Laravel 13 + Sanctum + Reverb (WebSocket)
+- Base de données : MySQL 8 (cfi_link_db)
+- Notifications temps réel : Laravel Reverb + Laravel Echo
 
 ---
 
 ## 2. Fonctionnalités
 
 ### Pour les étudiants (concours et externes)
-- **Tableau de bord** personnalisé : résumé des notes, présences, paiements, prochains événements
-- **Cours** : liste des matières par filière et niveau, fiches détaillées
-- **E-Learning** : modules de cours en ligne avec vidéos, documents, quiz et examens ; suivi de progression par leçon
-- **Notes** : consultation des résultats publiés (CC, TP, Examen, moyenne pondérée par coefficient)
-- **Paiements** : historique des paiements de scolarité, soumission d'un paiement, validation par code
-- **Présences** : consultation de son taux de présence par cours et par période
-- **Emploi du temps** : planning hebdomadaire filtré par filière, niveau et option
-- **Annonces** : fil d'annonces institutionnelles classées par priorité (normale, importante, urgente)
-- **Documents administratifs** : demande en ligne d'attestations, relevés de notes, certificats
-- **Bibliothèque** : accès à la bibliothèque numérique (livres, articles, mémoires, guides)
-- **Messages** : messagerie interne entre membres de l'établissement
-- **Communauté** : fil de posts étudiants avec système de likes
-- **Forum** : discussions par sujet avec réponses imbriquées
-- **Calendrier** : vue mensuelle des examens, deadlines, événements et jours fériés
-- **Notifications** : alertes en temps réel (notes publiées, absences, paiements, annonces)
+
+- **Tableau de bord** : résumé des notes, présences, paiements, événements
+- **Cours** : liste par filière/niveau, fiches détaillées
+- **E-Learning** : vidéos, documents, quiz, examens ; suivi de progression
+- **Notes** : consultation des résultats publiés (CC, TP, Examen, moyenne pondérée)
+- **Paiements** : historique, soumission, validation par code
+- **Présences** : taux de présence par cours
+- **Emploi du temps** : planning filtré par filière/niveau/option
+- **Annonces** : fil institutionnel (normale / importante / urgente)
+- **Documents** : demande d'attestations, relevés, certificats
+- **Bibliothèque** : livres, articles, mémoires, guides
+- **Messages** : messagerie interne
+- **Communauté** : fil de posts étudiants
+- **Forum** : discussions avec réponses imbriquées
+- **Calendrier** : examens, deadlines, événements
+- **Notifications temps réel** : via Laravel Reverb (WebSocket)
 
 ### Pour les professeurs
-- Saisie et publication des notes (CC, TP, Examen) par cours
-- Marquage des présences par séance
-- Gestion des cours et des leçons (contenu E-Learning)
-- Envoi de messages aux étudiants
-- Publication d'annonces
 
-### Pour le personnel administratif (secrétariat, comptabilité, scolarité)
-- Traitement des demandes de documents (selon le rôle : secretariat / responsable_scolarite)
-- Gestion des paiements et validation des codes de paiement (comptable)
-- Gestion des emplois du temps
+- Saisie et publication des notes
+- Marquage des présences (appel en salle)
+- Gestion des cours et leçons
+- Envoi de messages, annonces
 
-### Pour les administrateurs (Directeur, Super Admin)
-- **Gestion des utilisateurs** : créer, activer/désactiver, modifier, supprimer tous les comptes
-- **Gestion des codes** : codes concours (étudiants admis) et codes de validation (étudiants externes)
-- **Gestion des paiements** : vue globale, confirmation/rejet, blocage de comptes
-- **Gestion des semestres** : créer et activer les périodes académiques
-- **Statistiques** : tableaux de bord analytiques (répartition des étudiants, taux de présence, progression E-Learning, état des notes)
-- **Journal d'audit** : historique complet de toutes les actions effectuées sur la plateforme
+### Pour le personnel administratif
 
+- Traitement des demandes de documents
+- Gestion des paiements (comptabilité)
+- Emplois du temps
+
+### Pour les administrateurs
+
+- **Gestion des utilisateurs** : CRUD complet, activation/désactivation
+- **Codes d'accès** : codes concours + codes validation externe
+- **Paiements** : vue globale, confirmation/rejet, blocage de comptes
+- **Semestres** : création et activation
+- **Statistiques** : agrégats sur tous les domaines
+- **Journal d'audit** : historique de toutes les actions
 
 ---
 
 ## 3. Architecture technique
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         CLIENT                              │
-│                                                             │
-│   React 19 + TypeScript + Ionic 8 + React Router 5         │
-│   Vite 5  (bundler)   ·   Capacitor 8 (iOS / Android)      │
-│                                                             │
-│   État actuel : données métier dans localStorage (18 stores)│
-│   Cible       : consommation de l'API Laravel via Axios     │
-└───────────────────────────┬─────────────────────────────────┘
-                            │  HTTP/JSON (REST)
-                            │  Auth : Laravel Sanctum
-┌───────────────────────────▼─────────────────────────────────┐
-│                        SERVEUR                              │
-│                                                             │
-│   Laravel 13  ·  PHP 8.3  ·  Laravel Sanctum               │
-│   Base de données : SQLite (dev) → MySQL/PostgreSQL (prod)  │
-│                                                             │
-│   État actuel : squelette Laravel (1 route, modèle User)   │
-│   Cible       : API complète (auth, users, notes, paiements,│
-│                 présences, cours, audit, documents…)        │
-└─────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                CLIENT (React + Ionic)                         │
+│  React 19 · TypeScript · Ionic 8 · TanStack Query v5         │
+│  Vite 5 · Capacitor 8 (iOS/Android)                          │
+│  Laravel Echo + Reverb → notifications temps réel             │
+│  Token Bearer en sessionStorage · 0 donnée sensible en LS    │
+└──────────────────────────┬────────────────────────────────────┘
+                           │ HTTPS + Axios + Bearer Token
+                           ▼
+┌───────────────────────────────────────────────────────────────┐
+│                SERVER (Laravel 13)                            │
+│  ~65 routes REST · Sanctum auth · Reverb WS                   │
+│  Rate limiting · Pagination · Logging (daily + Slack)         │
+│  AuditService · NotificationService · ResendMailService       │
+└──────────────────────────┬────────────────────────────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │  MySQL 8    │
+                    │ cfi_link_db │
+                    │  24 tables  │
+                    └─────────────┘
 ```
 
-### Stack frontend
+### Stack
 
-| Technologie | Version | Rôle |
-|---|---|---|
-| React | 19.0.0 | Framework UI |
-| TypeScript | ~5.9 | Typage statique |
-| Ionic React | ^8.5 | Composants UI mobile-first |
-| React Router | ^5.3 | Navigation SPA |
-| Capacitor | 8.3.4 | Build iOS / Android natif |
-| Vite | ^5.0 | Bundler et dev server |
-| Vitest | ^0.34 | Tests unitaires |
-| Cypress | ^13.5 | Tests end-to-end |
-
-### Stack backend
-
-| Technologie | Version | Rôle |
-|---|---|---|
-| Laravel | ^13.8 | Framework PHP |
-| PHP | ^8.3 | Langage serveur |
-| Laravel Sanctum | ^4.0 | Authentification SPA / API tokens |
-| SQLite | — | Base de données (développement) |
-| PHPUnit | ^12.5 | Tests backend |
-
+| Layer | Technologie | Version |
+|-------|-------------|---------|
+| UI Framework | React | 19.0 |
+| Mobile UI | Ionic React | 8.5 |
+| Language | TypeScript | ~5.9 |
+| Build | Vite | 5.4 |
+| State/Cache | TanStack Query | v5 |
+| HTTP Client | Axios | ^1.7 |
+| WebSocket | Laravel Echo + Reverb | — |
+| Mobile | Capacitor | 8.3 |
+| Backend | Laravel | 13.8 |
+| Auth | Laravel Sanctum | 4.0 |
+| DB | MySQL | 8.x |
+| WebSocket server | Laravel Reverb | 1.x |
+| Email | Resend API | — |
+| Tests | PHPUnit | 12.5 |
 
 ---
 
@@ -128,95 +130,75 @@ L'application est pensée pour fonctionner sur web (navigateur) et sur mobile na
 
 ```
 CFI-LINK/
-├── frontend/                        # Application React/Ionic
+├── frontend/                     # Application React/Ionic
 │   ├── src/
-│   │   ├── assets/                  # Images, icônes
-│   │   ├── components/              # Composants réutilisables (UI)
-│   │   ├── constants/               # Constantes globales
-│   │   ├── contexts/                # Contextes React (auth, thème…)
-│   │   ├── hooks/                   # Custom hooks
-│   │   ├── lib/                     # Stores de données (localStorage → API)
-│   │   │   ├── store.ts             # Utilisateurs, auth, codes d'accès, paiements
-│   │   │   ├── payment-store.ts     # Enregistrements de paiements
-│   │   │   ├── grades-store.ts      # Notes et publication
-│   │   │   ├── attendance-store.ts  # Présences
-│   │   │   ├── courses-data.ts      # Cours et leçons
-│   │   │   ├── elearning-store.ts   # Progression E-Learning
-│   │   │   ├── announcements-store.ts
-│   │   │   ├── schedule-store.ts    # Emplois du temps
-│   │   │   ├── semester-store.ts    # Semestres académiques
-│   │   │   ├── notifications.ts     # Notifications in-app
-│   │   │   ├── messages-store.ts    # Messagerie interne
-│   │   │   ├── community-store.ts   # Posts communauté
-│   │   │   ├── forum-store.ts       # Forum avec réponses imbriquées
-│   │   │   ├── library-store.ts     # Bibliothèque numérique
-│   │   │   ├── documents-store.ts   # Demandes de documents admin
-│   │   │   ├── events-store.ts      # Événements calendrier
-│   │   │   └── audit-store.ts       # Journal d'audit
-│   │   ├── pages/
-│   │   │   ├── auth/                # Login, Register
-│   │   │   ├── admin/               # AdminStats, AuditLog, ManageCodes,
-│   │   │   │                        # ManagePayments, ManageSemesters, ManageUsers
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── Courses.tsx / CourseDetail.tsx
-│   │   │   ├── ELearning.tsx
-│   │   │   ├── Grades.tsx
-│   │   │   ├── Payments.tsx
-│   │   │   ├── Attendance.tsx
-│   │   │   ├── Schedule.tsx
-│   │   │   ├── Announcements.tsx
-│   │   │   ├── Documents.tsx
-│   │   │   ├── Library.tsx
-│   │   │   ├── Messages.tsx
-│   │   │   ├── Community.tsx
-│   │   │   ├── Forum.tsx
-│   │   │   ├── CalendarPage.tsx
-│   │   │   ├── Settings.tsx
-│   │   │   └── Landing.tsx
-│   │   ├── styles/                  # CSS global et thème
-│   │   ├── theme/                   # Variables Ionic (couleurs…)
-│   │   ├── App.tsx                  # Racine de l'app + routes
-│   │   └── main.tsx                 # Point d'entrée React
-│   ├── android/                     # Projet Android (Capacitor)
-│   ├── ios/                         # Projet iOS (Capacitor)
-│   ├── package.json
-│   └── vite.config.ts
+│   │   ├── lib/
+│   │   │   ├── api.ts            # Axios centralisé
+│   │   │   ├── echo.ts           # Laravel Echo (Reverb)
+│   │   │   ├── store.ts          # Types + ROLE_LABELS
+│   │   │   └── services/         # 18 services API
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts
+│   │   │   ├── usePaginatedQuery.ts
+│   │   │   └── useRealTimeNotifications.ts
+│   │   ├── components/
+│   │   │   ├── providers/AuthProvider.tsx
+│   │   │   ├── DashboardLayout.tsx
+│   │   │   └── ui/Pagination.tsx
+│   │   ├── pages/                # 27 pages
+│   │   ├── styles/               # 44 fichiers CSS
+│   │   │   └── responsive.css    # Variables clamp() globales
+│   │   └── App.tsx
+│   ├── capacitor.config.ts       # appId: org.cficiras.cfilink
+│   └── .env.local
 │
-└── backend/                         # API Laravel
+└── backend/                      # API Laravel
     ├── app/
-    │   ├── Http/Controllers/        # Controllers (à créer)
-    │   ├── Models/                  # Modèles Eloquent
-    │   └── Providers/
+    │   ├── Http/Controllers/     # 18 controllers
+    │   ├── Models/               # 22 modèles Eloquent
+    │   ├── Services/             # AuditService, NotificationService, ResendMailService
+    │   ├── Events/               # CfiNotificationSent (broadcast)
+    │   └── Policies/             # UserPolicy
     ├── database/
-    │   ├── migrations/              # Migrations SQL
-    │   ├── factories/               # Factories pour les tests
-    │   └── seeders/                 # Données de départ
+    │   ├── migrations/           # 14 migrations (ordre corrigé)
+    │   ├── seeders/              # DatabaseSeeder + 4 seeders spécialisés
+    │   └── factories/            # 9 factories (tests)
     ├── routes/
-    │   └── api.php                  # Routes de l'API REST
+    │   ├── api.php               # ~65 routes
+    │   └── channels.php          # Canaux Reverb privés
     ├── config/
-    ├── tests/
-    ├── composer.json
-    └── .env
+    │   ├── cors.php              # HTTP + HTTPS
+    │   ├── broadcasting.php      # Reverb driver
+    │   └── logging.php           # daily + slack + sentry
+    └── tests/                    # 108 tests PHPUnit
+        ├── Feature/
+        │   ├── Auth/             # 20 tests
+        │   ├── Authorization/    # 10 tests
+        │   ├── Business/         # 19 tests
+        │   ├── Performance/      # 9 tests
+        │   ├── Security/         # 18 tests
+        │   └── Validation/       # 12 tests
+        └── Unit/                 # 20 tests
 ```
-
 
 ---
 
 ## 5. Prérequis
 
 ### Frontend
-- **Node.js** >= 20.x
-- **npm** >= 10.x
+- Node.js >= 20.x
+- npm >= 10.x
 
 ### Backend
-- **PHP** >= 8.3
-- **Composer** >= 2.x
-- **Extension PHP** : pdo, pdo_sqlite (dev), pdo_mysql (prod), mbstring, openssl, tokenizer, xml, ctype, json, bcmath
+- PHP >= 8.3
+- Composer >= 2.x
+- MySQL >= 8.x
+- Extensions PHP : pdo, pdo_mysql, mbstring, openssl, tokenizer, xml, bcmath
 
 ### Mobile (optionnel)
-- **Android Studio** avec SDK Android 35+ (pour le build Android)
-- **Xcode** 15+ sur macOS (pour le build iOS)
-- **Capacitor CLI** : `npm install -g @capacitor/cli`
+- Android Studio + SDK Android 35+
+- Xcode 15+ (macOS uniquement)
+- `npm install -g @capacitor/cli`
 
 ---
 
@@ -225,87 +207,64 @@ CFI-LINK/
 ### Frontend
 
 ```bash
-# 1. Se placer dans le dossier frontend
 cd frontend
-
-# 2. Installer les dépendances
 npm install
-
-# 3. Démarrer le serveur de développement
 npm run dev
-# L'application est accessible sur http://localhost:5173
+# Accessible sur http://localhost:5173
 ```
 
-Pour builder la version de production :
-
+Build production :
 ```bash
 npm run build
 ```
 
-Pour construire l'application mobile (après le build) :
-
+Build mobile :
 ```bash
-# Synchroniser le build dans les projets natifs
 npx cap sync
-
-# Ouvrir dans Android Studio
-npx cap open android
-
-# Ouvrir dans Xcode
-npx cap open ios
+npx cap open android   # ou ios
 ```
 
 ### Backend
 
 ```bash
-# 1. Se placer dans le dossier backend
 cd backend
 
-# 2. Installer les dépendances PHP
+# 1. Dépendances
 composer install
 
-# 3. Copier le fichier d'environnement
+# 2. Environnement
 cp .env.example .env
-
-# 4. Générer la clé d'application
 php artisan key:generate
 
-# 5. Créer la base de données SQLite (développement)
-touch database/database.sqlite
+# 3. Base de données MySQL
+# Créer la base : cfi_link_db
+# Configurer DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD dans .env
 
-# 6. Exécuter les migrations
-php artisan migrate
+# 4. Migrations + Seed
+php artisan migrate:fresh --seed
+# → Crée toutes les tables ET insère les données de démo
 
-# 7. Peupler la base avec des données de départ (quand le seeder sera prêt)
-php artisan db:seed
-
-# 8. Démarrer le serveur de développement
+# 5. Serveur de développement
 php artisan serve
-# L'API est accessible sur http://localhost:8000
+# API accessible sur http://localhost:8000
+
+# 6. WebSocket Reverb (optionnel, pour notifications temps réel)
+php artisan reverb:start
 ```
 
-Pour lancer les tests backend :
-
-```bash
-php artisan test
-```
-
-### Démarrage complet (dev)
-
-Le backend intègre un script `dev` qui lance tous les processus en parallèle :
+### Lancer tous les services en même temps
 
 ```bash
 cd backend
 composer run dev
-# Lance : php artisan serve · queue:listen · pail (logs) · vite
+# Lance simultanément : php artisan serve + queue:listen + pail (logs)
 ```
-
 
 ---
 
 ## 7. Comptes de démonstration
 
-> Ces comptes sont créés automatiquement lors de l'initialisation de l'application (actuellement via localStorage, futur : `DatabaseSeeder` Laravel).
+> Créés automatiquement par `php artisan migrate:fresh --seed`
 
 | Rôle | Email | Mot de passe |
 |------|-------|--------------|
@@ -314,161 +273,109 @@ composer run dev
 | Professeur | `owona@cfi-ciras.org` | `Prof@2024` |
 | Professeur | `mbarga@cfi-ciras.org` | `Prof@2024` |
 | Responsable scolarité | `secretariat@cfi-ciras.org` | `Staff@2024` |
-| Étudiant (concours) LIC L1 | `jean.kamga@etud.cfi-ciras.org` | `Etud@2024` |
-| Étudiant (concours) LIC L3 GL | `paul.essomba@etud.cfi-ciras.org` | `Etud@2024` |
-| Étudiant (externe) LAP L2 | `sophie.ateba@gmail.com` | `Etud@2024` |
+| Étudiant LIC L1 | `jean.kamga@etud.cfi-ciras.org` | `Etud@2024` |
+| Étudiant LIC L3 GL | `paul.essomba@etud.cfi-ciras.org` | `Etud@2024` |
+| Étudiant LAP L2 | `sophie.ateba@gmail.com` | `Etud@2024` |
 
-### Codes d'accès pour l'inscription
+### Codes d'accès disponibles pour l'inscription
 
 | Type | Code | Disponible |
 |------|------|-----------|
-| Concours (LIC L1) | `CONC-DEF456` | Oui |
-| Validation externe | `EXT-XYZ002` | Oui |
+| Concours (LAP L1) | `CONC-DEF456` | ✅ |
+| Validation externe | `EXT-XYZ002` | ✅ |
 
-> **Note de sécurité :** Ces identifiants sont uniquement pour l'environnement de développement et de démonstration. Ils doivent être changés avant tout déploiement en production.
+> **Sécurité :** Ces identifiants sont pour le développement/démo uniquement. Les changer en production.
 
 ---
 
 ## 8. Rôles et permissions
 
-L'application distingue 6 rôles, chacun avec un périmètre d'accès différent.
-
-| Rôle | Identifiant | Description |
-|------|-------------|-------------|
-| Super Administrateur | `super_admin` | Accès total, gestion des admins et de la configuration |
-| Directeur | `admin` | Gestion de l'établissement, utilisateurs, codes, statistiques |
-| Professeur | `professeur` | Saisie des notes, marquage des présences, gestion de ses cours |
-| Membre Administratif | `membre_administratif` | Accès conditionnel selon le sous-rôle (voir ci-dessous) |
-| Étudiant (concours) | `etudiant_concours` | Accès via code concours ; inscription nominative |
-| Étudiant (externe) | `etudiant_externe` | Accès via code de validation à durée limitée |
+| Rôle | `role` | Description |
+|------|--------|-------------|
+| Super Administrateur | `super_admin` | Accès total via Gate::before |
+| Directeur | `admin` | Gestion complète de l'établissement |
+| Professeur | `professeur` | Notes, présences, cours |
+| Personnel Administratif | `membre_administratif` | Selon sous-rôle |
+| Étudiant (concours) | `etudiant_concours` | Accès via code concours |
+| Étudiant (externe) | `etudiant_externe` | Accès via code validation |
 
 ### Sous-rôles du personnel administratif
 
 | Sous-rôle | `staff_role` | Accès |
 |-----------|-------------|-------|
 | Secrétariat | `secretariat` | Documents, emploi du temps |
-| Comptabilité | `comptable` | Paiements et finances uniquement |
-| Responsable Scolarité | `responsable_scolarite` | Documents, scolarité, emploi du temps |
-
+| Comptabilité | `comptable` | Paiements, codes paiement |
+| Responsable Scolarité | `responsable_scolarite` | Scolarité, documents |
 
 ---
 
 ## 9. Filières et niveaux
 
-### LIC — Licence Informatique et Communication
+### LIC — Licence Informatique et Communication (26 cours)
 
-| Niveau | Semestres | Options disponibles |
-|--------|-----------|---------------------|
-| L1 | S1, S2 | Tronc commun |
-| L2 | S3, S4 | Tronc commun |
-| L3 | S5, S6 | GL (Génie Logiciel) · SR (Systèmes & Réseaux) |
+| Niveau | Semestres | Options |
+|--------|-----------|---------|
+| L1 | S1, S2 | Tronc commun (7 cours) |
+| L2 | S3, S4 | Tronc commun (7 cours) |
+| L3 | S5, S6 | **GL** (Génie Logiciel, 5 cours) · **SR** (Systèmes & Réseaux, 5 cours) · Commun (2 cours) |
 
-**Option GL** — Génie Logiciel : architecture logicielle, tests qualité, développement mobile, gestion de projet.
+### LAP — Licence Administration Publique (15 cours)
 
-**Option SR** — Systèmes & Réseaux : administration système, sécurité des réseaux, cloud computing, télécommunications.
-
-### LAP — Licence Administration Publique
-
-| Niveau | Semestres | Options disponibles |
-|--------|-----------|---------------------|
-| L1 | S1, S2 | Tronc commun |
-| L2 | S3, S4 | Tronc commun |
-| L3 | S5, S6 | Tronc commun |
-
-Chaque filière dispose de son propre emploi du temps, de ses cours, de ses promotions et de ses notes.
-
-### Structure académique
-
-```
-Année académique 2024-2025
-├── L1  →  Semestre 1 (oct. 2024 – jan. 2025)  [ACTIF]
-│          Semestre 2 (fév. 2025 – juin 2025)
-├── L2  →  Semestre 3 (oct. 2024 – jan. 2025)
-│          Semestre 4 (fév. 2025 – juin 2025)
-└── L3  →  Semestre 5 (oct. 2024 – jan. 2025)
-           Semestre 6 (fév. 2025 – juin 2025)
-```
+| Niveau | Semestres |
+|--------|-----------|
+| L1 | S1, S2 (5 cours) |
+| L2 | S3, S4 (5 cours) |
+| L3 | S5, S6 (5 cours) |
 
 ---
 
 ## 10. État actuel du projet
 
-### Ce qui est fonctionnel (démonstration)
+### ✅ Entièrement fonctionnel
 
-L'application est entièrement fonctionnelle en mode démonstration : toutes les données sont stockées localement dans le `localStorage` du navigateur. Cela permet de tester l'intégralité des fonctionnalités sans serveur.
-
-| Module | État |
-|--------|------|
-| Authentification (login, register, logout) | Fonctionnel (localStorage) |
-| Gestion des utilisateurs | Fonctionnel (localStorage) |
-| Codes concours et validation | Fonctionnel (localStorage) |
-| Notes (saisie, publication, consultation) | Fonctionnel (localStorage) |
-| Paiements (suivi, validation par code) | Fonctionnel (localStorage) |
-| Présences (marquage, stats) | Fonctionnel (localStorage) |
-| Emploi du temps | Fonctionnel (localStorage) |
-| E-Learning (cours, quiz, progression) | Fonctionnel (localStorage) |
-| Annonces, Notifications | Fonctionnel (localStorage) |
-| Messages, Communauté, Forum | Fonctionnel (localStorage) |
-| Bibliothèque, Documents, Calendrier | Fonctionnel (localStorage) |
-| Audit Log, Statistiques admin | Fonctionnel (localStorage) |
-| Semestres | Fonctionnel (localStorage) |
-
-### Ce qui reste à construire
-
-| Module | État |
-|--------|------|
-| API Laravel (routes, controllers, models) | Non commencé |
-| Migrations complètes (18 tables) | Non commencé |
-| Tests backend PHPUnit | Non commencé |
-| Liaison frontend ↔ API | Non commencé |
-| Authentification sécurisée (bcrypt, Sanctum) | Non commencé |
-| Upload de fichiers (bibliothèque, documents) | Non commencé |
-| Génération PDF (attestations, relevés) | Non commencé |
-| Notifications temps réel (broadcasting) | Non commencé |
-
-> Pour le détail complet des tâches restantes, consulter [TODO.md](./TODO.md).
-
+| Module | Backend | Frontend | DB |
+|--------|---------|----------|-----|
+| Authentification | ✅ | ✅ | ✅ |
+| Gestion utilisateurs | ✅ | ✅ | ✅ |
+| Codes d'accès | ✅ | ✅ | ✅ |
+| Notes | ✅ | ✅ | ✅ |
+| Paiements | ✅ | ✅ | ✅ |
+| Présences | ✅ | ✅ | ✅ |
+| Cours + E-Learning | ✅ | ✅ | ✅ |
+| Emploi du temps | ✅ | ✅ | ✅ |
+| Annonces | ✅ | ✅ | ✅ |
+| Notifications temps réel | ✅ Reverb | ✅ Echo | ✅ |
+| Messages | ✅ | ✅ | ✅ |
+| Documents admin | ✅ | ✅ | ✅ |
+| Bibliothèque | ✅ | ✅ | ✅ |
+| Calendrier | ✅ | ✅ | ✅ |
+| Communauté + Forum | ✅ | ✅ | ✅ |
+| Audit Log | ✅ | ✅ | ✅ |
+| Réinitialisation MDP | ✅ Resend | ✅ | ✅ |
+| Semestres | ✅ | ✅ | ✅ |
+| Tests backend | ✅ 108 tests | — | — |
+| Responsivité CSS | — | ✅ clamp() | — |
+| Pagination | ✅ | ✅ | — |
+| Rate limiting | ✅ | — | — |
+| Logs production | ✅ | — | — |
 
 ---
 
 ## 11. Feuille de route
 
-La migration vers un backend complet se déroulera en 5 phases. Chaque phase livre un ensemble cohérent de fonctionnalités utilisables.
-
 ```
-Phase 1 — Fondations (🔴 priorité critique)
-  ├── Configuration CORS, .env, Sanctum
-  ├── Extension du modèle User (tous les champs métier)
-  ├── AuthController : login, logout, register, /me
-  ├── Service HTTP Axios côté frontend (api.ts)
-  └── AuthContext React (remplacement du store localStorage)
+✅ Phase 1 — Fondations          : CORS, .env, auth, migrations
+✅ Phase 2 — Données critiques   : codes, users, notes, paiements
+✅ Phase 3 — Liaison front/back  : services API, AuthContext, React Query
+✅ Phase 4 — Données secondaires : présences, planning, annonces, messages…
+✅ Phase 5 — Qualité & polish    : pagination, logs, tests, responsivité
 
-Phase 2 — Données critiques (🔴 priorité critique)
-  ├── Codes d'accès (concours + validation externe)
-  ├── Gestion des utilisateurs (CRUD + policies)
-  ├── Notes (saisie, publication, consultation sécurisée)
-  ├── Paiements (enregistrements, validation codes, blocage)
-  └── Tests PHPUnit pour auth + autorisation
-
-Phase 3 — Liaison frontend (🟠 priorité haute)
-  ├── Connexion des pages auth, dashboard, admin
-  ├── Connexion des pages notes et paiements
-  ├── TanStack Query (cache côté client)
-  └── Gestion des états de chargement et d'erreur
-
-Phase 4 — Données secondaires (🟠 → 🟡)
-  ├── Présences, emplois du temps, semestres
-  ├── Cours, leçons, progression E-Learning
-  ├── Annonces, notifications, messages
-  ├── Documents administratifs (+ génération PDF)
-  └── Bibliothèque, calendrier, audit log
-
-Phase 5 — Qualité & déploiement (🟡 → 🟢)
-  ├── Communauté et forum
-  ├── Notifications temps réel (Laravel Echo / Pusher)
-  ├── Configuration Capacitor pour la prod mobile
-  ├── Tests end-to-end Cypress
-  └── Configuration CI/CD et déploiement production
+🔄 Prochaines étapes :
+  → Code splitting React.lazy() — réduire le bundle initial
+  → @capacitor/share — impression PDF sur iOS
+  → date-fns fr-FR — localisation robuste sur Android
+  → Domaine production + HTTPS + SSL
+  → CI/CD GitHub Actions
 ```
 
 ---
