@@ -25,7 +25,7 @@ class AuthorizationSecurityTest extends TestCase
             'created_by' => $prof->id,
         ]);
 
-        $grades = $this->getJson('/api/grades', $ctx1['headers'])->assertOk()->json();
+        $grades = $this->getJson('/api/grades', $ctx1['headers'])->assertOk()->json('data');
 
         $this->assertEmpty(
             array_filter($grades, fn($g) => $g['student_id'] === $stud2->id)
@@ -40,7 +40,7 @@ class AuthorizationSecurityTest extends TestCase
 
         PaymentRecord::factory()->count(3)->create(['student_id' => $stud2->id]);
 
-        $payments = $this->getJson('/api/payments', $ctx1['headers'])->assertOk()->json();
+        $payments = $this->getJson('/api/payments', $ctx1['headers'])->assertOk()->json('data');
 
         $this->assertEmpty(
             array_filter($payments, fn($p) => $p['student_id'] === $stud2->id)

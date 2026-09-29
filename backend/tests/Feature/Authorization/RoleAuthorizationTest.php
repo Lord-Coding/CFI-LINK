@@ -103,7 +103,7 @@ class RoleAuthorizationTest extends TestCase
             'created_by' => $prof->id,
         ]);
 
-        $grades = $this->getJson('/api/grades', $ctx['headers'])->assertOk()->json();
+        $grades = $this->getJson('/api/grades', $ctx['headers'])->assertOk()->json('data');
 
         $this->assertCount(1, $grades);
         $this->assertEquals($ctx['user']->id, $grades[0]['student_id']);

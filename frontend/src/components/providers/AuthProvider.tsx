@@ -4,12 +4,11 @@ import { authService, type ApiUser } from "../../lib/services/authService";
 import { disconnectEcho, refreshEchoAuth } from "../../lib/echo";
 import type { User } from "../../lib/store";
 
-/** Adapte ApiUser (backend) → User (frontend) pour maintenir la compatibilité. */
 function adapt(u: ApiUser): User {
     return {
         id:              String(u.id),
         email:           u.email,
-        password:        '',            // jamais exposé côté client
+        password:        '',
         nom_complet:     u.nom_complet,
         role:            u.role as User['role'],
         is_active:       u.is_active,
@@ -29,7 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user,    setUser]    = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Restaurer la session depuis le token stocké
     useEffect(() => {
         const token = sessionStorage.getItem('cfi_token');
         if (!token) { setLoading(false); return; }

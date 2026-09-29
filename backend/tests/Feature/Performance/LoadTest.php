@@ -18,10 +18,11 @@ class LoadTest extends TestCase
         $start = microtime(true);
 
         for ($i = 0; $i < 50; $i++) {
-            $this->postJson('/api/login', [
-                'email'    => $users->random()->email,
-                'password' => 'LoadTest@1',
-            ])->assertOk();
+            $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class)
+                 ->postJson('/api/login', [
+                     'email'    => $users->random()->email,
+                     'password' => 'LoadTest@1',
+                 ])->assertOk();
         }
 
         $totalMs = (microtime(true) - $start) * 1000;
